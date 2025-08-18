@@ -1,0 +1,179 @@
+
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { motion as motionTyped, AnimatePresence } from 'framer-motion';
+import { BlogPostData, Page } from '../../types';
+import { sectionDelayShow, fadeInUpItemVariants, staggerContainerVariants } from '../../animationVariants';
+import BlogHeroCard from '../ui/BlogHeroCard';
+import { blogCategoryDefinitions } from '../data/blogData';
+import PostcardCarousel from '../ui/PostcardCarousel';
+import BlogTabs from '../ui/BlogTabs';
+import BlogCard from '../ui/BlogCardMasonry';
+import SectionTitle from '../ui/SectionTitle';
+import TopicCard from '../ui/TopicCard';
+import SectionDivider from '../ui/SectionDivider';
+
+
+// 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
+const motion: any = motionTyped;
+
+// 定義 BlogPage 組件的屬性介面
+export const BlogPage: React.FC<{
+  navigateTo: (page: Page, data?: any) => void; // 導航函數
+  allPosts: BlogPostData[]; // 從 App 組件傳入的所有部落格文章數據
+  onDeletePosts: (postIds: string[]) => void; // 刪除文章的回調函數
+  isSuperUser: boolean; // 用戶是否為超級管理員
+  navigateToLogin: () => void; // 導航到登入頁的函數
+}> = ({ navigateTo, allPosts, onDeletePosts, isSuperUser, navigateToLogin }) => {
+  // 使用 useTranslation 鉤子來獲取翻譯函數 t
+  const { t } = useTranslation();
+  
+  // --- 狀態管理 (useState) ---
+  
+  // `activeTabKey` 用於追蹤當前選中的分類標籤頁。預設為第一個分類。
+  const [activeTabKey, setActiveTabKey] = useState(blogCategoryDefinitions[0].titleKey);
+
+  // --- 計算屬性 (useMemo) ---
+
+  // `sortedPosts` 使用 useMemo 進行性能優化，只有在 `allPosts` 改變時才重新排序。
+  // 所有文章按創建時間戳 (`createdAt`) 降序排列，最新的文章會排在最前面。
+  const sortedPosts = useMemo(() => 
+    [...allPosts].sort((a, b) => b.createdAt - a.createdAt),
+  [allPosts]);
+
+  // `heroPosts` 選取最新排序後的前 6 篇文章，用於頁面頂部的英雄區塊輪播。
+  const heroPosts = sortedPosts.slice(0, 6);
+  
+  // `postcardPosts` 選取英雄區塊之後的 12 篇文章，用於明信片風格的輪播。
+  const postcardPosts = useMemo(() => sortedPosts.slice(6, 18), [sortedPosts]);
+  
+  // `tabs` 從 `blogCategoryDefinitions` 中生成標籤頁所需的數據結構。
+  const tabs = useMemo(() => 
+    blogCategoryDefinitions.map(def => ({ key: def.titleKey, titleKey: def.titleKey })), 
+  []);
+
+  // `topicsData` 為“相關話題”區塊生成數據，將分類定義與對應的圖片路徑結合。
+  const topicsData = [
+    {
+      ...blogCategoryDefinitions[0], // 攝影
+      image: '/images/photography.jpg',
+    },
+    {
+      ...blogCategoryDefinitions[1], // Solo學習日記
+      image: '/images/diary.jpg',
+    },
+    {
+      ...blogCategoryDefinitions[2], // 工具分享
+      image: '/images/tools.jpg',
+    },   
+  ];
+
+  // `postsForActiveTab` 根據當前活動的標籤 (`activeTabKey`) 過濾出對應分類的文章。
+  // 它會查找當前標籤的分類定義，然後從所有已排序的文章中篩選出屬於該分類的文章，並只取前 4 篇。
+  const postsForActiveTab = useMemo(() => {
+    const activeCategoryDef = blogCategoryDefinitions.find(def => def.titleKey === activeTabKey);
+    if (!activeCategoryDef) return [];
+    
+    return sortedPosts
+      .filter(post => post.categoryKey && activeCategoryDef.categoryKeys.includes(post.categoryKey))
+      .slice(0, 4); // 只取前4篇
+  }, [activeTabKey, sortedPosts]);
+
+  // --- 渲染 (JSX) ---
+  return (
+    <div className="space-y-8">
+      {/* 英雄區塊：只有在有文章時才渲染 */}
+      {heroPosts.length > 0 && (
+        <motion.div 
+          // 負邊距用於抵消父容器的 padding，使英雄區塊能夠全寬顯示
+          className="-m-6 md:-m-12"
+          // 使用 Framer Motion 實現延遲載入動畫
+          variants={sectionDelayShow(0)} 
+          initial="initial" 
+          animate="animate"
+        >
+          <BlogHeroCard posts={heroPosts} navigateTo={navigateTo} />
+        </motion.div>
+      )}
+
+      {/* 明信片風格的輪播區塊 */}
+      {postcardPosts.length > 0 && (
+        <motion.section {...sectionDelayShow(0.1)}>
+          <SectionDivider title={t('blogPage.trendingNow')} />
+          <PostcardCarousel posts={postcardPosts} navigateTo={navigateTo} />
+        </motion.section>
+      )}
+
+      {/* 話題/分類區塊 */}
+      <motion.section {...sectionDelayShow(0.2)}>
+        <SectionDivider title={t('blogPage.relatedTopics')} />
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          // 使用交錯容器動畫，使每個話題卡片依序出現
+          variants={staggerContainerVariants(0.1, 0.3)}
+          initial="initial"
+          whileInView="animate" // 當此區塊進入視圖時觸發動畫
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {topicsData.map((topic) => (
+            <motion.div key={topic.titleKey} variants={fadeInUpItemVariants}>
+              <TopicCard
+                titleKey={topic.titleKey}
+                image={topic.image}
+                onClick={() => navigateTo(Page.CategoryPage, topic)}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.section>
+
+      {/* 分類標籤頁與文章列表 */}
+      <section className="max-w-7xl mx-auto">
+        <SectionDivider title={t('blogPage.latestPosts')} />
+        <motion.div
+          variants={staggerContainerVariants(0.1, 0.2)}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          <motion.div variants={fadeInUpItemVariants}>
+            <BlogTabs 
+              tabs={tabs}
+              activeTabKey={activeTabKey}
+              onTabClick={setActiveTabKey}
+            />
+          </motion.div>
+          {/* AnimatePresence 用於處理切換標籤時文章列表的進入和退出動畫 */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTabKey} // key 的改變會觸發 AnimatePresence 的動畫
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
+              exit={{ opacity: 0, y: -20, transition: { duration: 0.3, ease: "easeInOut" } }}
+            >
+              {postsForActiveTab.length > 0 ? (
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {postsForActiveTab.map(post => (
+                    <BlogCard 
+                      key={post.id}
+                      post={post}
+                      onClick={() => navigateTo(Page.BlogPostDetail, post)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-theme-secondary py-10">{t('blogPage.noPostsFound')}</p>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </section>
+
+      {/* 如果沒有任何文章，顯示提示信息 */}
+      {allPosts.length === 0 && (
+        <p className="text-center text-theme-secondary py-10">{t('blogPage.noPostsFound')}</p>
+      )}      
+      <hr className="my-12 border-theme-primary" />      
+    </div>
+  );
+};

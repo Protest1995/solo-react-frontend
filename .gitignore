@@ -1,0 +1,38 @@
+# 一般作業系統產生的檔案
+.DS_Store
+Thumbs.db
+
+# Node.js 及 npm 相依套件
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log
+yarn-debug.log
+
+# 環境變數與密鑰相關檔案
+.env
+*.env
+*.pem
+
+# 建置產生的檔案
+dist/
+build/
+tmp/
+out/
+
+# IDE 相關檔案
+.idea/
+.vscode/
+*.suo
+*.swp
+*.iml
+
+# 日誌檔案
+*.log
+
+# 相依套件目錄（如果有在根目錄）
+jspm_packages/
+web_modules/
+
+# 額外項目 - 根據需求自訂
+/config.js

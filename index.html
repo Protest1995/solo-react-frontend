@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<!-- 指定文檔類型為 HTML5 -->
+<html lang="en">
+<!-- HTML 根元素，lang="en" 表示頁面主要語言為英文（i18next 會根據需要進行切換） -->
+<head>
+    <!-- head 區塊，包含頁面的元數據和資源連結 -->
+    <meta charset="UTF-8">
+    <!-- 指定頁面使用的字符編碼為 UTF-8，以支持多語言 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 設置視口，確保網頁在不同設備上（特別是移動設備）都能正確縮放和顯示 -->
+    <title>Solo - Portfolio</title>
+    <!-- 網頁標題，會顯示在瀏覽器分頁上 -->
+    <link rel="icon" href="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+    <!-- 網站圖標 (Favicon)，此處為一個透明的 1x1 GIF 作為佔位符，實際圖標由 index.tsx 動態生成 -->
+
+    <!-- --- 外部 CSS 資源連結 --- -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- 引入 Tailwind CSS 的樣式表，提供原子化的 CSS 工具類 -->
+    <link rel="stylesheet" href="https://esm.sh/swiper@11/swiper-bundle.min.css" />
+    <!-- 引入 Swiper.js 的 CSS，用於輪播組件的樣式 -->
+    <link rel="stylesheet" href="https://esm.sh/react-image-crop@11.0.6/dist/ReactCrop.css" />
+    <!-- 引入 React Image Crop 的 CSS，用於圖片裁剪功能的樣式 -->
+    <link rel="stylesheet" href="https://unpkg.com/@uiw/react-md-editor@4.0.4/markdown-editor.css" />
+    <!-- 引入 Markdown 編輯器的 CSS -->
+
+    <!-- --- 外部字體資源連結 --- -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- 預連接到 Google Fonts 伺服器，以加速字體載入 -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 預連接到 Google Fonts 的靜態資源伺服器 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- 引入三種字體：Inter (通用英文)、Noto Sans TC (繁體中文) 和 Playfair Display (標題裝飾) -->
+
+    <style>
+      /* --- CSS 變數和主題系統 --- */
+      /* :root 選擇器用於定義全域 CSS 變數 */
+      :root {
+        /* 基本強調色 (青色) - 在淺色和深色模式下保持一致 */
+        --accent-cyan: #70ffff; /* 主要強調色 */
+        --accent-cyan-darker: #40E0D0; /* 用於漸變色的結束顏色 */
+        --accent-gradient-start: var(--accent-cyan);
+        --accent-gradient-end: var(--accent-cyan-darker);
+        --accent-gradient-hover-start: #60fafa; /* 懸停時的漸變色 */
+        --accent-gradient-hover-end: #20C0B0;
+        --accent-shadow-color: rgba(112, 255, 255, 0.4); /* 強調色的陰影 */
+        
+        /* 預設為深色主題的變數 */
+        --bg-primary: #18181b;      /* 主背景 (body) */
+        --bg-secondary: #1D1D20;    /* 次級背景 (卡片、側邊欄) */
+        --bg-secondary-rgb: 29, 29, 32; /* 用於玻璃效果的 RGB 值 */
+        --bg-tertiary: #27272a;     /* 第三級背景 (輸入框) */
+        --bg-hover: #3f3f46;        /* 通用懸停背景 */
+        --bg-active: #52525b;       /* 通用活動/點擊背景 */
+
+        --text-primary: #e4e4e7; /* 主要文字顏色 */
+        --text-secondary: #a1a1aa; /* 次要文字、佔位符文字 */
+        --text-muted: #71717a; /* 靜音文字、邊框上的文字 */
+        --text-on-accent: #111827; /* 在青色背景上的文字 (確保高對比度) */
+        --text-on-dark-buttons: #e4e4e7; /* 在深色按鈕上的文字 (例如社交登入按鈕) */
+
+        --border-primary: #3f3f46;   /* 主要邊框 (卡片、區塊) */
+        --border-secondary: #52525b; /* 次要邊框 (輸入框) */
+        --border-accent: var(--accent-cyan); /* 強調色邊框 */
+
+        --link-accent-color: var(--accent-cyan); /* 連結顏色 */
+
+        /* 文章內容 (Prose) 的樣式變數 */
+        --prose-text: #d1d5db; /* 一般文字 */
+        --prose-headings: #f3f4f6; /* 標題 */
+        --prose-links: var(--accent-cyan); /* 連結 */
+        --prose-links-hover: var(--accent-gradient-hover-start); /* 連結懸停 */
+        --prose-strong: #f9fafb; /* 粗體 */
+        --prose-code: var(--accent-cyan); /* 程式碼文字 */
+        --prose-code-bg: #1f2937; /* 程式碼區塊的背景 */
+        --prose-blockquote-border: var(--accent-cyan); /* 引用區塊的邊框 */
+      }
+
+      /* 當 body 具有 .theme-light class 時，覆蓋為淺色主題的變數 */
+      body.theme-light {
+        /* 淺色主題 (灰白/石板色) */
+        --bg-primary: #f1f5f9;      /* slate-100 */
+        --bg-secondary: #ffffff;    /* white */
+        --bg-secondary-rgb: 255, 255, 255; /* 用於玻璃效果的 RGB 值 */
+        --bg-tertiary: #e2e8f0;     /* slate-200 */
+        --bg-hover: #cbd5e1;        /* slate-300 */
+        --bg-active: #94a3b8;       /* slate-400 */
+        
+        /* 高對比度的文字顏色 */
+        --text-primary: #1e293b;    /* slate-800 */
+        --text-secondary: #64748b;  /* slate-500 */
+        --text-muted: #94a3b8;      /* slate-400 */
+        --text-on-accent: #111827; /* 在淺青色按鈕上的深色文字 */
+
+        --border-primary: #e2e8f0;  /* slate-200 */
+        --border-secondary: #cbd5e1;/* slate-300 */
+        
+        /* 強調色：在淺色模式下也使用與深色模式相同的亮青色 */
+        --accent-cyan: #70ffff;
+        --accent-cyan-darker: #40E0D0;
+        --accent-gradient-start: var(--accent-cyan);
+        --accent-gradient-end: var(--accent-cyan-darker);
+        --accent-gradient-hover-start: #60fafa;
+        --accent-gradient-hover-end: #20C0B0;
+        --accent-shadow-color: rgba(112, 255, 255, 0.4);
+
+        /* 連結顏色：為確保可讀性，專門為連結使用一個較暗的青色 */
+        --link-accent-color: #0e7490;  /* 一個易讀的深青色 (cyan-700) */
+        
+        /* 淺色主題的文章內容樣式 */
+        --prose-text: #334155;
+        --prose-headings: #0f172a;
+        --prose-links: var(--link-accent-color);
+        --prose-links-hover: #0891b2;    /* 懸停時略淺但仍易讀的顏色 */
+        --prose-strong: #0f172a;
+        --prose-code: #155e75;          /* 保持程式碼文字為深色以形成對比 */
+        --prose-code-bg: #e2e8f0;       /* slate-200, 為程式碼區塊提供更深的背景 */
+        --prose-blockquote-border: var(--link-accent-color);
+
+        /* 淺色模式下主題切換按鈕的特定樣式 */
+        .button-theme-toggle {
+          background-color: #27272a;
+          color: #e4e4e7;
+          border: 1px solid #52525b;
+        }
+        .button-theme-toggle:hover {
+           background-color: #3f3f46;
+        }
+      }
+      
+      /* --- 全局基礎樣式 --- */
+      body {
+        margin: 0;
+        background-color: var(--bg-primary); 
+        color: var(--text-primary); 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "WenQuanYi Zen Hei", "儷黑 Pro", "LiHei Pro", sans-serif;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      /* --- 通用主題樣式類 --- */
+      /* 這些類別被應用於組件中，使其能夠響應主題變化 */
+      .bg-theme-primary { background-color: var(--bg-primary); }
+      .bg-theme-secondary { background-color: var(--bg-secondary); }
+      .bg-theme-tertiary { background-color: var(--bg-tertiary); }
+      .bg-theme-hover { background-color: var(--bg-hover); }
+      .text-theme-primary { color: var(--text-primary); }
+      .text-theme-secondary { color: var(--text-secondary); }
+      .text-theme-muted { color: var(--text-muted); }
+      .border-theme-primary { border-color: var(--border-primary); }
+      .border-theme-secondary { border-color: var(--border-secondary); }
+      .border-bg-primary { border-color: var(--bg-primary); }
+      .placeholder-theme::placeholder { color: var(--text-secondary); opacity: 0.7; }
+      
+      /* 玻璃擬態效果 */
+      .bg-glass {
+        background-color: rgba(var(--bg-secondary-rgb), 0.8);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+      }
+
+      /* --- 按鈕主題樣式 --- */
+      .button-theme-base { background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-secondary); }
+      .button-theme-base:hover { background-color: var(--bg-hover); }
+      .button-theme-accent { background-image: linear-gradient(to right, var(--accent-gradient-start), var(--accent-gradient-end)); color: var(--text-on-accent); }
+      .button-theme-accent:hover { background-image: linear-gradient(to right, var(--accent-gradient-hover-start), var(--accent-gradient-hover-end)); }
+      .button-theme-danger { background-color: #dc2626; color: white; }
+      .button-theme-danger:hover { background-color: #b91c1c; }
+      .button-theme-neutral { background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-secondary); }
+      .button-theme-neutral:hover { background-color: var(--bg-hover); }
+      .button-theme-toggle { background-color: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; }
+      .button-theme-toggle:hover { background-color: #cbd5e1; }
+      
+      .bg-lightbox-carousel-dark { background-color: #0c0c0c; }
+      
+      /* --- 部落格分類顏色 --- */
+      .bg-category-hot { background-color: #dc2626; } /* red-600 */
+      .bg-category-music { background-color: #3b82f6; } /* blue-500 */
+      .bg-category-lifestyle { background-color: #22c55e; } /* green-500 */
+      .bg-category-fashion { background-color: #d946ef; } /* fuchsia-500 */
+      .bg-category-nature { background-color: #16a34a; } /* green-600 */
+      .bg-category-portraits { background-color: #a855f7; } /* purple-500 */
+      .bg-category-studio { background-color: #ec4899; } /* pink-500 */
+      .bg-category-adventure { background-color: #f97316; } /* orange-500 */
+      .bg-category-travel { background-color: #0ea5e9; } /* sky-500 */
+      .bg-category-sports { background-color: #f59e0b; } /* amber-500 */
+
+      /* --- 全局動畫和基礎工具類 --- */
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+      .cursor-grab { cursor: grab; }
+      .active\:cursor-grabbing:active { cursor: grabbing; }
+      .no-select { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+
+      /* --- 強調色特定樣式 --- */
+      .text-custom-cyan { color: var(--accent-cyan); }
+      .hover\:text-custom-cyan:hover { color: var(--accent-cyan); }
+      .bg-custom-cyan { background-color: var(--accent-cyan); color: var(--text-on-accent); }
+      .hover\:bg-custom-cyan:hover { background-color: var(--accent-cyan); color: var(--text-on-accent); }
+      .border-custom-cyan { border-color: var(--accent-cyan); }
+      .text-link-accent { color: var(--link-accent-color); }
+      .text-link-accent:hover { text-decoration: underline; color: var(--accent-cyan); }
+      .hover\:text-link-accent:hover { color: var(--link-accent-color); }
+      .group-hover\:text-link-accent:hover { color: var(--link-accent-color); }
+      .bg-custom-cyan-gradient { background-image: linear-gradient(to right, var(--accent-gradient-start), var(--accent-gradient-end)); color: var(--text-on-accent); }
+      .hover\:bg-custom-cyan-gradient-hover:hover { background-image: linear-gradient(to right, var(--accent-gradient-hover-start), var(--accent-gradient-hover-end)); color: var(--text-on-accent); }
+      .text-custom-cyan-gradient { background-image: linear-gradient(to right, var(--accent-gradient-start), var(--accent-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .focus-ring-custom-cyan:focus { outline: 2px solid var(--accent-cyan); outline-offset: 0; }
+      .focus-visible-ring-custom-cyan:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 0; }
+      .ring-custom-cyan { --tw-ring-color: var(--accent-cyan); }
+      .file-bg-custom-cyan::file-selector-button { background-color: var(--accent-cyan); color: var(--text-on-accent); }
+      .hover-file-bg-custom-cyan-hover::file-selector-button:hover { background-color: var(--accent-gradient-hover-start); color: var(--text-on-accent); }
+
+      /* --- 文章內容 (Prose) 自訂樣式 --- */
+      .prose.prose-custom-styles { color: var(--prose-text); }
+      .prose.prose-custom-styles a { color: var(--prose-links); }
+      .prose.prose-custom-styles a:hover { color: var(--prose-links-hover); }
+      .prose.prose-custom-styles blockquote { border-left-color: var(--prose-blockquote-border); color: var(--prose-text); }
+      .prose.prose-custom-styles code { color: var(--prose-code); background-color: var(--prose-code-bg); padding: 0.1em 0.3em; border-radius: 0.2em; }
+      .prose.prose-custom-styles pre code { background-color: transparent; padding:0; border-radius:0; }
+      .prose.prose-custom-styles pre { background-color: var(--prose-code-bg); padding: 1em; border-radius: 0.375rem; color: var(--prose-code); }
+      .prose.prose-custom-styles strong { color: var(--prose-strong); } 
+      .prose.prose-custom-styles h1, .prose.prose-custom-styles h2, .prose.prose-custom-styles h3, .prose.prose-custom-styles h4 { color: var(--prose-headings); }
+      
+      /* 新增的列表樣式 */
+      .prose-custom-styles ul, .wmde-markdown ul { list-style-type: disc; padding-left: 1.6em; margin-top: 1.25em; margin-bottom: 1.25em; }
+      .prose-custom-styles ul > li, .wmde-markdown ul > li { margin-top: 0.5em; margin-bottom: 0.5em; }
+      .prose-custom-styles ol, .wmde-markdown ol { list-style-type: decimal; padding-left: 1.6em; margin-top: 1.25em; margin-bottom: 1.25em; }
+      .prose-custom-styles ol > li, .wmde-markdown ol > li { margin-top: 0.5em; margin-bottom: 0.5em; }
+      .prose-custom-styles li::marker, .wmde-markdown li::marker { color: var(--prose-text); }
+
+      /* 嵌入式內容 (如 YouTube 影片) 的 iframe 樣式 */
+      .prose.prose-custom-styles iframe,
+      .wmde-markdown iframe {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 0.5rem; /* 8px */
+        border: 1px solid var(--border-primary);
+      }
+      
+      /* --- 骨架屏閃爍動畫 --- */
+      @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+      .shimmer-bg { animation: shimmer 2s infinite linear; background: linear-gradient(to right, var(--bg-tertiary) 4%, var(--bg-hover) 25%, var(--bg-tertiary) 36%); background-size: 1000px 100%; }
+
+      /* --- 動畫邊框 --- */
+      /* 使用 CSS @property 讓瀏覽器可以對 --angle 這個自訂屬性進行動畫插值 */
+      @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+      @keyframes rotate { to { --angle: 360deg; } }
+      .service-card-wrapper, .profile-image-wrapper { position: relative; overflow: hidden; background: var(--border-primary); transition: box-shadow 0.3s ease-in-out; z-index: 1; }
+      .service-card-wrapper { border-radius: 0.5rem; padding: 2px; }
+      .profile-image-wrapper { border-radius: 9999px; padding: 3px; }
+      /* 使用 ::before 偽元素創建旋轉的漸變背景，來模擬動畫邊框 */
+      .service-card-wrapper::before, .profile-image-wrapper::before { content: ''; position: absolute; z-index: -1; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200%; height: 200%; background: conic-gradient( from var(--angle), transparent 25%, var(--accent-gradient-start), var(--accent-gradient-end), transparent 60% ); animation: rotate 4s linear infinite; opacity: 1; }
+      .service-card-wrapper:hover, .profile-image-wrapper:hover { box-shadow: 0 0 15px var(--accent-shadow-color); }
+      .service-card-inner, .profile-image-inner { background-color: var(--bg-secondary); width: 100%; height: 100%; overflow: hidden; }
+      .service-card-inner { border-radius: calc(0.5rem - 2px); }
+      .profile-image-inner { border-radius: 9999px; }
+      /* --- 動畫邊框結束 --- */
+
+      /* --- 部落格跑馬燈 --- */
+      @keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      @keyframes marquee-scroll-reverse { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+      .marquee-container { -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%); }
+      .marquee-content { animation: marquee-scroll linear infinite; }
+      .marquee-content-reverse { animation: marquee-scroll-reverse linear infinite; }
+      .marquee-container:hover .marquee-content, .marquee-container:focus-within .marquee-content, .marquee-container:hover .marquee-content-reverse, .marquee-container:focus-within .marquee-content-reverse { animation-play-state: paused; }
+      /* --- 部落格跑馬燈結束 --- */
+      
+      /* --- 文字截斷工具類 --- */
+      .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+      .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+      .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+      .line-clamp-4 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
+
+      /* --- 性能優化工具類 --- */
+      .will-change-transform { will-change: transform; } /* 提示瀏覽器該元素將會有 transform 動畫 */
+      .transform-gpu { transform: translate3d(0, 0, 0); } /* 強制啟用 GPU 加速 */
+      .transform-preserve-3d { transform-style: preserve-3d; } /* 用於 3D 變換 */
+
+      /* --- 瀑布流 (Masonry) 網格佈局 --- */
+      .masonry-grid { display: flex; margin-left: -24px; width: auto; }
+      .masonry-grid_column { padding-left: 24px; background-clip: padding-box; }
+      .masonry-grid_column > div { margin-bottom: 24px; }
+
+      /* --- 瀏覽器原生功能覆蓋 --- */
+      input[type="password"]::-ms-reveal, input[type="password"]::-webkit-password-reveal-button { display: none !important; }
+
+      /* --- 表單元素自訂樣式 --- */
+      .custom-select-text { color: var(--text-primary) !important; color-scheme: dark; }
+      body.theme-light .custom-select-text { color-scheme: light; }
+      .btn-facebook { background-color: #1877F2; color: white; }
+      .btn-facebook:hover { background-color: #166FE5; }
+      .btn-google { background-color: #ffffff; color: #1f2937; border: 1px solid #d1d5db; }
+      .btn-google:hover { background-color: #f3f4f6; }
+      /* --- 表單自動填充樣式 --- */
+      input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active { -webkit-text-fill-color: var(--text-primary) !important; -webkit-box-shadow: 0 0 0px 1000px var(--bg-tertiary) inset !important; caret-color: var(--text-primary) !important; transition: background-color 5000s ease-in-out 0s; }
+
+      /* --- Swiper 輪播自訂樣式 --- */
+      .portfolio-swiper-container { width: 100%; height: 600px; position: relative; }
+      .portfolio-swiper-container .swiper { width: 100%; height: 100%; padding-top: 10px; padding-bottom: 50px; }
+      .portfolio-swiper-container .swiper-slide { background-position: center; background-size: cover; width: 65%; max-width: 550px; height: auto; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer; }
+      .portfolio-swiper-container .swiper-slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .portfolio-swiper-container .swiper-3d .swiper-slide-shadow { background: rgba(0, 0, 0, 0.6); border-radius: 0.5rem; }
+      .portfolio-swiper-container .swiper-pagination-custom { position: absolute; bottom: 10px !important; left: 50% !important; transform: translateX(-50%) !important; width: auto !important; z-index: 10; }
+      .portfolio-swiper-container .swiper-pagination-custom .swiper-pagination-bullet { background: var(--text-secondary); opacity: 0.7; width: 10px; height: 10px; transition: all 0.2s ease; }
+      .portfolio-swiper-container .swiper-pagination-custom .swiper-pagination-bullet-active { background: var(--accent-cyan); opacity: 1; width: 24px; border-radius: 5px; }
+      .portfolio-swiper-container .swiper-button-prev-custom, .portfolio-swiper-container .swiper-button-next-custom { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+      .portfolio-swiper-container .swiper-button-prev-custom:hover, .portfolio-swiper-container .swiper-button-next-custom:hover { color: var(--accent-cyan); transform: translateY(-50%) scale(1.05); }
+      .portfolio-swiper-container .swiper-button-prev-custom.swiper-button-disabled, .portfolio-swiper-container .swiper-button-next-custom.swiper-button-disabled { opacity: 0.35; cursor: auto; pointer-events: none; }
+      .portfolio-swiper-container .swiper-button-prev-custom { left: 20px; }
+      .portfolio-swiper-container .swiper-button-next-custom { right: 20px; }
+      @media (max-width: 1023px) { .portfolio-swiper-container .swiper-button-prev-custom, .portfolio-swiper-container .swiper-button-next-custom { display: none; } .portfolio-swiper-container { height: 450px; } .portfolio-swiper-container .swiper-slide { width: 95%; } }
+      
+      .font-playfair { font-family: 'Playfair Display', serif; }
+      
+      /* --- 部落格英雄區塊輪播樣式 --- */
+      .blog-hero-swiper { width: 100%; height: 100vh; }
+      .blog-hero-swiper .swiper-slide { width: 100%; height: 100%; }
+      .blog-hero-swiper .hero-swiper-button-prev, .blog-hero-swiper .hero-swiper-button-next { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; background-color: rgba(var(--bg-secondary-rgb), 0.5); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+      .blog-hero-swiper .hero-swiper-button-prev:hover, .blog-hero-swiper .hero-swiper-button-next:hover { color: var(--accent-cyan); transform: translateY(-50%) scale(1.05); }
+      .blog-hero-swiper .hero-swiper-button-prev { left: 2rem; }
+      .blog-hero-swiper .hero-swiper-button-next { right: 2rem; }
+      @media (max-width: 1023px) { .blog-hero-swiper .hero-swiper-button-prev, .blog-hero-swiper .hero-swiper-button-next { display: none; } }
+      
+      /* --- 燈箱 (Lightbox) 自訂滾動條樣式 --- */
+      @media (min-width: 1024px) { .lightbox-thumbnail-scroller { scrollbar-width: thin; scrollbar-color: var(--accent-cyan) var(--bg-tertiary); } .lightbox-thumbnail-scroller::-webkit-scrollbar { height: 4px; } .lightbox-thumbnail-scroller::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 2px; } .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb { background-color: var(--accent-cyan); border-radius: 2px; border: 1px solid var(--bg-tertiary); } .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb:hover { background-color: var(--accent-gradient-hover-start); } }
+      @media (max-width: 1023px) { .lightbox-thumbnail-scroller { scrollbar-width: none; } .lightbox-thumbnail-scroller::-webkit-scrollbar { display: none; } }
+      
+      /* --- 明信片 (Postcard) 樣式 --- */
+      .postcard-carousel .swiper { height: 480px; }
+      .postcard { position: relative; border-radius: 1rem; overflow: hidden; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; color: white; }
+      .postcard-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.4s ease; }
+      .postcard:hover .postcard-image { transform: scale(1.05); }
+      .postcard-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0) 60%); z-index: 2; }
+      .postcard-content { position: relative; z-index: 3; padding: 1.5rem; display: flex; flex-direction: column; }
+      .postcard-meta { display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.75rem; }
+      .postcard-meta-item { display: flex; align-items: center; gap: 0.375rem; }
+      .postcard-title { font-size: 1.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; transition: color 0.3s ease; }
+      .postcard:hover .postcard-title { color: var(--accent-cyan); }
+      .postcard-excerpt { font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem; opacity: 0.9; -webkit-line-clamp: 3; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; }
+      .postcard-read-more { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; color: white; padding: 0; cursor: pointer; align-self: flex-start; transition: transform 0.3s ease; }
+      .postcard-read-more:hover { transform: translateX(4px); }
+      .popular-post-item:hover .popular-post-title { color: var(--accent-cyan); }      
+      
+      /* 文章導航懸停效果 */
+      .post-navigation .group:hover .text-theme-secondary,
+      .post-navigation .group:hover .text-theme-primary {
+          color: var(--accent-cyan);
+      }
+
+       /* --- 首頁霓虹按鈕 --- */
+       .btn-hero-neon {
+        background: transparent !important;
+        border: 2px solid var(--accent-cyan);
+        color: var(--accent-cyan) !important;
+        text-shadow: 0 0 5px var(--accent-shadow-color);
+        box-shadow: 0 0 5px var(--accent-shadow-color), 0 0 10px var(--accent-shadow-color);
+        transition: all 0.3s ease-in-out;
+      }
+      .btn-hero-neon:hover {
+        color: #ffffff !important;
+        border-color: #ffffff;
+        text-shadow: 0 0 10px rgba(255,255,255,0.7);
+        box-shadow: 0 0 10px var(--accent-shadow-color), 0 0 25px var(--accent-shadow-color), 0 0 50px var(--accent-shadow-color);
+      }
+      /* --- 視圖模式切換按鈕 --- */
+      .view-toggle-button {
+        color: var(--text-secondary);
+        background-color: transparent;
+        transition: all 0.2s ease-in-out;
+      }
+      .view-toggle-button:hover:not(.active) {       
+        color: var(--text-primary);
+      }
+      .view-toggle-button.active {
+        background-color: var(--bg-secondary);
+        color: var(--accent-cyan);
+        text-shadow: 0 0 8px var(--accent-shadow-color);
+      }
+      /* --- Markdown 編輯器主題覆蓋 --- */
+      .wmde-wrapper .w-md-editor {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-primary);
+        border-radius: 0.375rem; /* 6px */
+        box-shadow: none;
+      }
+      .wmde-wrapper .w-md-editor-toolbar {
+          background-color: var(--bg-tertiary);
+          border-bottom: 1px solid var(--border-primary);
+      }
+      .wmde-wrapper .w-md-editor-text-input {
+          color: var(--text-primary);
+      }
+      .wmde-wrapper .wmde-markdown {
+          background-color: var(--bg-secondary);
+          color: var(--text-primary);
+      }
+      .wmde-wrapper .w-md-editor-preview {
+          background-color: var(--bg-secondary);
+      }
+      .wmde-wrapper .w-md-editor-bar {
+          background-color: var(--border-primary);
+      }
+
+      /* --- 文章/相片管理頁面的選中遮罩層 --- */
+      /* 為表格行提供一個可靠的遮罩層效果 */
+      .post-management-row td {
+        position: relative;
+      }
+      .post-management-row td::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1; /* 位於單元格內容之上 */
+        background-color: rgba(112, 255, 255, 0.2);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        pointer-events: none;
+      }
+      .post-management-row:hover td::after,
+      .post-management-row.row-selected td::after {
+        opacity: 1;
+      }
+      .bg-cyan-overlay {
+        background-color: rgba(112, 255, 255, 0.2);
+      }
+    </style>
+<!-- 
+  Import Map: 
+  這是一種現代瀏覽器功能，允許您直接在瀏覽器中為 ES 模組指定別名，
+  而無需打包工具（如 Webpack 或 Vite）的構建步驟。
+  這對於快速原型開發和線上程式碼編輯器環境非常有用。
+-->
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react-i18next": "https://esm.sh/react-i18next@^15.6.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.25.1",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "@emailjs/browser": "https://esm.sh/@emailjs/browser@^4.4.1",
+    "@uiw/react-md-editor": "https://esm.sh/@uiw/react-md-editor@4.0.4",
+    "rehype-sanitize": "https://esm.sh/rehype-sanitize@6.0.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.23.0",
+    "i18next": "https://esm.sh/i18next@^25.3.1",
+    "i18next-http-backend": "https://esm.sh/i18next-http-backend@^3.0.2",
+    "path": "https://esm.sh/path@^0.12.7",
+    "vite": "https://esm.sh/vite@^7.0.2",
+    "@google/genai": "https://esm.sh/@google/genai@^1.8.0",
+    "jspdf": "https://esm.sh/jspdf@^3.0.1",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "react-masonry-css": "https://esm.sh/react-masonry-css@^1.0.16",
+    "swiper/": "https://esm.sh/swiper@^11.2.10/",
+    "react-dom": "https://esm.sh/react-dom@^19.1.0",
+    "medium-editor": "https://esm.sh/medium-editor@^5.23.3",
+    "lucide-react": "https://esm.sh/lucide-react@^0.525.0",
+    "react-image-crop": "https://esm.sh/react-image-crop@^11.0.10",
+    "swiper": "https://esm.sh/swiper@^11.2.10",
+    "i18next-browser-languagedetector": "https://esm.sh/i18next-browser-languagedetector@^8.2.0",
+    "axios": "https://esm.sh/axios@^1.7.2"
+  }
+}
+</script>
+
+<link rel="stylesheet" href="/index.css">
+<!-- 連結到目前目錄下的 index.css，通常用於存放不會經常變動的或由打包工具生成的 CSS -->
+</head>
+<body class="theme-dark">
+    <!-- 網頁主體，預設應用深色主題 -->
+    <noscript>您需要啟用 JavaScript 才能運行此應用程式。</noscript>
+    <!-- 當用戶禁用 JavaScript 時顯示的提示訊息 -->
+    <div id="root"></div>
+    <!-- React 應用程式的主要掛載點 -->
+    <div id="lightbox-root"></div>
+    <!-- 用於 React Portal 的掛載點，燈箱 (Lightbox) 和模態框 (Modal) 會被渲染到這裡，以避免受到父組件 CSS 的影響 -->
+    <script type="module" src="/index.tsx"></script>
+    <!-- 引入應用程式的主 JavaScript 檔案，type="module" 表示這是一個 ES 模組 -->
+</body>
+</html>

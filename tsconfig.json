@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // --- 目標與模組 ---
+    "target": "ES2020", // 設定 TypeScript 編譯後的 JavaScript 目標版本。ES2020 支援較新的語法如 BigInt 和 import()。
+    "experimentalDecorators": true, // 啟用實驗性的裝飾器語法，常用於一些框架中。
+    "useDefineForClassFields": false, // 決定 class 欄位是使用 defineProperty (true) 還是 assignment (false) 來定義。false 更接近傳統的 JS 行為。
+    "module": "ESNext", // 指定模組系統。ESNext 表示使用最新的 ECMAScript 模組標準。
+    "lib": ["ES2020", "DOM", "DOM.Iterable"], // 指定編譯時需要包含的函式庫。DOM 和 DOM.Iterable 提供了瀏覽器環境的類型。
+    "skipLibCheck": true, // 跳過對宣告文件 (.d.ts) 的類型檢查，可以加快編譯速度。
+
+    // --- Bundler 模式 ---
+    "moduleResolution": "bundler", // 使用現代打包工具（如 Vite, Webpack）的模組解析策略。
+    "allowImportingTsExtensions": true, // 允許導入帶有 .ts 或 .tsx 副檔名的檔案。
+    "isolatedModules": true, // 要求每個檔案都是一個獨立的模組，這有助於確保程式碼的可移植性。
+    "moduleDetection": "force", // 強制將所有檔案都視為模組。
+    "noEmit": true, // 不產生實際的輸出檔案（如 .js），因為打包工具會處理這一步。
+    "allowJs": true, // 允許在專案中混合使用 .js 和 .ts 檔案。
+    "jsx": "react-jsx", // 指定 JSX 的編譯方式。'react-jsx' 是 React 17+ 的新轉換方式，無需手動 import React。
+
+    // --- 程式碼品質與檢查 ---
+    "strict": true, // 啟用所有嚴格模式的類型檢查選項，是推薦的做法。
+    "noUnusedLocals": true, // 報告未使用的局部變數。
+    "noUnusedParameters": true, // 報告未使用的函數參數。
+    "noFallthroughCasesInSwitch": true, // 報告 switch 語句中未明確 break 的情況。
+    "noUncheckedSideEffectImports": true // 報告僅為了副作用而導入的模組。
+  }
+}

@@ -1,0 +1,523 @@
+[
+  {
+    "id": "static-portfolio-1751987196973",
+    "date": "2025-07-08T15:06:36.973Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988094/ax1dqn6c6ibwvmtqxg2u.jpg",
+    "title": "Outstanding Woman",
+    "titleZh": "女中豪傑",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987248831",
+    "date": "2025-07-08T15:07:28.831Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988094/pemtz2fnehogz7qqrlyq.jpg",
+    "title": "Ready To Go",
+    "titleZh": "蓄勢待發",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987354156",
+    "date": "2025-07-08T15:09:14.156Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988105/plmrzommvswojdze5rkw.jpg",
+    "title": "Face One's Demons",
+    "titleZh": "克服恐懼",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987407781",
+    "date": "2025-07-08T15:10:07.781Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988093/saf0x6e1zwpt27bhoded.jpg",
+    "title": "Easy-Peasy~",
+    "titleZh": "小意思",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987501317",
+    "date": "2025-07-08T15:11:41.317Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988094/mrqykkcs0hsv4xlybxff.jpg",
+    "title": "Winner Winner Chicken Dinner",
+    "titleZh": "大吉大利，今晚吃雞！",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987550963",
+    "date": "2025-07-08T15:12:30.963Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988094/yizwxgcruc4cnsg4bcpn.jpg",
+    "title": "Iron Will",
+    "titleZh": "鋼鐵意志",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987772332",
+    "date": "2025-07-08T15:16:12.332Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988092/norzj9pwvgsch7vvbnyn.jpg",
+    "title": "I'll Never Lose",
+    "titleZh": "我永遠不會輸",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987799871",
+    "date": "2025-07-08T15:16:39.871Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988095/vsbcswfesmfcrrls1llz.jpg",
+    "title": "Concentrated Power",
+    "titleZh": "凝神聚力",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987823936",
+    "date": "2025-07-08T15:17:03.936Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988096/jti7uf8ekl1tzrs06xoz.jpg",
+    "title": "The Yell of Strength",
+    "titleZh": "力量的嘶吼",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987911779",
+    "date": "2025-07-08T15:18:31.779Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988093/a4ihcvnoednq4jhzmqyw.jpg",
+    "title": "Protégé",
+    "titleZh": "門徒",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987937059",
+    "date": "2025-07-08T15:18:57.059Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988103/fbhjxkwz6zpu5ecafejh.jpg",
+    "title": "Poised for Power",
+    "titleZh": "蓄勢待發",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751987959880",
+    "date": "2025-07-08T15:19:19.880Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751988091/bvg5fqtswomdythfc25u.jpg",
+    "title": "Focused Strength",
+    "titleZh": "專注的力量",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988062369",
+    "date": "2025-07-08T15:21:02.369Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/v1751988096/uli16rjqgnrvj3zmv0cw.jpg",
+    "title": "The Champion",
+    "titleZh": "我是冠軍",
+    "categoryKey": "portfolioPage.filterSport",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988420468",
+    "date": "2025-07-08T15:27:00.468Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/v1751989532/zexvblm07lmbjt5rw6qt.jpg",
+    "title": "No One Answered...",
+    "titleZh": "無人接聽...",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988449378",
+    "date": "2025-07-08T15:27:29.378Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989535/ob4ug0hgt7cbpoz3kidp.jpg",
+    "title": "Scent of Silence",
+    "titleZh": "幽香靜默",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988531112",
+    "date": "2025-07-08T15:28:51.112Z",
+    "imageUrl": "/images/portfolios/05.jpg",
+    "title": "Crimson Night",
+    "titleZh": "緋紅之夜",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0,
+    "isFeatured": true
+  },
+  {
+    "id": "static-portfolio-1751988562888",
+    "date": "2025-07-08T15:29:22.888Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989533/bqqybauloncqpbml1bg3.jpg",
+    "title": "Night Bloom",
+    "titleZh": "夜之綻放",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988585506",
+    "date": "2025-07-08T15:29:45.506Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989540/c8cn4rneyrh6hhj0yv4h.jpg",
+    "title": "Crimson Serenade",
+    "titleZh": "深紅夜曲",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988607248",
+    "date": "2025-07-08T15:30:07.248Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989539/j5acepljhaykwa2zygr9.jpg",
+    "title": "Crimson Kiss",
+    "titleZh": "緋紅之吻",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988633402",
+    "date": "2025-07-08T15:30:33.402Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989533/dlrgrbuxmcb76q4cvqn0.jpg",
+    "title": "Night Sparkle",
+    "titleZh": "夜之星火",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988659931",
+    "date": "2025-07-08T15:30:59.931Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989532/dxzekginwgemxu5rhrk5.jpg",
+    "title": "Broken Roses",
+    "titleZh": "凋零的玫瑰",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988731242",
+    "date": "2025-07-08T15:32:11.242Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989540/pdblx4hjbbilfciwla2w.jpg",
+    "title": "Skyward Serenity",
+    "titleZh": "天空中的寧靜",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988758599",
+    "date": "2025-07-08T15:32:38.599Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989532/cgivdfjnpan5neeg236y.jpg",
+    "title": "Keeper of the Beat",
+    "titleZh": "鼓魂",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751988839364",
+    "date": "2025-07-08T15:33:59.364Z",
+    "imageUrl": "/images/portfolios/08.jpg",
+    "title": "Her Smile",
+    "titleZh": "她的微笑",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0,
+    "isFeatured": true
+  },
+  {
+    "id": "static-portfolio-1751988922931",
+    "date": "2025-07-08T15:35:22.931Z",
+    "imageUrl": "/images/portfolios/01.jpg",
+    "title": "A Fleeting Presence",
+    "titleZh": "人生過客",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0,
+    "isFeatured": true
+  },
+  {
+    "id": "static-portfolio-1751989063640",
+    "date": "2025-07-08T15:37:43.640Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989536/ocjhr5iwnxefxa4bmlyt.jpg",
+    "title": "The Older, The Stronger",
+    "titleZh": "老當益壯",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989100269",
+    "date": "2025-07-08T15:38:20.269Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989543/rejbfbd3fhvmiwbn33xo.jpg",
+    "title": "Night Solitude",
+    "titleZh": "夜色孤寂",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989136508",
+    "date": "2025-07-08T15:38:56.508Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989538/qtd0hk7tw0qvylyfmitc.jpg",
+    "title": "Urban Solitude",
+    "titleZh": "城市孤影",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989179673",
+    "date": "2025-07-08T15:39:39.673Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989541/rkhdj7ncltdu6nwlaxad.jpg",
+    "title": "Heart on the Street",
+    "titleZh": "心在街頭",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989230541",
+    "date": "2025-07-08T15:40:30.541Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989537/ckzekwtw9koc6ug4dw6j.jpg",
+    "title": "Sweet Burden",
+    "titleZh": "甜蜜的負擔",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0    
+  },
+  {
+    "id": "static-portfolio-1751989341256",
+    "date": "2025-07-08T15:42:21.256Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989539/vui3ozullmteka17x5yk.jpg",
+    "title": "A Yawn From Abroad",
+    "titleZh": "來自異國的哈欠",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989390641",
+    "date": "2025-07-08T15:43:10.641Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989544/tdfnj4pvexgfh9glfbca.jpg",
+    "title": "Urban Dance with Wings",
+    "titleZh": "城市飛舞",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989423113",
+    "date": "2025-07-08T15:43:43.113Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989543/jd1c5iaaprcjtnjchq5n.jpg",
+    "title": "Whimsical Bubble Bloom",
+    "titleZh": "泡泡童心",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989451019",
+    "date": "2025-07-08T15:44:11.019Z",
+    "imageUrl": "/images/portfolios/03.jpg",
+    "title": "Summer Daydream",
+    "titleZh": "夏日遐想",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0,
+    "isFeatured": true
+  },
+  {
+    "id": "static-portfolio-1751989477780",
+    "date": "2025-07-08T15:44:37.780Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751989544/qdjyt9vrlngrrgufxvcf.jpg",
+    "title": "Summer's Pink Dream",
+    "titleZh": "夏日的粉紅夢",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751989513860",
+    "date": "2025-07-08T15:45:13.860Z",
+    "imageUrl": "/images/portfolios/06.jpg",
+    "title": "Playful Summer Afternoon",
+    "titleZh": "夏日午後",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0,
+    "isFeatured": true
+  },
+  {
+    "id": "static-portfolio-1751990567496",
+    "date": "2025-07-08T16:02:47.497Z",
+    "imageUrl": "/images/portfolios/02.jpg",
+    "title": "Golden Light by the Water",
+    "titleZh": "湖畔沐光",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0,
+    "isFeatured": true
+  },
+  {
+    "id": "static-portfolio-1751990601758",
+    "date": "2025-07-08T16:03:21.758Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991540/bybbshrhn4fgqv4fhmn9.jpg",
+    "title": "Festive Reflections",
+    "titleZh": "聖誕光影",
+    "categoryKey": "portfolioPage.filterPortrait",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751990634689",
+    "date": "2025-07-08T16:03:54.689Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991540/mgadnjowjxlx4psuwkdf.jpg",
+    "title": "Reflected Contemplation",
+    "titleZh": "倒影沉思",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751990668670",
+    "date": "2025-07-08T16:04:28.670Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991546/sxjewmtwmvh1ibg1rkxz.jpg",
+    "title": "Silent Observer",
+    "titleZh": "隱藏的觀察者",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751990748123",
+    "date": "2025-07-08T16:05:48.123Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991549/px2rpcdtjqlwuytcreah.jpg",
+    "title": "Lonely Vent Pipe",
+    "titleZh": "寂寞通風管",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751990774422",
+    "date": "2025-07-08T16:06:14.422Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991546/eoth1b4reiwisqpcnnpl.jpg",
+    "title": "Urban Companionship",
+    "titleZh": "都會伴侶",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751990816160",
+    "date": "2025-07-08T16:06:56.160Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991548/sdcjhi6amtrzihamegnm.jpg",
+    "title": "Waiting Freight Train",
+    "titleZh": "等待中的貨運列車",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751990883688",
+    "date": "2025-07-08T16:08:03.688Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991548/pmndhslfldgv0cw1fnae.jpg",
+    "title": "Windows XP",
+    "titleZh": "Windows XP",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751990935839",
+    "date": "2025-07-08T16:08:55.839Z",
+    "imageUrl": "/images/portfolios/04.jpg",
+    "title": "Alone in the Crowd",
+    "titleZh": "街頭孤影",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0,
+    "isFeatured": true
+  },
+  {
+    "id": "static-portfolio-1751990986454",
+    "date": "2025-07-08T16:09:46.454Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991548/oaweu48docjkalmdeqrk.jpg",
+    "title": "Shadow Orb",
+    "titleZh": "光影之球",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991046053",
+    "date": "2025-07-08T16:10:46.053Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991542/fptw2cplhtu6zygfeflk.jpg",
+    "title": "Reincarnation",
+    "titleZh": "輪迴",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991078390",
+    "date": "2025-07-08T16:11:18.390Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991543/p44qacunbfagqirnfoba.jpg",
+    "title": "Sweet Night Delights",
+    "titleZh": "甜蜜的夜市",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991172276",
+    "date": "2025-07-08T16:12:52.276Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991546/gmmfyfibgc2ai72dvgel.jpg",
+    "title": "I'm Gonna Be Rich",
+    "titleZh": "我要發財",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991239204",
+    "date": "2025-07-08T16:13:59.204Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991538/dzjgqjvlmlbpzh8qpthv.jpg",
+    "title": "The Little Me",
+    "titleZh": "渺小的我",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991273955",
+    "date": "2025-07-08T16:14:33.955Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991546/oy8c8sqw0hriku6enjik.jpg",
+    "title": "Who Are You",
+    "titleZh": "你是誰",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991307686",
+    "date": "2025-07-08T16:15:07.686Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991547/fjfx2dyuptuhistoqtvn.jpg",
+    "title": "Entangled City",
+    "titleZh": "交織都市",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991372744",
+    "date": "2025-07-08T16:16:12.744Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991539/hdso3dwcqvg9zxnc5esb.jpg",
+    "title": "Ignored",
+    "titleZh": "無人過問",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991445346",
+    "date": "2025-07-08T16:17:25.346Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991544/gzqgk3l4z6swyet8ylvf.jpg",
+    "title": "You from the Shop Window",
+    "titleZh": "來自櫥窗的妳",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991474742",
+    "date": "2025-07-08T16:17:54.742Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991538/jh7ny0sompqvyt1gadc8.jpg",
+    "title": "Silent Conversations",
+    "titleZh": "無聲對話",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991534615",
+    "date": "2025-07-08T16:18:54.615Z",
+    "imageUrl": "https://res.cloudinary.com/dv5i0wlqa/image/upload/q_auto,f_auto/v1751991539/vclxdcmyderlf3swvjqi.jpg",
+    "title": "A Perspective That Does Not Exist",
+    "titleZh": "不存在的視角",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0
+  },
+  {
+    "id": "static-portfolio-1751991538812",
+    "date": "2025-07-08T16:18:54.615Z",
+    "imageUrl": "/images/portfolios/07.jpg",
+    "title": "Hi there!",
+    "titleZh": "喂！您好！",
+    "categoryKey": "portfolioPage.filterStreet",
+    "views": 0,
+    "isFeatured": true
+  }
+]
