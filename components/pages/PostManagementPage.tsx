@@ -323,8 +323,8 @@ const PostManagementPage: React.FC<PostManagementPageProps> = ({ posts = [], onD
         setUploadProgress(0);
         
         try {
-          const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
-          const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+          const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+          const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
           
           if (!uploadPreset || !cloudName) throw new Error(t('imageUpload.cloudinaryError'));
           
@@ -364,8 +364,8 @@ const PostManagementPage: React.FC<PostManagementPageProps> = ({ posts = [], onD
     if (!previewUrl || isGeneratingTitle || isGeneratingContent) return;
     setIsGeneratingTitle(true);
     try {
-      if (!process.env.API_KEY) throw new Error("API Key not found.");
-      const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error("API Key not found.");
+      const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
       const response = await axios.get(previewUrl, { responseType: 'blob' });
       const blob = response.data;
       const reader = new FileReader();
@@ -396,8 +396,8 @@ const PostManagementPage: React.FC<PostManagementPageProps> = ({ posts = [], onD
     if (!previewUrl || isGeneratingContent || isGeneratingTitle) return;
     setIsGeneratingContent(true);
     try {
-      if (!process.env.API_KEY) throw new Error("API Key not found.");
-      const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error("API Key not found.");
+      const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
       const response = await axios.get(previewUrl, { responseType: 'blob' });
       const blob = response.data;
       const reader = new FileReader();
@@ -649,8 +649,8 @@ const PostManagementPage: React.FC<PostManagementPageProps> = ({ posts = [], onD
                     </div>
                     <div className="space-y-3 pt-2">
                         <div className="grid sm:grid-cols-2 gap-4">
-                            <button type="button" onClick={handleGenerateTitle} disabled={!previewUrl || isGeneratingTitle || isGeneratingContent} className={`w-full flex items-center justify-center button-theme-neutral font-semibold py-2 px-5 rounded-md transition-all disabled:opacity-50`}><SparklesIcon className={`w-5 h-5 mr-2 ${isGeneratingTitle ? 'animate-spin' : ''}`} />{isGeneratingTitle ? t('blogPage.generatingTitle') : t('blogPage.generateAITitle')}</button>
-                            <button type="button" onClick={handleGenerateContent} disabled={!previewUrl || isGeneratingContent || isGeneratingTitle} className={`w-full flex items-center justify-center button-theme-neutral font-semibold py-2 px-5 rounded-md transition-all disabled:opacity-50`}><SparklesIcon className={`w-5 h-5 mr-2 ${isGeneratingContent ? 'animate-spin' : ''}`} />{isGeneratingContent ? t('blogPage.generatingContent') : t('blogPage.generateAIContent')}</button>
+                            <button type="button" onClick={handleGenerateTitle} disabled={!previewUrl || isGeneratingTitle || isGeneratingContent} className={`w-full flex items-center justify-center button-theme-neutral font-semibold py-2.5 px-5 rounded-md transition-all disabled:opacity-50`}><SparklesIcon className={`w-5 h-5 mr-2 ${isGeneratingTitle ? 'animate-spin' : ''}`} />{isGeneratingTitle ? t('blogPage.generatingTitle') : t('blogPage.generateAITitle')}</button>
+                            <button type="button" onClick={handleGenerateContent} disabled={!previewUrl || isGeneratingContent || isGeneratingTitle} className={`w-full flex items-center justify-center button-theme-neutral font-semibold py-2.5 px-5 rounded-md transition-all disabled:opacity-50`}><SparklesIcon className={`w-5 h-5 mr-2 ${isGeneratingContent ? 'animate-spin' : ''}`} />{isGeneratingContent ? t('blogPage.generatingContent') : t('blogPage.generateAIContent')}</button>
                         </div>
                         <p className="text-xs text-theme-muted text-center mt-2">{t('blogPage.aiFeatureInfo')}</p>
                     </div>

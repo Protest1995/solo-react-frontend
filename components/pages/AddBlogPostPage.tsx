@@ -129,8 +129,8 @@ const AddBlogPostPage: React.FC<AddBlogPostPageProps> = ({
       setUploadProgress(0);
 
       try {
-        const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
-        const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
         if (!uploadPreset || !cloudName) throw new Error(t('imageUpload.cloudinaryError'));
 
         const formData = new FormData();
@@ -170,8 +170,8 @@ const AddBlogPostPage: React.FC<AddBlogPostPageProps> = ({
 
     setIsGeneratingTitle(true);
     try {
-      if (!process.env.API_KEY) throw new Error("API Key not found.");
-      const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error("API Key not found.");
+      const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
       
       // 從 Cloudinary URL 獲取圖片數據並轉為 base64
       const response = await fetch(previewUrl);
@@ -229,8 +229,8 @@ const AddBlogPostPage: React.FC<AddBlogPostPageProps> = ({
 
     setIsGeneratingContent(true);
     try {
-      if (!process.env.API_KEY) throw new Error("API Key not found.");
-      const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error("API Key not found.");
+      const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
       
       const response = await fetch(previewUrl);
       const blob = await response.blob();

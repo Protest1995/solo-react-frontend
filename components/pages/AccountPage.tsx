@@ -115,8 +115,8 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
       setUploadProgress(0);
       const formData = new FormData();
       formData.append('file', file);
-      const uploadPreset = (window as any).CLOUDINARY_UPLOAD_PRESET || process.env.CLOUDINARY_UPLOAD_PRESET;
-      const cloudName = (window as any).CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
       if (!uploadPreset || !cloudName) {
         console.error('Cloudinary configuration is missing');
         setIsUploadingAvatar(false);

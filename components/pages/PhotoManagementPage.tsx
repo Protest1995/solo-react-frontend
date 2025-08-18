@@ -189,8 +189,8 @@ const PhotoManagementPage: React.FC<PhotoManagementPageProps> = ({ portfolioItem
       setIsUploading(true);
       setUploadProgress(0);
       try {
-        const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
-        const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
         if (!uploadPreset || !cloudName) throw new Error(t('imageUpload.cloudinaryError'));
         const formData = new FormData();
         formData.append('file', file);
@@ -228,8 +228,8 @@ const PhotoManagementPage: React.FC<PhotoManagementPageProps> = ({ portfolioItem
     if (!previewUrl || isGeneratingTitle) return;
     setIsGeneratingTitle(true);
     try {
-      if (!process.env.API_KEY) throw new Error("API Key not found.");
-      const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error("API Key not found.");
+      const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
       const response = await fetch(previewUrl);
       const blob = await response.blob();
       const reader = new FileReader();

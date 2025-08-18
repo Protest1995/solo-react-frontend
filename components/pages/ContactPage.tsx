@@ -43,9 +43,9 @@ const ContactPage: React.FC = () => {
     setSubmitMessage('');
 
     // 從環境變數中獲取 EmailJS 的憑證
-    const serviceID = process.env.EMAILJS_SERVICE_ID;
-    const templateID = process.env.EMAILJS_TEMPLATE_ID;
-    const publicKey = process.env.EMAILJS_PUBLIC_Key;    
+    const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;    
 
     // 開發時檢查：確保憑證已設置
     if (!serviceID || !templateID || !publicKey) {
