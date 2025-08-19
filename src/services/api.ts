@@ -14,11 +14,21 @@ export class ApiError extends Error {
 }
 
 export class ApiService {
-  // 一律讀環境變數，避免開發環境用相對路徑
-  private static baseURL =
-    (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL) ||
-    (process.env.REACT_APP_API_BASE_URL as string | undefined) ||
-    '';
+  // 根據環境動態獲取 baseURL
+  private static getBaseURL(): string {
+    // 在開發環境中，返回空字串。這會讓 axios 的請求（例如 /api/posts）
+    // 發送到當前主機（例如 http://localhost:5173/api/posts），
+    // 這樣 Vite 的代理伺服器才能攔截並轉發請求。
+    if (import.meta.env.DEV) {
+      return '';
+    }
+    // 在生產環境中，明確使用後端的絕對 URL。
+    // 這確保了從 Vercel 部署的前端發出的 API 請求
+    // 會直接發送到 Railway 部署的後端。
+    return 'https://solo-springboot-backend-production.up.railway.app';
+  }
+
+  private static baseURL = ApiService.getBaseURL();
 
   private static axiosInstance = axios.create({
     baseURL: ApiService.baseURL,
