@@ -10,7 +10,7 @@ import { ACCENT_BG_COLOR, ACCENT_BG_HOVER_COLOR, ACCENT_BORDER_COLOR, ACCENT_FOC
 import { sectionDelayShow, staggerContainerVariants, fadeInUpItemVariants } from '../../animationVariants';
 import UserPlusIcon from '../icons/UserPlusIcon';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { ApiError } from '../../src/services/api';
+import { ApiError } from '../../src/services/http';
 import EyeIcon from '../icons/EyeIcon';
 import EyeSlashIcon from '../icons/EyeSlashIcon';
 

@@ -10,7 +10,7 @@ import ImageCropper from '../ui/ImageCropper';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
 import EyeIcon from '../icons/EyeIcon';
 import EyeSlashIcon from '../icons/EyeSlashIcon';
-import { UpdateUserRequest } from '../../src/types/auth';
+import { AuthService, UpdateUserRequest } from '../../src/services/authService';
 
 // 帳戶頁面屬性介面
 interface AccountPageProps {
@@ -220,7 +220,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
       const payload: UpdateUserRequest = {
         username,
         email,
-        gender,
+        gender: gender as 'male' | 'female' | 'other' | 'not_specified',
         birthday: birthday || undefined,
         address,
         phone,
@@ -232,24 +232,22 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
         payload.password = newPassword;
       }
       
-      const mod = await import('../../src/services/authService');
-      const updated = await mod.AuthService.updateMe(payload);
+      const updated = await AuthService.updateMe(payload);
 
       // 對應本地顯示同步
       onUpdateProfile({
         username: updated.username,
         email: updated.email,
-        gender: (updated as any).gender,
-        birthday: (updated as any).birthday,
+        gender: updated.gender,
+        birthday: updated.birthday,
         address: updated.address,
         phone: updated.phone,
       });
+
       if (updated.avatarUrl) onUpdateAvatar(updated.avatarUrl);
+      
       // 立即同步 AuthContext 與 localStorage，讓側邊欄立即反映
-      try {
-        const authMod = await import('../../src/contexts/AuthContext');
-      } catch {}
-      try { const userMod = await import('../../src/services/authService'); userMod.AuthService.setCurrentUser(updated as any); } catch {}
+      AuthService.setCurrentUser(updated);
 
       if (newPassword) {
         // 密碼更新成功，清空欄位

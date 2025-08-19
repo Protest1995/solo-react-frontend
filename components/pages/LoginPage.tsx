@@ -1,4 +1,5 @@
 
+
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -12,7 +13,7 @@ import SocialLoginButton from '../ui/SocialLoginButton';
 import EyeIcon from '../icons/EyeIcon';
 import EyeSlashIcon from '../icons/EyeSlashIcon';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { ApiError } from '../../src/services/api';
+import { ApiError } from '../../src/services/http';
 import { LoginRequest } from '../../src/types/auth';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
