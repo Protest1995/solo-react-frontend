@@ -318,8 +318,8 @@ const App: React.FC = () => {
     (async () => {
       try {
         const [portfolio, posts] = await Promise.all([
-          ApiService.request<PortfolioItemData[]>({ url: '/content/portfolio', method: 'GET' }),
-          ApiService.request<BlogPostData[]>({ url: '/content/posts', method: 'GET' }),
+          ApiService.request<PortfolioItemData[]>({ url: '/api/portfolio', method: 'GET' }),
+          ApiService.request<BlogPostData[]>({ url: '/api/posts', method: 'GET' }),
         ]);
         setUserAddedPortfolioItems(Array.isArray(portfolio) ? portfolio : []);
         setUserAddedPosts(Array.isArray(posts) ? posts : []);

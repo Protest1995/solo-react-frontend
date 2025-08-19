@@ -1,10 +1,10 @@
 import axios, { AxiosError, AxiosProgressEvent, AxiosRequestConfig } from 'axios';
 import { i18n } from '../../i18n';
 
-// 定義一個自定義的 API 錯誤類，繼承自 Error
+// 自定義錯誤
 export class ApiError extends Error {
-  status: number; // HTTP 狀態碼
-  data?: any; // 可選的錯誤數據，可能包含後端返回的詳細資訊
+  status: number;
+  data?: any;
   constructor(message: string, status: number, data?: any) {
     super(message);
     this.name = 'ApiError';
@@ -13,39 +13,35 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * ApiService 類別。
- * 封裝了與後端 API 交互的所有邏輯，包括請求發送、token 管理和統一的錯誤處理。
- */
 export class ApiService {
-  private static baseURL = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL)
-    || (process.env.REACT_APP_API_BASE_URL as string | undefined)
-    || '/api';
+  // 一律讀環境變數，避免開發環境用相對路徑
+  private static baseURL =
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL) ||
+    (process.env.REACT_APP_API_BASE_URL as string | undefined) ||
+    '';
 
   private static axiosInstance = axios.create({
     baseURL: ApiService.baseURL,
+    withCredentials: false, // 與後端 CORS allowCredentials=false 對齊
+    timeout: 15000,
   });
-  
-  // 使用靜態初始化塊來設置攔截器
+
+  // request 攔截器：加上 token 與語系
   static {
-    this.axiosInstance.interceptors.request.use(config => {
+    this.axiosInstance.interceptors.request.use((config) => {
       const token = ApiService.getToken();
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
+      if (token) config.headers['Authorization'] = `Bearer ${token}`;
       config.headers['Accept-Language'] = i18n?.language || 'en';
       return config;
     });
   }
-  
+
   private static getToken(): string | null {
     return localStorage.getItem('authToken');
   }
-  
   private static setToken(token: string): void {
     localStorage.setItem('authToken', token);
   }
-  
   private static removeToken(): void {
     localStorage.removeItem('authToken');
   }
@@ -53,14 +49,15 @@ export class ApiService {
   static async request<T>(config: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.axiosInstance.request<T>(config);
-      return response.data;
+      return response.data as T;
     } catch (error) {
       console.error('API Request Error:', error);
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<any>;
         const status = axiosError.response?.status || 500;
         const errorData = axiosError.response?.data;
-        const rawMessage = (errorData && (errorData.message || errorData.error || errorData.details)) || axiosError.message;
+        const rawMessage =
+          (errorData && (errorData.message || errorData.error || errorData.details)) || axiosError.message;
         const message = ApiService.translateServerMessage(rawMessage);
         if (status === 401) this.removeToken();
         throw new ApiError(message, status, errorData);
@@ -69,6 +66,7 @@ export class ApiService {
     }
   }
 
+  // 上傳（發到同域或外部完整 URL 都可）
   static async uploadFile<T>(endpoint: string, formData: FormData): Promise<T> {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
     try {
@@ -86,6 +84,7 @@ export class ApiService {
     }
   }
 
+  // 上傳（含進度）
   static async uploadFileWithProgress<T>(endpoint: string, file: File, onProgress?: (progress: number) => void): Promise<T> {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
     const formData = new FormData();
@@ -97,12 +96,11 @@ export class ApiService {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           onProgress(progress);
         }
-      }
+      },
     };
-    // 因為這個請求可能發送到外部 URL（如 Cloudinary），所以我們使用全局 axios 實例，而不是帶有攔截器的實例
     return (await axios.post<T>(url, formData, config)).data;
   }
-  
+
   private static translateServerMessage(message: string): string {
     const lang = i18n?.language || 'en';
     const isZh = lang.startsWith('zh');
@@ -118,31 +116,29 @@ export class ApiService {
       { zh: /密碼確認不匹配/, en: 'Passwords do not match.', zhOut: '兩次密碼輸入不一致' },
     ];
     for (const m of maps) {
-      if (m.zh.test(message)) {
-        return isZh ? (m.zhOut || message) : m.en;
-      }
+      if (m.zh.test(message)) return isZh ? m.zhOut || message : m.en;
     }
     if (isZh) return message;
     if (/錯誤|失敗/.test(message)) return 'Request failed. Please try again.';
     return message;
   }
 
-  // Blog Post APIs
-  static async getPosts() { return this.request<any[]>({ url: '/content/posts', method: 'GET' }); }
-  static async getPost(id: string) { return this.request<any>({ url: `/content/posts/${id}`, method: 'GET' }); }
-  static async createPost(postData: any) { return this.request<any>({ url: '/content/posts', method: 'POST', data: postData }); }
-  static async updatePost(id: string, postData: any) { return this.request<any>({ url: `/content/posts/${id}`, method: 'PUT', data: postData }); }
-  static async deletePost(id: string) { return this.request<void>({ url: `/content/posts/${id}`, method: 'DELETE' }); }
+  // Blog Post APIs（改為 /api/...）
+  static async getPosts() { return this.request<any[]>({ url: '/api/posts', method: 'GET' }); }
+  static async getPost(id: string) { return this.request<any>({ url: `/api/posts/${id}`, method: 'GET' }); }
+  static async createPost(postData: any) { return this.request<any>({ url: '/api/posts', method: 'POST', data: postData }); }
+  static async updatePost(id: string, postData: any) { return this.request<any>({ url: `/api/posts/${id}`, method: 'PUT', data: postData }); }
+  static async deletePost(id: string) { return this.request<void>({ url: `/api/posts/${id}`, method: 'DELETE' }); }
 
-  // Portfolio APIs
-  static async getPortfolio() { return this.request<any[]>({ url: '/content/portfolio', method: 'GET' }); }
-  static async getPortfolioItem(id: string) { return this.request<any>({ url: `/content/portfolio/${id}`, method: 'GET' }); }
-  static async createPortfolioItem(itemData: any) { return this.request<any>({ url: '/content/portfolio', method: 'POST', data: itemData }); }
-  static async updatePortfolioItem(id: string, itemData: any) { return this.request<any>({ url: `/content/portfolio/${id}`, method: 'PUT', data: itemData }); }
-  static async deletePortfolioItem(id: string) { return this.request<void>({ url: `/content/portfolio/${id}`, method: 'DELETE' }); }
+  // Portfolio APIs（改為 /api/...）
+  static async getPortfolio() { return this.request<any[]>({ url: '/api/portfolio', method: 'GET' }); }
+  static async getPortfolioItem(id: string) { return this.request<any>({ url: `/api/portfolio/${id}`, method: 'GET' }); }
+  static async createPortfolioItem(itemData: any) { return this.request<any>({ url: '/api/portfolio', method: 'POST', data: itemData }); }
+  static async updatePortfolioItem(id: string, itemData: any) { return this.request<any>({ url: `/api/portfolio/${id}`, method: 'PUT', data: itemData }); }
+  static async deletePortfolioItem(id: string) { return this.request<void>({ url: `/api/portfolio/${id}`, method: 'DELETE' }); }
 
-  // Comment APIs
-  static async getCommentsByPost(postId: string) { return this.request<any[]>({ url: `/comments/post/${postId}`, method: 'GET' }); }
-  static async addComment(payload: { postId: string; text: string; parentId?: string | null }) { return this.request<any>({ url: '/comments', method: 'POST', data: payload }); }
-  static async deleteComment(id: string) { return this.request<void>({ url: `/comments/${id}`, method: 'DELETE' }); }
+  // Comment APIs（維持原有前綴，若後端是 /api/comments 也請同步改）
+  static async getCommentsByPost(postId: string) { return this.request<any[]>({ url: `/api/comments/post/${postId}`, method: 'GET' }); }
+  static async addComment(payload: { postId: string; text: string; parentId?: string | null }) { return this.request<any>({ url: '/api/comments', method: 'POST', data: payload }); }
+  static async deleteComment(id: string) { return this.request<void>({ url: `/api/comments/${id}`, method: 'DELETE' }); }
 }
