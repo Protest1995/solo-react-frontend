@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -24,6 +25,7 @@ import EditBlogPostPage from './components/pages/EditBlogPostPage';
 import PhotoManagementPage from './components/pages/PhotoManagementPage';
 import PostManagementPage from './components/pages/PostManagementPage';
 import SplashScreen from './components/ui/SplashScreen';
+import SpinnerIcon from './components/icons/SpinnerIcon';
 import Footer from './components/ui/Footer';
 import { blogCategoryDefinitions } from './components/data/blogData';
 import { NAVIGATION_ITEMS, AUTH_NAVIGATION_ITEMS } from './constants';
@@ -581,14 +583,30 @@ const App: React.FC = () => {
   `;
   const glassEffectClass = isScrolled ? 'bg-glass border-b border-theme-primary' : '';
   
-  const showSplash = isAppLoading || authLoading;
+  const showAppContent = !isAppLoading && !authLoading;
 
   return (
       <div className="bg-theme-primary text-theme-primary">
         <AnimatePresence>
-          {showSplash && <SplashScreen onAnimationComplete={handleAnimationComplete} />}
+          {isAppLoading && <SplashScreen onAnimationComplete={handleAnimationComplete} />}
         </AnimatePresence>
-        {!showSplash && (
+
+        <AnimatePresence>
+          {!isAppLoading && authLoading && (
+            <motion.div
+              key="auth-loader"
+              className="fixed inset-0 z-[99] flex items-center justify-center bg-theme-primary"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SpinnerIcon className="w-12 h-12 text-custom-cyan" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {showAppContent && (
             <Routes>
                 <Route path="/" element={
                     <Layout
