@@ -8,6 +8,7 @@ import { Comment, UserProfile, CommentWithChildren } from '../../types';
 import CommentItem from './CommentItem';
 import { ACCENT_BORDER_COLOR, ACCENT_FOCUS_RING_CLASS } from '../../constants';
 import Avatar from './Avatar';
+import LockClosedIcon from '../icons/LockClosedIcon'; // 引入鎖頭圖標
 
 // 組件屬性介面
 interface CommentSectionProps {
@@ -96,9 +97,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         {t('comments.title', { count: comments.length })}
       </h3>
 
-      {/* 留言表單，現在對所有用戶都可見 */}
-      <form onSubmit={isAuthenticated ? handleSubmitComment : (e) => e.preventDefault()} className="mb-8 p-4 bg-theme-secondary rounded-lg shadow-lg">
-          <div className="flex items-start space-x-4">
+      {/* 留言表單容器 */}
+      <div className="relative mb-8 p-4 bg-theme-secondary rounded-lg shadow-lg">
+          <form onSubmit={handleSubmitComment} className="flex items-start space-x-4">
               <Avatar 
                 src={currentUserProfile.avatarUrl}
                 username={currentUserProfile.username}
@@ -106,37 +107,42 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               />
               <div className="flex-grow flex flex-col">
                   <textarea
-                      value={isAuthenticated ? newCommentText : ''}
-                      onChange={(e) => isAuthenticated && setNewCommentText(e.target.value)}
-                      placeholder={isAuthenticated ? t('comments.addCommentPlaceholder') : t('comments.loginToComment')}
+                      value={newCommentText}
+                      onChange={(e) => setNewCommentText(e.target.value)}
+                      placeholder={t('comments.addCommentPlaceholder')}
                       rows={4}
                       className={`w-full bg-theme-tertiary border border-theme-primary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS} text-sm resize-y transition-colors duration-200 shadow-inner`}
                       aria-label={t('comments.addCommentPlaceholder')}
-                      required={isAuthenticated}
-                      readOnly={!isAuthenticated}
+                      required
                   />
                   <div className="flex justify-end mt-3">
-                      {isAuthenticated ? (
-                          <button
-                              type="submit"
-                              disabled={isSubmitting || !newCommentText.trim()}
-                              className={`button-theme-accent text-zinc-900 font-semibold py-2 px-5 rounded-md text-sm transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed`}
-                          >
-                              {isSubmitting ? t('comments.postingButton') : t('comments.postButton')}
-                          </button>
-                      ) : (
-                          <button
-                              type="button"
-                              onClick={onLoginClick}
-                              className={`button-theme-accent text-zinc-900 font-semibold py-2 px-5 rounded-md text-sm transition-colors duration-300`}
-                          >
-                              {t('comments.loginNowButton')}
-                          </button>
-                      )}
+                      <button
+                          type="submit"
+                          disabled={isSubmitting || !newCommentText.trim()}
+                          className={`button-theme-accent text-zinc-900 font-semibold py-2 px-5 rounded-md text-sm transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed`}
+                      >
+                          {isSubmitting ? t('comments.postingButton') : t('comments.postButton')}
+                      </button>
                   </div>
               </div>
-          </div>
-      </form>
+          </form>
+
+          {/* 未登入時的遮罩層 */}
+          {!isAuthenticated && (
+            <div
+              className="absolute inset-0 backdrop-blur-2xl rounded-lg flex items-center justify-center z-10 cursor-pointer"
+              style={{ backgroundColor: 'rgba(var(--bg-secondary-rgb), 0.7)' }}
+              onClick={onLoginClick}
+              role="button"
+              aria-label={t('comments.loginToComment')}
+            >
+              <div className="flex items-center space-x-2 font-semibold text-theme-primary">
+                <LockClosedIcon className="w-5 h-5" />
+                <span>{t('comments.loginToComment')}</span>
+              </div>
+            </div>
+          )}
+      </div>
 
       {/* 留言列表 */}
       <div className="space-y-6">
