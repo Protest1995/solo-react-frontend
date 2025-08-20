@@ -198,7 +198,7 @@ const App: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
 
   const [isAppLoading, setIsAppLoading] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
@@ -581,12 +581,14 @@ const App: React.FC = () => {
   `;
   const glassEffectClass = isScrolled ? 'bg-glass border-b border-theme-primary' : '';
   
+  const showSplash = isAppLoading || authLoading;
+
   return (
       <div className="bg-theme-primary text-theme-primary">
         <AnimatePresence>
-          {isAppLoading && <SplashScreen onAnimationComplete={handleAnimationComplete} />}
+          {showSplash && <SplashScreen onAnimationComplete={handleAnimationComplete} />}
         </AnimatePresence>
-        {!isAppLoading && (
+        {!showSplash && (
             <Routes>
                 <Route path="/" element={
                     <Layout
