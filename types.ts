@@ -116,7 +116,7 @@ export interface BlogPostData {
 }
 
 // 社交媒體登入提供商類型
-export type SocialLoginProvider = 'google' | 'facebook';
+export type SocialLoginProvider = 'google' | 'facebook' | 'github';
 
 // 留言數據介面
 export interface Comment {

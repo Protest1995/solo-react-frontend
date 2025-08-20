@@ -5,12 +5,13 @@ import { useTranslation } from 'react-i18next';
 // 引入圖標組件
 import GoogleIcon from '../icons/GoogleIcon';
 import FacebookIcon from '../icons/FacebookIcon';
+import GithubIcon from '../icons/GithubIcon';
 // 引入類型定義
 import { SocialLoginProvider } from '../../types';
 
 // 組件屬性介面
 interface SocialLoginButtonProps {
-  provider: SocialLoginProvider; // 社交媒體提供商 ('google' 或 'facebook')
+  provider: SocialLoginProvider; // 社交媒體提供商 ('google' | 'facebook' | 'github')
   onClick: () => void; // 點擊事件的回調
   textKey: string; // 用於按鈕文本的翻譯鍵
 }
@@ -26,16 +27,29 @@ const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({ provider, onClick
   // 共享的基礎 CSS class
   const baseClasses = `w-full flex items-center justify-center py-2.5 px-4 rounded-md transition-colors duration-200 ease-in-out text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-secondary focus:ring-custom-cyan`;
 
-  // 如果提供商是 Facebook
   if (provider === 'facebook') {
     return (
       <button
         type="button"
         onClick={onClick}
-        className={`${baseClasses} btn-facebook`} // 應用 Facebook 特有的 class
+        className={`${baseClasses} btn-facebook`}
         aria-label={t(textKey)}
       >
         <FacebookIcon className="w-5 h-5 mr-3" />
+        {t(textKey)}
+      </button>
+    );
+  }
+
+  if (provider === 'github') {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`${baseClasses} btn-github`}
+        aria-label={t(textKey)}
+      >
+        <GithubIcon className="w-5 h-5 mr-3" />
         {t(textKey)}
       </button>
     );
@@ -46,7 +60,7 @@ const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({ provider, onClick
     <button
       type="button"
       onClick={onClick}
-      className={`${baseClasses} btn-google`} // 應用 Google 特有的 class
+      className={`${baseClasses} btn-google`}
       aria-label={t(textKey)}
     >
       <GoogleIcon className="w-5 h-5 mr-3" />

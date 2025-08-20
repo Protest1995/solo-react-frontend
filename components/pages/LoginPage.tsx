@@ -191,7 +191,10 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             <SocialLoginButton provider="google" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGoogle()); }} textKey="loginPage.signInWithGoogle" />
           </motion.div>
           <motion.div variants={fadeInUpItemVariants}>
-            <SocialLoginButton provider="facebook" onClick={() => { alert('目前僅實作 Google OAuth2'); }} textKey="loginPage.signInWithFacebook" />
+            <SocialLoginButton provider="facebook" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithFacebook()); }} textKey="loginPage.signInWithFacebook" />
+          </motion.div>
+          <motion.div variants={fadeInUpItemVariants}>
+            <SocialLoginButton provider="github" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGithub()); }} textKey="loginPage.signInWithGithub" />
           </motion.div>
         </motion.div>
 

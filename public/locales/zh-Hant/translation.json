@@ -55,6 +55,7 @@
     "orDivider": "或",
     "signInWithGoogle": "使用 Google 登入",
     "signInWithFacebook": "使用 Facebook 登入",
+    "signInWithGithub": "使用 GitHub 登入",
     "rememberMeLabel": "記住我"
   },
   "registerPage": {

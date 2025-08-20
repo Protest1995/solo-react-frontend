@@ -44,22 +44,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         // 如果 URL 包含來自 OAuth2 重新導向的 hash，解析並保存 token。
         try { AuthService.bootstrapFromHash(); } catch {}
-        
         // 檢查是否存在 token
         const hasToken = AuthService.isAuthenticated();
         if (hasToken) {
+          let authed = false;
           try {
             // 優先嘗試從後端 /auth/me 端點獲取最新的使用者資訊
             const me = await AuthService.getMe();
             setUser(me);
             setIsAuthenticated(true);
             AuthService.setCurrentUser(me); // 更新 localStorage 中的使用者資料
+            authed = true;
           } catch {
             // 如果獲取失敗（例如 token 過期但 refresh token 仍有效，或網路問題），
             // 則退回使用 localStorage 中儲存的使用者資料作為後備。
+          }
+          if (!authed) {
             const storedUser = AuthService.getCurrentUser();
             if (storedUser) {
               setUser(storedUser);
+              setIsAuthenticated(true);
+            } else {
+              // fallback: 只要有 token 也算登入
               setIsAuthenticated(true);
             }
           }
@@ -73,7 +79,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setLoading(false);
       }
     };
-
     initializeAuth();
   }, []); // 空依賴陣列確保此 effect 只運行一次
 

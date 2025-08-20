@@ -55,6 +55,7 @@
     "orDivider": "OR",
     "signInWithGoogle": "Sign in with Google",
     "signInWithFacebook": "Login with Facebook",
+    "signInWithGithub": "Sign in with GitHub",
     "rememberMeLabel": "Remember Me"
   },
   "registerPage": {
