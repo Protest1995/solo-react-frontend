@@ -35,66 +35,47 @@ const LoginPage: React.FC<LoginPageProps> = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   // 從 AuthContext 中獲取登入、註冊、錯誤清理、認證狀態和錯誤訊息等函數與狀態
-  const { login, register, clearError, isAuthenticated, error: authError, loading } = useAuth() as any;
+  const { login, register, clearError, isAuthenticated, error: authError } = useAuth() as any;
   
   // --- 狀態管理 (useState) ---
   const [isLoginMode] = useState(true); // 當前固定為登入模式，註冊功能已移至 RegisterPage
   const [formData, setFormData] = useState<LoginRequest & { email: string; confirmPassword: string }>({
     username: '',
-    password: '',
     email: '',
+    password: '',
     confirmPassword: '',
   });
-  // --- loading & auth 狀態渲染 ---
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-theme-secondary px-4">
-        <div className="w-full max-w-md bg-theme-tertiary rounded-lg shadow-lg p-8 flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-theme-primary mb-4"></div>
-          <span className="text-theme-primary text-lg font-semibold">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-theme-secondary px-4">
-        <motion.div className="w-full max-w-md bg-theme-tertiary rounded-lg shadow-lg p-8" variants={fadeInUpVariants} initial="initial" animate="animate">
-          <SectionTitle titleKey="loginPage.title" subtitleKey="loginPage.subtitle" />
-          {/* 登入表單 */}
-          <form className="space-y-6" onSubmit={handleSubmit} autoComplete="on">
-            {/* ...表單內容... */}
-          </form>
-          {/* 分隔線 */}
-          <motion.div className="my-6 flex items-center" variants={fadeInUpItemVariants} initial="initial" animate="animate">
-            <hr className="flex-grow border-t border-theme-primary" />
-            <span className="mx-4 text-xs text-theme-muted uppercase font-semibold">{t('loginPage.orDivider')}</span>
-            <hr className="flex-grow border-t border-theme-primary" />
-          </motion.div>
-          {/* 社交登入按鈕 */}
-          <motion.div className="space-y-3" variants={staggerContainerVariants(0.1, 0.3)} initial="initial" animate="animate">
-            <motion.div variants={fadeInUpItemVariants}>
-              <SocialLoginButton provider="google" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGoogle()); }} textKey="loginPage.signInWithGoogle" />
-            </motion.div>
-            <motion.div variants={fadeInUpItemVariants}>
-              <SocialLoginButton provider="facebook" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithFacebook()); }} textKey="loginPage.signInWithFacebook" />
-            </motion.div>
-            <motion.div variants={fadeInUpItemVariants}>
-              <SocialLoginButton provider="github" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGithub()); }} textKey="loginPage.signInWithGithub" />
-            </motion.div>
-          </motion.div>
-          {/* 導航到註冊頁面的連結 */}
-          <motion.div className="mt-6 text-center" variants={fadeInUpItemVariants} initial="initial" animate="animate">
-            <Link to="/register" className={`text-sm ${ACCENT_COLOR} hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-secondary focus:ring-custom-cyan rounded`}>
-              {t('loginPage.dontHaveAccountLink')}
-            </Link>
-          </motion.div>
-        </motion.div>
-      </div>
-    );
-  }
-  // 若已登入，什麼都不渲染（或可導向首頁）
-  return null;
+  const [showPassword, setShowPassword] = useState(false); // 控制密碼是否可見
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false); // 控制密碼可見性圖標的顯示
+  const [rememberMe, setRememberMe] = useState(false); // 「記住我」選項的狀態
+  const [error, setError] = useState<string | null>(null); // 本地錯誤狀態，用於顯示UI反饋
+  const [isSubmitting, setIsSubmitting] = useState(false); // 標記表單是否正在提交中
+
+  // --- 副作用 (useEffect) ---
+
+  // 組件掛載時執行：
+  // 1. 清除 AuthContext 中可能殘留的舊錯誤。
+  // 2. 如果用戶已經登入，則直接導航到首頁，避免重複登入。
+  useEffect(() => {
+    clearError();
+    setError(null);
+    if (isAuthenticated) {
+      navigate('/');
+    }
+    // 組件卸載時再次清除錯誤，確保狀態乾淨
+    return () => clearError();
+  }, [clearError, isAuthenticated, navigate]);
+
+  // 當從 AuthContext 來的 `authError` 改變時，將其同步到本地的 `error` 狀態。
+  // 這確保了來自身份驗證服務的錯誤能夠顯示在UI上。
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
+
+  // --- 處理函數 ---
+  
   /**
    * 處理表單輸入框的變化。
    * @param {React.ChangeEvent<HTMLInputElement>} e - 輸入事件對象。

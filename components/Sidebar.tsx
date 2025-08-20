@@ -42,10 +42,15 @@ interface SidebarProps {
   navigateTo: (page: Page, data?: any) => void; // 導航函數
   isOpen: boolean; // 側邊欄在移動端是否開啟
   closeSidebar: () => void; // 關閉側邊欄的函數
+  isAuthenticated: boolean; // 用戶是否已登入
+  handleLogout: () => void; // 處理登出的函數
+  avatarUrl: string; // 用戶頭像 URL
+  username: string; // 用戶名
   currentTheme: Theme; // 當前主題
   toggleTheme: () => void; // 切換主題的函數
   isCollapsed: boolean; // 側邊欄在桌面端是否收合
   toggleCollapse: () => void; // 切換收合狀態的函數
+  isSuperUser: boolean; // 用戶是否為超級管理員
   isLandscape: boolean; // 是否為移動端橫向模式
 }
 
@@ -58,19 +63,20 @@ const Sidebar: React.FC<SidebarProps> = ({
   navigateTo,
   isOpen,
   closeSidebar,
+  isAuthenticated,
+  handleLogout,
+  avatarUrl,
+  username,
   currentTheme,
   toggleTheme,
   isCollapsed,
   toggleCollapse,
+  isSuperUser,
   isLandscape,
 }) => {
-  // 直接從 useAuth 取得認證狀態與用戶資料
-  const { user, isAuthenticated, logout: handleLogout } = useAuth();
-  const avatarUrl = user?.avatarUrl || '';
-  const username = user?.username || '';
-  const isSuperUser = user?.role === 'ADMIN' || user?.role === 'SUPERUSER';
   // --- 鉤子 (Hooks) ---
   const { t, i18n } = useTranslation();
+  const { logout: authLogout } = useAuth();
   const location = useLocation(); // 獲取當前路由資訊，用於高亮顯示活動的導航項目
   
   // --- 狀態管理 (useState) ---
