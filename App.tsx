@@ -73,12 +73,24 @@ const RegisterPageWrapper: React.FC = () => <RegisterPage />;
 
 const PortfolioPageWrapper: React.FC<any> = (props) => <PortfolioPage {...props} />;
 const BlogPageWrapper: React.FC<any> = (props) => <BlogPage {...props} />;
-const BlogPostDetailWrapper: React.FC<any> = ({ userAddedPosts, allComments, ...props }) => {
+const BlogPostDetailWrapper: React.FC<any> = ({ userAddedPosts, allComments, contentLoading, ...props }) => {
     const { postId } = useParams();
     const location = useLocation();
     const post = useMemo(() => userAddedPosts.find((p: BlogPostData) => p.id === postId), [postId, userAddedPosts]);
     const originCategoryInfo = location.state?.fromCategory as CategoryInfo | null;
-    if (!post) return <Navigate to="/blog" replace />;
+
+    if (contentLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[60vh]">
+                <SpinnerIcon className="w-12 h-12 text-custom-cyan" />
+            </div>
+        );
+    }
+
+    if (!post) {
+        return <Navigate to="/blog" replace />;
+    }
+
     return <BlogPostDetailPage post={post} allPosts={userAddedPosts} comments={allComments.filter((c: Comment) => c.postId === post.id)} {...props} originCategoryInfo={originCategoryInfo} />;
 };
 const CategoryArchiveWrapper: React.FC<any> = ({ allPosts, ...props }) => {
@@ -223,6 +235,7 @@ const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const [contentLoading, setContentLoading] = useState(true);
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
     username: t('sidebar.profileName'),
@@ -318,6 +331,7 @@ const App: React.FC = () => {
   // 以 API 載入作品集與部落格資料（不回退 JSON）
   useEffect(() => {
     (async () => {
+      setContentLoading(true);
       try {
         const [portfolio, posts] = await Promise.all([
           ApiService.request<PortfolioItemData[]>({ url: '/api/portfolio', method: 'GET' }),
@@ -329,6 +343,8 @@ const App: React.FC = () => {
         console.error('載入內容失敗', e);
         setUserAddedPortfolioItems([]);
         setUserAddedPosts([]);
+      } finally {
+        setContentLoading(false);
       }
     })();
   }, []);
@@ -663,6 +679,7 @@ const App: React.FC = () => {
                             onDeleteComment={handleDeleteComment}
                             isSuperUser={isSuperUser}
                             currentUserProfile={userProfile}
+                            contentLoading={contentLoading}
                         />
                     } />
                     <Route path="blog/category/:categoryKey" element={

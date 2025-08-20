@@ -8,7 +8,6 @@ import PencilIcon from '../icons/PencilIcon';
 import CommentSection from '../ui/CommentSection'; 
 import PenPaperIcon from '../icons/PenPaperIcon';
 import { getCategoryInfoFromKey } from '../data/blogData';
-import ArrowLeftIcon from '../icons/ArrowLeftIcon';
 import MDEditor from '@uiw/react-md-editor';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import PostNavigation from '../ui/PostNavigation';
@@ -117,11 +116,6 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
         postCategory: category
     };
   }, [post, t, i18n.language, categoryInfo]);
-  
-  // 處理返回按鈕點擊事件，使用瀏覽器歷史記錄返回上一頁
-  const handleBackClick = () => {
-    navigate(-1);
-  };
 
   // --- 渲染 (JSX) ---
   return (
@@ -152,13 +146,8 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
         {/* 固定的導航/操作欄 */}
         <div className="bg-theme-primary py-3 sticky top-0 z-30">
              <div className="max-w-7xl mx-auto px-6 flex justify-between items-center gap-4">
-                {/* 左側：返回按鈕和麵包屑導航 */}
+                {/* 左側：麵包屑導航 */}
                 <div className="flex items-center gap-4">
-                    <button onClick={handleBackClick} className="flex items-center text-sm font-medium py-2 px-4 rounded-md transition-all duration-200 bg-theme-tertiary hover:bg-theme-hover text-theme-primary hover:text-custom-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-theme-primary focus-visible:ring-custom-cyan">
-                        <ArrowLeftIcon className="w-4 h-4 md:mr-2" />
-                        <span className="hidden md:inline">{t('blogPostDetail.backButton')}</span>
-                    </button>
-                    {/* 麵包屑導航 */}
                     <div className="text-sm text-theme-secondary flex items-center space-x-2 truncate">
                         <Link to="/blog" className="flex items-center hover:text-custom-cyan transition-colors flex-shrink-0">
                             <PenPaperIcon className="w-4 h-4 mr-1.5" />
