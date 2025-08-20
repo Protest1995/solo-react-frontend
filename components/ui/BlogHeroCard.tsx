@@ -124,7 +124,6 @@ const BlogHeroCard: React.FC<BlogHeroCarouselProps> = ({ posts, navigateTo }) =>
         autoplay={{ 
           delay: 8000, // 自動播放延遲 8 秒
           disableOnInteraction: false, // 用戶交互後不停止自動播放
-          pauseOnMouseEnter: true, // 滑鼠懸停時暫停自動播放
         }}
         // 將導航按鈕綁定到自訂的 DOM 元素
         navigation={{ 

@@ -63,7 +63,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ titleKey, image, onClick }) => {
       animate={!isMobile ? "rest" : undefined} // 桌面端：除非懸停，否則保持 rest 狀態。行動端：讓 whileInView 控制狀態。
       whileHover={!isMobile ? "hover" : undefined} // 桌面端：懸停時觸發 "hover" 狀態。
       whileInView={isMobile ? "hover" : undefined} // 行動端：進入視圖時觸發 "hover" 狀態。
-      viewport={{ amount: 0.5 }} // 動畫在元素 50% 可見時觸發，且可重複觸發。
+      viewport={{ amount: 1 }} // 動畫在元素 100% 可見時觸發。
     >
         <motion.img
           src={image}

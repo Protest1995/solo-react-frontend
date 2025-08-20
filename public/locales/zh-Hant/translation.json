@@ -371,8 +371,8 @@
     "showThumbnails": "顯示縮圖"
   },
   "pagination": {
-    "previous": "上一頁",
-    "next": "下一頁",
+    "previous": "上一篇",
+    "next": "下一篇",
     "goToPage": "前往第 {{pageNumber}} 頁",
     "ariaLabel": "部落格文章分頁",
     "rowsPerPage": "每頁列數：",

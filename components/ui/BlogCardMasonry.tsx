@@ -1,5 +1,5 @@
 // 引入 React 相關鉤子
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 // 引入翻譯鉤子
 import { useTranslation } from 'react-i18next';
 // 引入類型定義
@@ -45,6 +45,16 @@ const BlogCard: React.FC<BlogCardProps> = ({
   isCardDisabled = false,
 }) => {
   const { t, i18n } = useTranslation();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   // 使用 useMemo 緩存計算後的值，以避免在每次渲染時都進行不必要的重算
   const { displayTitle, displayExcerpt, formattedDate, categoryText } = React.useMemo(() => {
@@ -100,9 +110,11 @@ const BlogCard: React.FC<BlogCardProps> = ({
       tabIndex={0} // 使其可通過鍵盤聚焦
       onKeyDown={(e) => { if (e.key === 'Enter') handleCardClick(); }} // 允許使用 Enter 鍵觸發
       aria-label={`Read more about ${displayTitle}`} // 為輔助技術提供清晰的標籤
-      initial="rest" // 設置初始動畫狀態
-      whileHover="hover" // 設置懸停時的動畫狀態
-      animate="rest" // 離開懸停時恢復到靜止狀態
+      initial="rest"
+      animate={!isMobile ? "rest" : undefined}
+      whileHover={!isMobile ? "hover" : undefined}
+      whileInView={isMobile ? "hover" : undefined}
+      viewport={{ amount: 1 }}
     >
       {/* 圖片容器 */}
       <div className="relative rounded-t-lg overflow-hidden">

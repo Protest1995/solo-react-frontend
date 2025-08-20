@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import SectionTitle from '../ui/SectionTitle';
 import { Page, SocialLoginProvider } from '../../types';
 import { ACCENT_BG_COLOR, ACCENT_BG_HOVER_COLOR, ACCENT_BORDER_COLOR, ACCENT_FOCUS_RING_CLASS, ACCENT_COLOR } from '../../constants';
-import { sectionDelayShow, staggerContainerVariants, fadeInUpItemVariants } from '../../animationVariants';
+import { sectionDelayShow, staggerContainerVariants, fadeInItemVariants } from '../../animationVariants';
 import LoginIcon from '../icons/LoginIcon';
 import SocialLoginButton from '../ui/SocialLoginButton';
 import EyeIcon from '../icons/EyeIcon';
@@ -47,7 +47,6 @@ const LoginPage: React.FC<LoginPageProps> = () => {
   });
   const [showPassword, setShowPassword] = useState(false); // 控制密碼是否可見
   const [isPasswordFocused, setIsPasswordFocused] = useState(false); // 控制密碼可見性圖標的顯示
-  const [rememberMe, setRememberMe] = useState(false); // 「記住我」選項的狀態
   const [error, setError] = useState<string | null>(null); // 本地錯誤狀態，用於顯示UI反饋
   const [isSubmitting, setIsSubmitting] = useState(false); // 標記表單是否正在提交中
 
@@ -134,13 +133,13 @@ const LoginPage: React.FC<LoginPageProps> = () => {
       <motion.div className="bg-theme-secondary p-8 rounded-lg shadow-xl" {...sectionDelayShow(0.2)}>
         <motion.form onSubmit={handleSubmit} className="space-y-6" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
           {/* 用戶名輸入 */}
-          <motion.div variants={fadeInUpItemVariants}>
+          <motion.div variants={fadeInItemVariants}>
             <label htmlFor="username" className="block text-sm font-medium text-theme-secondary mb-1">{t('loginPage.usernameLabel')}</label>
-            <input type="text" id="username" name="username" value={formData.username} onChange={handleInputChange} required className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('loginPage.usernamePlaceholder')} autoComplete="username" />
+            <input autoFocus type="text" id="username" name="username" value={formData.username} onChange={handleInputChange} required className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('loginPage.usernamePlaceholder')} autoComplete="username" />
           </motion.div>
 
           {/* 密碼輸入 */}
-          <motion.div variants={fadeInUpItemVariants}>
+          <motion.div variants={fadeInItemVariants}>
             <label htmlFor="password_id" className="block text-sm font-medium text-theme-secondary mb-1">{t('loginPage.passwordLabel')}</label>
             <div className="relative">
               <input type={showPassword ? 'text' : 'password'} id="password_id" name="password" value={formData.password} onChange={handleInputChange} onFocus={() => setIsPasswordFocused(true)} onBlur={() => setIsPasswordFocused(false)} required className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 pr-10 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('loginPage.passwordPlaceholder')} autoComplete="current-password" />
@@ -154,23 +153,15 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             </div>
           </motion.div>
 
-           {/* 記住我選項 */}
-           <motion.div variants={fadeInUpItemVariants}>
-                <div className="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className={`h-4 w-4 rounded border-theme-secondary text-custom-cyan bg-theme-tertiary focus:ring-custom-cyan focus:ring-offset-theme-secondary ${ACCENT_FOCUS_RING_CLASS}`} />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-theme-secondary cursor-pointer">{t('loginPage.rememberMeLabel')}</label>
-                </div>
-            </motion.div>
-
           {/* 錯誤訊息顯示 */}
           {error && (
-            <motion.p variants={fadeInUpItemVariants} className="text-red-500 text-sm text-center" role="alert">
+            <motion.p variants={fadeInItemVariants} className="text-red-500 text-sm text-center" role="alert">
               {error}
             </motion.p>
           )}
 
           {/* 提交按鈕 */}
-          <motion.div variants={fadeInUpItemVariants}>
+          <motion.div variants={fadeInItemVariants}>
             <button type="submit" disabled={isSubmitting} className={`${ACCENT_BG_COLOR} w-full text-zinc-900 font-semibold py-3 px-6 rounded-md ${ACCENT_BG_HOVER_COLOR} transition-all duration-300 shadow-md flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed`}>
               <LoginIcon className="w-5 h-5 mr-2" />
               {isSubmitting ? t('loginPage.loggingInButton') : t('loginPage.loginButton')}
@@ -179,7 +170,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
         </motion.form>
 
         {/* 分隔線 */}
-        <motion.div className="my-6 flex items-center" variants={fadeInUpItemVariants} initial="initial" animate="animate">
+        <motion.div className="my-6 flex items-center" variants={fadeInItemVariants} initial="initial" animate="animate">
           <hr className="flex-grow border-t border-theme-primary" />
           <span className="mx-4 text-xs text-theme-muted uppercase font-semibold">{t('loginPage.orDivider')}</span>
           <hr className="flex-grow border-t border-theme-primary" />
@@ -187,19 +178,16 @@ const LoginPage: React.FC<LoginPageProps> = () => {
         
         {/* 社交登入按鈕 */}
         <motion.div className="space-y-3" variants={staggerContainerVariants(0.1, 0.3)} initial="initial" animate="animate">
-          <motion.div variants={fadeInUpItemVariants}>
-            <SocialLoginButton provider="google" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGoogle()); }} textKey="loginPage.signInWithGoogle" />
-          </motion.div>
-          <motion.div variants={fadeInUpItemVariants}>
-            <SocialLoginButton provider="facebook" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithFacebook()); }} textKey="loginPage.signInWithFacebook" />
-          </motion.div>
-          <motion.div variants={fadeInUpItemVariants}>
+          <motion.div variants={fadeInItemVariants}>
             <SocialLoginButton provider="github" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGithub()); }} textKey="loginPage.signInWithGithub" />
+          </motion.div>
+          <motion.div variants={fadeInItemVariants}>
+            <SocialLoginButton provider="facebook" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithFacebook()); }} textKey="loginPage.signInWithFacebook" />
           </motion.div>
         </motion.div>
 
         {/* 導航到註冊頁面的連結 */}
-        <motion.div className="mt-6 text-center" variants={fadeInUpItemVariants} initial="initial" animate="animate">
+        <motion.div className="mt-6 text-center" variants={fadeInItemVariants} initial="initial" animate="animate">
           <Link to="/register" className={`text-sm ${ACCENT_COLOR} hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-secondary focus:ring-custom-cyan rounded`}>
             {t('loginPage.dontHaveAccountLink')}
           </Link>
