@@ -1,7 +1,6 @@
-
 import React, { useMemo, useState, useCallback, ChangeEvent, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion as motionTyped } from 'framer-motion';
+import { motion as motionTyped, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { BlogPostData, Page, CategoryInfo } from '../../types';
 import SectionTitle from '../ui/SectionTitle';
@@ -90,11 +89,11 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
 
     // 步驟 1: 根據分類進行過濾
     if (categoryInfo.titleKey === 'portfolioPage.filterAll') {
-      // 如果是 "所有文章" 分類，則不過濾
-      filtered = allPosts;
+        // 如果是 "所有文章" 分類，建立一個副本以避免修改原始數據
+        filtered = [...allPosts];
     } else {
-      // 否則，篩選出 categoryKey 存在於當前分類定義中的文章
-      filtered = allPosts.filter(p => p.categoryKey && categoryInfo.categoryKeys.includes(p.categoryKey));
+        // 否則，篩選出 categoryKey 存在於當前分類定義中的文章
+        filtered = allPosts.filter(p => p.categoryKey && categoryInfo.categoryKeys.includes(p.categoryKey));
     }
 
     // 步驟 2: 根據搜尋關鍵字進行過濾
@@ -221,18 +220,26 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
       {/* 主要內容網格 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         <div className="lg:col-span-2">
-          {paginatedPosts.length > 0 ? (
-            <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-8" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-              {/* 渲染分頁後的文章卡片 */}
-              {paginatedPosts.map(post => (
-                <motion.div key={post.id} variants={fadeInUpItemVariants}>
-                  <BlogCard post={post} onClick={() => navigateTo(Page.BlogPostDetail, post)} isDeleteModeActive={isDeleteModeActive} isSelectedForDeletion={selectedIdsForDeletion.includes(post.id)} onToggleSelectionForDeletion={handleToggleSelectionForDeletion} isCardDisabled={isDeleteModeActive && !!post.isStatic} />
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : (
-            <motion.p className="text-center text-theme-secondary py-10" initial={{ opacity: 0 }} animate={{ opacity: 1}}> {t('blogPage.noPostsFound')} </motion.p>
-          )}
+            {paginatedPosts.length > 0 ? (
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={`${sortOrder}-${currentPage}-${searchTerm}`}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                        variants={staggerContainerVariants(0.1)}
+                        initial="initial"
+                        animate="animate"
+                        exit="initial"
+                    >
+                        {paginatedPosts.map(post => (
+                            <motion.div key={post.id} variants={fadeInUpItemVariants}>
+                                <BlogCard post={post} onClick={() => navigateTo(Page.BlogPostDetail, post)} isDeleteModeActive={isDeleteModeActive} isSelectedForDeletion={selectedIdsForDeletion.includes(post.id)} onToggleSelectionForDeletion={handleToggleSelectionForDeletion} isCardDisabled={isDeleteModeActive && !!post.isStatic} />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </AnimatePresence>
+            ) : (
+                <motion.p className="text-center text-theme-secondary py-10" initial={{ opacity: 0 }} animate={{ opacity: 1}}> {t('blogPage.noPostsFound')} </motion.p>
+            )}
         </div>
         
         {/* 側邊欄 */}
