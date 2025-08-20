@@ -194,12 +194,7 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
           <SectionTitle titleKey={categoryInfo.titleKey} />
       </motion.div>
       
-      <motion.div {...sectionDelayShow(0.2)} className="flex justify-between items-center">
-          {/* 返回部落格按鈕 */}
-          <button onClick={() => navigateTo(Page.Blog)} className="button-theme-neutral font-semibold py-2 px-5 rounded-md transition-all flex items-center">
-              <ArrowLeftIcon className="w-5 h-5 md:mr-2" />
-              <span className="hidden md:inline">{t('categoryPage.backToBlog')}</span>
-          </button>
+      <motion.div {...sectionDelayShow(0.2)} className="flex justify-end items-center">
           {/* 排序下拉選單 */}
           <div className="flex items-center space-x-2 sm:space-x-4">
               <label htmlFor="sortOrder" className="text-sm font-medium text-theme-primary whitespace-nowrap">{t('blogPage.sortByLabel')}:</label>
