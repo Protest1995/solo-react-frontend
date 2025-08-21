@@ -63,6 +63,11 @@
         --border-accent: var(--accent-cyan); /* 強調色邊框 */
 
         --link-accent-color: var(--accent-cyan); /* 連結顏色 */
+        
+        /* 燈箱與膠片樣式變數 */
+        --bg-lightbox-carousel: #000000;
+        --bg-film-strip: #000000;
+        --film-strip-hole-color: #ffffff;
 
         /* 文章內容 (Prose) 的樣式變數 */
         --prose-text: #d1d5db; /* 一般文字 */
@@ -102,6 +107,11 @@
         --accent-gradient-hover-start: #60fafa;
         --accent-gradient-hover-end: #20C0B0;
         --accent-shadow-color: rgba(112, 255, 255, 0.4);
+        
+        /* 淺色模式下的燈箱與膠片樣式 */
+        --bg-lightbox-carousel: var(--bg-secondary);
+        --bg-film-strip: var(--bg-secondary); /* 膠片背景設為白色 */
+        --film-strip-hole-color: var(--text-primary); /* 齒孔設為深灰色以形成對比 */
 
         /* 連結顏色：為確保可讀性，專門為連結使用一個較暗的青色 */
         --link-accent-color: #0e7490;  /* 一個易讀的深青色 (cyan-700) */
@@ -191,7 +201,7 @@
       .button-theme-toggle { background-color: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; }
       .button-theme-toggle:hover { background-color: #cbd5e1; }
       
-      .bg-lightbox-carousel-dark { background-color: #0c0c0c; }
+      .bg-lightbox-carousel-dark { background-color: var(--bg-lightbox-carousel); }
       
       /* --- 部落格分類顏色 --- */
       .bg-category-hot { background-color: #dc2626; } /* red-600 */
@@ -262,6 +272,112 @@
         border: 1px solid var(--border-primary);
       }
       
+      /* --- 膠片縮圖樣式 --- */
+      .film-strip-thumbnail {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background-color: var(--bg-film-strip); /* 使用變數 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* 確保偽元素不超出範圍 */
+        transition: background-color 0.3s ease;
+      }
+
+      .film-strip-thumbnail::before,
+      .film-strip-thumbnail::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 6px; /* 齒孔區域的高度 */
+        z-index: 2; /* 確保在圖片之上 */
+        
+        background-color: var(--film-strip-hole-color);
+        transition: background-color 0.4s ease;
+
+        -webkit-mask-image: repeating-linear-gradient(
+          to right,
+          black 0,
+          black 18px, /* 孔的寬度 */
+          transparent 18px,
+          transparent 28px /* 孔之間的間距 */
+        );
+        mask-image: repeating-linear-gradient(
+          to right,
+          black 0,
+          black 18px, /* 孔的寬度 */
+          transparent 18px,
+          transparent 28px /* 孔之間的間距 */
+        );
+      }
+
+      .film-strip-thumbnail::before {
+        top: 0;
+      }
+      
+      .film-strip-thumbnail::after {
+        bottom: 0;
+      }
+      
+      /* 為所有縮圖添加平滑移動的過渡效果 */
+      .lightbox-thumbnail-scroller .group {
+        transition: transform 0.3s ease-in-out;
+      }
+      
+      .film-strip-image {
+        position: absolute;
+        top: 12px; /* 6px (齒孔區域) + 6px (空隙) */
+        left: 2px; /* 左右邊框 */
+        width: calc(100% - 4px); /* 考慮左右邊框 */
+        height: calc(100% - 24px); /* 考慮上下齒孔區域和空隙 */
+        object-fit: cover;
+        z-index: 1; /* 位於齒孔條下方 */
+      }
+      
+      /* 當縮圖被選中時，改變齒孔顏色、添加發光效果並向上移動 */
+      .active-thumbnail {
+        position: relative; /* 為偽元素創建堆疊上下文 */
+        z-index: 0;
+        transform: translateY(-8px); /* 向上移動 */
+      }
+      .active-thumbnail .film-strip-thumbnail {
+        --film-strip-hole-color: var(--accent-cyan);
+      }
+
+      /* 發光效果的偽元素 */
+      .active-thumbnail::before,
+      .active-thumbnail::after {
+        content: '';
+        position: absolute;
+        height: 6px;
+        /* 定位以匹配膠片齒孔 */
+        top: 4px; /* 考慮父元素的 p-1 (4px) */
+        left: 4px;
+        right: 4px;
+        /* 使用相同的漸變來創建發光方塊 */
+        background-image: repeating-linear-gradient(
+          to right,
+          var(--accent-cyan) 0px,
+          var(--accent-cyan) 18px, /* 孔的寬度 */
+          transparent 18px,
+          transparent 28px /* 孔之間的間距 */
+        );
+        /* 使用濾鏡創建模糊/發散效果 */
+        filter: drop-shadow(0 0 6px var(--accent-cyan));
+        opacity: 0.75;
+        /* 將其放置在主要縮圖內容的後面 */
+        z-index: -1;
+        pointer-events: none; /* 確保不干擾滑鼠事件 */
+      }
+
+      .active-thumbnail::after {
+        top: auto;
+        bottom: 4px;
+      }
+      /* --- 膠片縮圖樣式結束 --- */
+
       /* --- 骨架屏閃爍動畫 --- */
       @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
       .shimmer-bg { animation: shimmer 2s infinite linear; background: linear-gradient(to right, var(--bg-tertiary) 4%, var(--bg-hover) 25%, var(--bg-tertiary) 36%); background-size: 1000px 100%; }
@@ -385,8 +501,32 @@
       .blog-hero-swiper .swiper-slide { width: 100%; height: 100%; }
 
       /* --- 燈箱 (Lightbox) 自訂滾動條樣式 --- */
-      @media (min-width: 1024px) { .lightbox-thumbnail-scroller { scrollbar-width: thin; scrollbar-color: var(--accent-cyan) var(--bg-tertiary); } .lightbox-thumbnail-scroller::-webkit-scrollbar { height: 4px; } .lightbox-thumbnail-scroller::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 2px; } .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb { background-color: var(--accent-cyan); border-radius: 2px; border: 1px solid var(--bg-tertiary); } .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb:hover { background-color: var(--accent-gradient-hover-start); } }
-      @media (max-width: 1023px) { .lightbox-thumbnail-scroller { scrollbar-width: none; } .lightbox-thumbnail-scroller::-webkit-scrollbar { display: none; } }
+      @media (min-width: 1024px) { 
+          .lightbox-thumbnail-scroller { 
+              scrollbar-width: thin; 
+              scrollbar-color: var(--border-secondary) var(--bg-tertiary); 
+          } 
+          .lightbox-thumbnail-scroller::-webkit-scrollbar { 
+              height: 4px; 
+          } 
+          .lightbox-thumbnail-scroller::-webkit-scrollbar-track { 
+              background: var(--bg-tertiary); 
+              border-radius: 2px; 
+          } 
+          .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb { 
+              background-color: var(--border-secondary); 
+              border-radius: 2px; 
+              border: 1px solid var(--bg-tertiary); 
+          } 
+      }
+      @media (max-width: 1023px) { 
+          .lightbox-thumbnail-scroller { 
+              scrollbar-width: none; 
+          } 
+          .lightbox-thumbnail-scroller::-webkit-scrollbar { 
+              display: none; 
+          } 
+      }
       
       /* --- 明信片 (Postcard) 樣式 --- */
       .postcard-carousel .swiper { height: 480px; }
@@ -493,6 +633,10 @@
       }
       .bg-cyan-overlay {
         background-color: rgba(112, 255, 255, 0.2);
+      }
+      
+      .theme-dark .lightbox-main-image {
+        box-shadow: 0 25px 50px -12px rgb(255 255 255 / 0.08);
       }
     </style>
 <!-- 

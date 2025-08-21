@@ -56,32 +56,25 @@ const Thumbnail: React.FC<{
   index: number;
   onClick: (index: number) => void;
   isActive: boolean;
-  thumbnailBgClasses: string;
-}> = ({ item, index, onClick, isActive, thumbnailBgClasses }) => (
+}> = ({ item, index, onClick, isActive }) => (
   <div
     data-index={index}
     onClick={() => onClick(index)}
-    className={`relative flex-shrink-0 w-20 h-20 mx-1 rounded-md overflow-hidden cursor-pointer ${thumbnailBgClasses}`}
+    className={`relative flex-shrink-0 w-36 h-32 mx-1 rounded-md cursor-pointer flex items-center justify-center p-1 group ${isActive ? 'active-thumbnail' : ''}`}
     role="button"
     aria-label={`View image ${index + 1}`}
     tabIndex={0}
     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(index); }}
   >
-    <img
-      // 使用 data-src 存儲真實的圖片 URL，供 IntersectionObserver 使用
-      data-src={getCloudinaryThumbnailUrl(item.imageUrl)}
-      // src 使用一個透明的 1x1 GIF 作為佔位符，避免顯示“圖片損壞”圖標
-      src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-      alt=""
-      draggable="false"
-      className="w-full h-full object-cover"
-    />
-    {isActive && (
-      <motion.div
-        layoutId="lightbox-thumbnail-border"
-        className={`absolute inset-0 border-2 ${ACCENT_BORDER_COLOR} rounded-md`}
-      ></motion.div>
-    )}
+    <div className="film-strip-thumbnail w-full h-full">
+        <img
+          data-src={getCloudinaryThumbnailUrl(item.imageUrl)}
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          alt=""
+          draggable="false"
+          className="film-strip-image"
+        />
+    </div>
   </div>
 );
 
@@ -229,13 +222,12 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   
   const isLightTheme = document.body.classList.contains('theme-light');
   const overlayClasses = isLightTheme ? 'bg-white' : 'bg-black';
-  const carouselContainerClasses = isLightTheme ? 'bg-gray-100' : 'bg-lightbox-carousel-dark';
-  const thumbnailBgClasses = isLightTheme ? 'bg-gray-200' : 'bg-theme-secondary';
+  const carouselContainerClasses = 'bg-lightbox-carousel-dark';
   const iconColorClasses = isLightTheme ? 'text-gray-800' : 'text-white';
   const iconHoverClasses = `hover:text-custom-cyan`;
 
   const imageContainerPaddingClasses = isMobileLandscape ? 'p-0' : 'pt-16 pb-10';
-  const mainImagePaddingBottom = isMobileLandscape ? '0rem' : (isCarouselVisible ? '10rem' : '3.5rem');
+  const mainImagePaddingBottom = isMobileLandscape ? '0rem' : (isCarouselVisible ? '12.75rem' : '3.5rem');
 
   const lightboxContent = (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
@@ -246,7 +238,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
         <div className={`relative flex-grow w-full flex flex-col items-center justify-center px-4 sm:px-16 overflow-hidden group ${imageContainerPaddingClasses}`} onWheel={(e) => { const now = Date.now(); if (now - lastWheelNavTime.current < 450) return; lastWheelNavTime.current = now; if (e.deltaY > 1) handleNext(); else if (e.deltaY < -1) handlePrevious(); }}>
           <motion.div className="w-full h-full flex items-center justify-center transition-all duration-300 ease-in-out" animate={{ paddingBottom: mainImagePaddingBottom }}>
             <AnimatePresence initial={false} custom={direction} mode="wait">
-              <motion.img key={id + "_img"} src={imageUrl} alt={displayTitle} className="block max-w-full max-h-full object-contain rounded-lg shadow-2xl" custom={direction} variants={imageVariants} initial="enter" animate="center" exit="exit" transition={transitionConfig} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.5} onDragEnd={onDragEnd} />
+              <motion.img key={id + "_img"} src={imageUrl} alt={displayTitle} className="block max-w-full max-h-full object-contain rounded-lg shadow-2xl lightbox-main-image" custom={direction} variants={imageVariants} initial="enter" animate="center" exit="exit" transition={transitionConfig} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.5} onDragEnd={onDragEnd} />
             </AnimatePresence>
           </motion.div>
         </div>
@@ -273,13 +265,10 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                             animate={{ height: "auto", opacity: 1, transition: { height: { duration: 0.4, ease: [0.2, 1, 0.3, 1] }, opacity: { duration: 0.3, delay: 0.1 } } }}
                             exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.4, ease: [0.2, 1, 0.3, 1] }, opacity: { duration: 0.2 } } }}
                         >
-                            <div className="pb-3 pt-1">
-                                <div className="w-full flex items-center justify-center pb-2 px-4">
-                                    {displayTitle && <h3 id="lightbox-title" className="font-bold text-custom-cyan text-center text-xl">{displayTitle}</h3>}
-                                </div>
+                            <div className="pb-3 pt-2">
                                 <div className="relative w-full overflow-hidden">
                                     <div ref={carouselRef} className="relative w-full overflow-x-auto lightbox-thumbnail-scroller">
-                                        <div className="flex items-center no-select py-1 px-2 w-max mx-auto">
+                                        <div className="flex items-center no-select pt-1 pb-4 px-2 w-max mx-auto">
                                             {filteredItems.map((item, index) => (
                                                 <Thumbnail
                                                     key={item.id}
@@ -287,7 +276,6 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                                                     index={index}
                                                     isActive={currentIndex === index}
                                                     onClick={handleThumbnailClick}
-                                                    thumbnailBgClasses={thumbnailBgClasses}
                                                 />
                                             ))}
                                         </div>
