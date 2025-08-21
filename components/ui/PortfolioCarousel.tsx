@@ -98,10 +98,10 @@ const PortfolioCarousel: React.FC<PortfolioCarouselProps> = ({ items, onItemClic
       </Swiper>
       {/* 自定義導航按鈕 */}
       <div className="swiper-button-prev-custom">
-        <ChevronLeftIcon className="w-6 h-6" />
+        <ChevronLeftIcon className="w-7 h-7" />
       </div>
       <div className="swiper-button-next-custom">
-        <ChevronRightIcon className="w-6 h-6" />
+        <ChevronRightIcon className="w-7 h-7" />
       </div>
       {/* 自定義分頁器容器 */}
       <div className="swiper-pagination-custom"></div>

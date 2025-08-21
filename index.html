@@ -91,7 +91,7 @@
         --text-muted: #94a3b8;      /* slate-400 */
         --text-on-accent: #111827; /* 在淺青色按鈕上的深色文字 */
 
-        --border-primary: #e2e8f0;  /* slate-200 */
+        --border-primary: #D8DEE4;
         --border-secondary: #cbd5e1;/* slate-300 */
         
         /* 強調色：在淺色模式下也使用與深色模式相同的亮青色 */
@@ -253,7 +253,7 @@
       .service-card-inner, .profile-image-inner { background-color: var(--bg-secondary); width: 100%; height: 100%; overflow: hidden; }
       .service-card-inner { border-radius: calc(0.5rem - 2px); }
       .profile-image-inner { border-radius: 9999px; }
-      /* --- 動畫邊框結束 --- */
+      /* --- 動画邊框結束 --- */
 
       /* --- 部落格跑馬燈 --- */
       @keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -295,7 +295,7 @@
       /* --- 表單自動填充樣式 --- */
       input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active { -webkit-text-fill-color: var(--text-primary) !important; -webkit-box-shadow: 0 0 0px 1000px var(--bg-tertiary) inset !important; caret-color: var(--text-primary) !important; transition: background-color 5000s ease-in-out 0s; }
 
-      /* --- Swiper 輪播自訂樣式 --- */
+      /* --- Swiper 輪播自訂樣式 (Portfolio) --- */
       .portfolio-swiper-container { width: 100%; height: 600px; position: relative; }
       .portfolio-swiper-container .swiper { width: 100%; height: 100%; padding-top: 10px; padding-bottom: 50px; }
       .portfolio-swiper-container .swiper-slide { background-position: center; background-size: cover; width: 65%; max-width: 550px; height: auto; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer; }
@@ -304,24 +304,60 @@
       .portfolio-swiper-container .swiper-pagination-custom { position: absolute; bottom: 10px !important; left: 50% !important; transform: translateX(-50%) !important; width: auto !important; z-index: 10; }
       .portfolio-swiper-container .swiper-pagination-custom .swiper-pagination-bullet { background: var(--text-secondary); opacity: 0.7; width: 10px; height: 10px; transition: all 0.2s ease; }
       .portfolio-swiper-container .swiper-pagination-custom .swiper-pagination-bullet-active { background: var(--accent-cyan); opacity: 1; width: 24px; border-radius: 5px; }
-      .portfolio-swiper-container .swiper-button-prev-custom, .portfolio-swiper-container .swiper-button-next-custom { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: all 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-      .portfolio-swiper-container .swiper-button-prev-custom:hover, .portfolio-swiper-container .swiper-button-next-custom:hover { color: var(--accent-cyan); transform: translateY(-50%) scale(1.05); }
-      .portfolio-swiper-container .swiper-button-prev-custom.swiper-button-disabled, .portfolio-swiper-container .swiper-button-next-custom.swiper-button-disabled { opacity: 0.35; cursor: auto; pointer-events: none; }
-      .portfolio-swiper-container .swiper-button-prev-custom { left: 20px; }
-      .portfolio-swiper-container .swiper-button-next-custom { right: 20px; }
-      @media (max-width: 1023px) { .portfolio-swiper-container .swiper-button-prev-custom, .portfolio-swiper-container .swiper-button-next-custom { display: none; } .portfolio-swiper-container { height: 450px; } .portfolio-swiper-container .swiper-slide { width: 95%; } }
+
+      /* --- 統一的 Swiper 導航按鈕樣式 --- */
+      .swiper-button-prev-custom,
+      .swiper-button-next-custom {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 48px;
+        height: 48px;
+        background-color: rgba(var(--bg-secondary-rgb), 0.5);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+        color: var(--text-primary);
+        border: 1px solid var(--border-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      }
+      .swiper-button-prev-custom:hover,
+      .swiper-button-next-custom:hover {
+        color: var(--accent-cyan);
+        transform: translateY(-50%) scale(1.1);
+        border-color: var(--accent-cyan);
+        box-shadow: 0 0 15px var(--accent-shadow-color);
+      }
+      .swiper-button-prev-custom.swiper-button-disabled,
+      .swiper-button-next-custom.swiper-button-disabled {
+        opacity: 0.35;
+        cursor: auto;
+        pointer-events: none;
+      }
+      .swiper-button-prev-custom { left: 2rem; }
+      .swiper-button-next-custom { right: 2rem; }
+
+      @media (max-width: 1023px) {
+        .swiper-button-prev-custom,
+        .swiper-button-next-custom {
+            display: none;
+        }
+        .portfolio-swiper-container { height: 450px; } 
+        .portfolio-swiper-container .swiper-slide { width: 95%; } 
+      }
       
       .font-playfair { font-family: 'Playfair Display', serif; }
       
       /* --- 部落格英雄區塊輪播樣式 --- */
       .blog-hero-swiper { width: 100%; height: 100vh; }
       .blog-hero-swiper .swiper-slide { width: 100%; height: 100%; }
-      .blog-hero-swiper .hero-swiper-button-prev, .blog-hero-swiper .hero-swiper-button-next { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; background-color: rgba(var(--bg-secondary-rgb), 0.5); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-      .blog-hero-swiper .hero-swiper-button-prev:hover, .blog-hero-swiper .hero-swiper-button-next:hover { color: var(--accent-cyan); transform: translateY(-50%) scale(1.05); }
-      .blog-hero-swiper .hero-swiper-button-prev { left: 2rem; }
-      .blog-hero-swiper .hero-swiper-button-next { right: 2rem; }
-      @media (max-width: 1023px) { .blog-hero-swiper .hero-swiper-button-prev, .blog-hero-swiper .hero-swiper-button-next { display: none; } }
-      
+
       /* --- 燈箱 (Lightbox) 自訂滾動條樣式 --- */
       @media (min-width: 1024px) { .lightbox-thumbnail-scroller { scrollbar-width: thin; scrollbar-color: var(--accent-cyan) var(--bg-tertiary); } .lightbox-thumbnail-scroller::-webkit-scrollbar { height: 4px; } .lightbox-thumbnail-scroller::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 2px; } .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb { background-color: var(--accent-cyan); border-radius: 2px; border: 1px solid var(--bg-tertiary); } .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb:hover { background-color: var(--accent-gradient-hover-start); } }
       @media (max-width: 1023px) { .lightbox-thumbnail-scroller { scrollbar-width: none; } .lightbox-thumbnail-scroller::-webkit-scrollbar { display: none; } }
@@ -329,17 +365,14 @@
       /* --- 明信片 (Postcard) 樣式 --- */
       .postcard-carousel .swiper { height: 480px; }
       .postcard { position: relative; border-radius: 1rem; overflow: hidden; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; color: white; }
-      .postcard-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.4s ease; }
-      .postcard:hover .postcard-image { transform: scale(1.05); }
+      .postcard-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
       .postcard-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0) 60%); z-index: 2; }
       .postcard-content { position: relative; z-index: 3; padding: 1.5rem; display: flex; flex-direction: column; }
       .postcard-meta { display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.75rem; }
       .postcard-meta-item { display: flex; align-items: center; gap: 0.375rem; }
-      .postcard-title { font-size: 1.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; transition: color 0.3s ease; }
-      .postcard:hover .postcard-title { color: var(--accent-cyan); }
+      .postcard-title { font-size: 1.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; }
       .postcard-excerpt { font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem; opacity: 0.9; -webkit-line-clamp: 3; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; }
-      .postcard-read-more { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; color: white; padding: 0; cursor: pointer; align-self: flex-start; transition: transform 0.3s ease; }
-      .postcard-read-more:hover { transform: translateX(4px); }
+      .postcard-read-more { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; color: white; padding: 0; cursor: pointer; align-self: flex-start; }
       .popular-post-item:hover .popular-post-title { color: var(--accent-cyan); }      
       
       /* 文章導航懸停效果 */

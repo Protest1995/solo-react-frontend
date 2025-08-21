@@ -42,9 +42,15 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
     active: { transition: { staggerChildren: 0.2, delayChildren: 0.4, ease: "easeOut" as const } },
   };
   
-  // 為所有內容項目（標題、摘要、按鈕）定義統一的淡入+上移動畫
-  const itemVariants = {
+  // 標題和摘要的動畫變體
+  const textItemVariants = {
     inactive: { opacity: 0, y: 20 },
+    active: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
+  };
+
+  // 按鈕的動畫變體，起始位置稍微高一些
+  const buttonVariants = {
+    inactive: { opacity: 0, y: 10 },
     active: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
   };
 
@@ -75,16 +81,16 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
               initial="inactive"
               animate={isActive ? "active" : "inactive"}
             >
-                <motion.h2 className="hero-title font-playfair text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight" variants={itemVariants}>
+                <motion.h2 className="hero-title font-playfair text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight" variants={textItemVariants}>
                     {displayTitle}
                 </motion.h2>
-                <motion.p className="text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl mx-auto line-clamp-3 mb-8" variants={itemVariants}>
+                <motion.p className="text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl mx-auto line-clamp-3 mb-8" variants={textItemVariants}>
                       {displayExcerpt}
                 </motion.p>
                 <motion.button
                     onClick={onClick}
                     className="btn-hero-neon px-8 py-3 text-lg font-semibold transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 focus-visible:ring-custom-cyan transform-gpu"
-                    variants={itemVariants}
+                    variants={buttonVariants}
                 >
                   {t('blogPage.startReading')}
                 </motion.button>
@@ -129,8 +135,8 @@ const BlogHeroCard: React.FC<BlogHeroCarouselProps> = ({ posts, navigateTo }) =>
         }}
         // 將導航按鈕綁定到自訂的 DOM 元素
         navigation={{ 
-          nextEl: '.hero-swiper-button-next', 
-          prevEl: '.hero-swiper-button-prev' 
+          nextEl: '.swiper-button-next-custom', 
+          prevEl: '.swiper-button-prev-custom' 
         }}
         className="h-full"
         onSlideChange={handleSlideChange} // slide 切換時的回調
@@ -147,12 +153,12 @@ const BlogHeroCard: React.FC<BlogHeroCarouselProps> = ({ posts, navigateTo }) =>
       </Swiper>
       {/* 自訂導航按鈕：懸停在輪播容器上時顯示 */}
       <AnimatePresence>
-        <motion.div className="hero-swiper-button-prev opacity-0 group-hover:opacity-100 transition-opacity duration-300" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{delay: 0.2}}>
+        <motion.div className="swiper-button-prev-custom opacity-0 group-hover:opacity-100 transition-opacity duration-300" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{delay: 0.2}}>
           <ChevronLeftIcon className="w-7 h-7" />
         </motion.div>
       </AnimatePresence>
       <AnimatePresence>
-        <motion.div className="hero-swiper-button-next opacity-0 group-hover:opacity-100 transition-opacity duration-300" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{delay: 0.2}}>
+        <motion.div className="swiper-button-next-custom opacity-0 group-hover:opacity-100 transition-opacity duration-300" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{delay: 0.2}}>
           <ChevronRightIcon className="w-7 h-7" />
         </motion.div>
       </AnimatePresence>

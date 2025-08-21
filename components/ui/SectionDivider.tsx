@@ -60,13 +60,13 @@ const SectionDivider: React.FC<SectionDividerProps> = ({ title }) => {
       {title ? (
         <div className="flex w-full items-center gap-4 sm:gap-6">
           {/* 左側線條 */}
-          <motion.div className="h-px flex-grow" style={{ backgroundColor: 'var(--border-primary)', transformOrigin: 'right' }} variants={lineVariants} />
+          <motion.div className="h-0 flex-grow border-t border-theme-primary" style={{ transformOrigin: 'right' }} variants={lineVariants} />
           {/* 標題 */}
           <motion.h3 className="text-xl sm:text-2xl font-semibold uppercase tracking-wider text-theme-primary text-center whitespace-nowrap" variants={titleVariants}>
             {title}
           </motion.h3>
           {/* 右側線條 */}
-          <motion.div className="h-px flex-grow" style={{ backgroundColor: 'var(--border-primary)', transformOrigin: 'left' }} variants={lineVariants} />
+          <motion.div className="h-0 flex-grow border-t border-theme-primary" style={{ transformOrigin: 'left' }} variants={lineVariants} />
         </div>
       ) : (
         null // 如果沒有提供標題，則不渲染任何內容（也可以選擇渲染一條完整的線）

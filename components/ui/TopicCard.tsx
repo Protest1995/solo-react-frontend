@@ -29,8 +29,16 @@ const overlayVariants = {
 
 // 標題懸停動畫變體
 const titleHoverVariants = {
-  rest: { y: 0 }, // 靜止狀態
-  hover: { color: 'var(--accent-cyan)', y: -5 }, // 懸停狀態：變為強調色並向上移動
+  rest: {
+    y: 0,
+    color: '#FFFFFF',
+    textShadow: '0 2px 4px rgba(0,0,0,0.7)',
+  },
+  hover: {
+    color: 'var(--accent-cyan)',
+    y: -5,
+    textShadow: '0 0 8px var(--accent-shadow-color), 0 0 20px var(--accent-shadow-color)',
+  },
 };
 
 /**
@@ -63,7 +71,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ titleKey, image, onClick }) => {
       animate={!isMobile ? "rest" : undefined} // 桌面端：除非懸停，否則保持 rest 狀態。行動端：讓 whileInView 控制狀態。
       whileHover={!isMobile ? "hover" : undefined} // 桌面端：懸停時觸發 "hover" 狀態。
       whileInView={isMobile ? "hover" : undefined} // 行動端：進入視圖時觸發 "hover" 狀態。
-      viewport={{ amount: 1 }} // 動畫在元素 100% 可見時觸發。
+      viewport={{ once: true, amount: 0.8 }}
     >
         <motion.img
           src={image}
@@ -79,8 +87,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ titleKey, image, onClick }) => {
         />
         <div className="relative flex-grow flex items-center justify-center p-4 text-center">
             <motion.h3
-              className="text-2xl font-bold font-playfair text-white"
-              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.7)' }} // 添加文字陰影以提高可讀性
+              className="text-2xl font-bold font-playfair"
               variants={titleHoverVariants}
               transition={{ duration: 0.3 }}
             >

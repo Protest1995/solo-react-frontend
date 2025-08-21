@@ -51,7 +51,7 @@ const PostNavigation: React.FC<PostNavigationProps> = ({ currentPost, allPosts }
           <Link
             to={`/blog/${previousPost.id}`}
             state={{ fromCategory: null }} // 清除來源分類信息，避免返回按鈕行為混亂
-            className="group inline-block p-2 -ml-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-md"
+            className="group inline-block p-2 -ml-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-md transition-transform duration-300 ease-in-out hover:scale-105"
             aria-label={`${t('pagination.previous')}: ${getDisplayTitle(previousPost)}`}
           >
             <div className="flex items-center text-sm text-theme-secondary transition-colors mb-1">
@@ -70,7 +70,7 @@ const PostNavigation: React.FC<PostNavigationProps> = ({ currentPost, allPosts }
           <Link
             to={`/blog/${nextPost.id}`}
             state={{ fromCategory: null }}
-            className="group inline-block p-2 -mr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-md"
+            className="group inline-block p-2 -mr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-md transition-transform duration-300 ease-in-out hover:scale-105"
             aria-label={`${t('pagination.next')}: ${getDisplayTitle(nextPost)}`}
           >
             <div className="flex items-center justify-end text-sm text-theme-secondary transition-colors mb-1">

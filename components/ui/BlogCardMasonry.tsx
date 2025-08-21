@@ -8,16 +8,24 @@ import { BlogPostData } from '../../types';
 import { motion } from 'framer-motion';
 // 引入工具函數，用於移除 Markdown 格式
 import { stripMarkdown } from '../../utils';
+import EyeIcon from '../icons/EyeIcon';
+import ChatBubbleIcon from '../icons/ChatBubbleIcon';
 
 // 定義卡片圖片的動畫變體
 const imageVariants = {
   rest: { scale: 1 }, // 靜止狀態：正常大小
-  hover: { scale: 1.1, transition: { duration: 0.5, ease: "easeOut" as const } }, // 懸停狀態：放大
+  hover: { scale: 1.05, transition: { duration: 0.8, ease: "easeOut" as const } }, // 懸停狀態：放大
 };
 
 // 定義卡片標題的動畫變體
 const titleVariants = {
   rest: { color: 'var(--text-primary)' }, // 靜止狀態：使用主題的主要文字顏色
+  hover: { color: 'var(--accent-cyan)', transition: { duration: 0.3, ease: "easeOut" as const } }, // 懸停狀態：變為強調色
+};
+
+// 定義卡片頁腳圖標的動畫變體
+const footerIconVariants = {
+  rest: { color: 'var(--text-muted)' }, // 靜止狀態：使用主題的次要文字顏色
   hover: { color: 'var(--accent-cyan)', transition: { duration: 0.3, ease: "easeOut" as const } }, // 懸停狀態：變為強調色
 };
 
@@ -139,7 +147,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
       {/* 內容容器 */}
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex items-center justify-between text-xs text-theme-secondary mb-2">
-          <span className="font-semibold text-custom-cyan uppercase">{categoryText}</span>
+          <span className="font-medium">{categoryText}</span>
           {formattedDate && <span>{formattedDate}</span>}
         </div>
         <motion.h3
@@ -153,16 +161,19 @@ const BlogCard: React.FC<BlogCardProps> = ({
               {displayExcerpt}
             </p>
         }
-        <div className="flex-shrink-0 mt-auto pt-3 border-t border-theme-primary flex justify-between items-center text-xs text-theme-muted">
-          {post.date ? (
-            <p className="flex items-center">
-                <span>{t('blogPage.writtenBy')} <span className="font-semibold text-custom-cyan">Solo</span></span>
-            </p>
-          ) : <div />}
-          <span className="font-semibold text-custom-cyan group-hover:underline">
-            {t('blogPage.readMoreLink')}
-          </span>
-        </div>
+        <motion.div
+          className="flex-shrink-0 mt-auto pt-3 border-t border-theme-primary flex justify-start items-center space-x-4 text-xs"
+          variants={footerIconVariants}
+        >
+          <div className="flex items-center">
+            <EyeIcon className="w-4 h-4 mr-1.5" />
+            <span>{post.views || 0}</span>
+          </div>
+          <div className="flex items-center">
+            <ChatBubbleIcon className="w-4 h-4 mr-1.5" />
+            <span>{post.commentsCount || 0}</span>
+          </div>
+        </motion.div>
       </div>
     </motion.div>
   );
