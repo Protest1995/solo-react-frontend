@@ -35,7 +35,8 @@
     "greeting": "I'm Solo",
     "title": "Software Engineer / Photography Enthusiast",
     "description": "A 90s-born tech enthusiast passionate about artistic creation and mastering new skills, blending software engineering with a love for photography.",
-    "downloadCV": "Download CV",
+    "downloadLightCV": "Download Light CV",
+    "downloadDarkCV": "Download Dark CV",
     "generatingPdf": "Generating PDF...",
     "pdfGenerationError": "Failed to generate PDF. Please try again."
   },
@@ -117,7 +118,7 @@
     "title": "About Me",
     "subtitle": "Get to know me better",
     "greetingText": "Hello, I'm",
-    "bioFull": "Hello! I'm Solo, a software engineer who loves technology. In addition to backend development and web design, I'm also passionate about visual arts - from photography to studying filmmaking, these are my interests. I usually enjoy capturing beautiful moments in life through the lens and using various tools for image post-production and creative design. When I'm not coding or shooting, I like to go to the gym to maintain enough physical strength for the work and hobbies I love.",
+    "bioFull": "a software engineer who loves technology. In addition to backend development and web design, I'm also passionate about visual arts - from photography to studying filmmaking, these are my interests. I usually enjoy capturing beautiful moments in life through the lens and using various tools for image post-production and creative design. When I'm not coding or shooting, I like to go to the gym to maintain enough physical strength for the work and hobbies I love.",
     "birthday": "Birthday",
     "birthdayValue": "1995/02/02",
     "address": "Address",

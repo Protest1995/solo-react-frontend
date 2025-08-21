@@ -1,15 +1,14 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { ACCENT_TEXT_GRADIENT_COLOR } from '../../constants';
-import DownloadIcon from '../icons/DownloadIcon';
 import { fadeInUpItemVariants, staggerContainerVariants } from '../../animationVariants';
 import CVDocument from '../pdf/CVDocument';
 import CVDocumentDark from '../pdf/CVDocumentDark';
 import RainEffect from '../ui/RainEffect';
+import { SunIcon } from '../icons/SunIcon';
+import { MoonIcon } from '../icons/MoonIcon';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -30,6 +29,7 @@ const HomePage: React.FC = () => {
   // --- 狀態管理 (useState) ---
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // 追蹤 PDF 是否正在生成中，用於禁用按鈕
   const [renderPdfTriggerLang, setRenderPdfTriggerLang] = useState<string | null>(null); // 觸發隱藏的 PDF 內容渲染。當設為特定語言時，對應的 CVDocument 組件會被渲染
+  const [themeForPdf, setThemeForPdf] = useState<Theme | null>(null); // 追蹤要生成哪個主題的 PDF
   const [currentTheme, setCurrentTheme] = useState<Theme>('dark'); // 追蹤當前應用的主題（淺色或深色）
 
   // --- Refs ---
@@ -57,55 +57,45 @@ const HomePage: React.FC = () => {
 
 
   /**
-   * 處理下載履歷按鈕的點擊事件。
-   * 這是一個複雜的異步函數，它執行以下步驟來動態生成 PDF：
-   * 1. 觸發一個隱藏的 React 組件 (CVDocument 或 CVDocumentDark) 以當前語言和主題重新渲染。
-   * 2. 使用 `requestAnimationFrame` 確保 DOM 更新完成。
-   * 3. 使用 `html2canvas` 將該組件渲染成一個高解析度的 Canvas 圖像。
-   * 4. 使用 `jsPDF` 將該圖像按 A4 紙張大小切割成多頁，並生成 PDF 文件。
+   * 處理下載特定主題履歷的按鈕點擊事件。
+   * @param {Theme} themeToDownload - 要下載的履歷主題 ('light' 或 'dark')。
    */
-  const handleDownloadCV = async () => {
-    setIsGeneratingPdf(true);
-    setRenderPdfTriggerLang(i18n.language); // 設置語言以觸發對應的 CVDocument 組件渲染
+  const handleDownloadCVForTheme = async (themeToDownload: Theme) => {
+    if (isGeneratingPdf) return; // 防止重複點擊
 
-    // 使用兩層 `requestAnimationFrame` 以確保 React 完成渲染且瀏覽器完成佈局和繪製。
-    // 這是捕獲最新 DOM 狀態的可靠方法，避免截圖到舊的內容。
+    setIsGeneratingPdf(true);
+    setThemeForPdf(themeToDownload); // 設置要渲染的 PDF 組件的主題
+    setRenderPdfTriggerLang(i18n.language); // 觸發隱藏的 PDF 組件渲染
+
+    // 使用兩層 `requestAnimationFrame` 以確保 React 完成渲染且瀏覽器完成佈局和繪製
     requestAnimationFrame(() => {
       requestAnimationFrame(async () => {
         if (pdfContentRef.current) {
           try {
-            // 關鍵步驟：等待網頁字體（如 Noto Sans TC）完全加載。
-            // 這可以防止 html2canvas 在字體還未準備好時就截圖，從而導致 PDF 中的文字使用後備字體或顯示不正確。
+            // 等待網頁字體完全加載，防止 PDF 中的文字顯示不正確
             await document.fonts.ready;
 
             // 使用 html2canvas 將 DOM 元素轉換為 Canvas
             const canvas = await html2canvas(pdfContentRef.current, {
-              scale: 2, // 提高解析度以獲得更清晰的 PDF
+              scale: 4,
               useCORS: false, 
-              backgroundColor: currentTheme === 'dark' ? '#18181B' : '#ffffff', // 根據主題設置背景色
-              width: 780, // 強制畫布寬度以匹配設計，避免響應式佈局影響
-              windowWidth: 780, 
-              logging: false, // 在生產中關閉調試日誌
+              backgroundColor: themeToDownload === 'dark' ? '#18181B' : '#ffffff',
+              width: 780,
+              windowWidth: 780,
+              logging: false,
               scrollX: 0, 
               scrollY: 0,
             });
             
-            // 驗證 Canvas 是否成功生成
-            if (canvas.width === 0 || canvas.height === 0) throw new Error("html2canvas 產生的畫布尺寸為零。");
-            
-            const imgData = canvas.toDataURL('image/png');
-            if (!imgData || imgData === 'data:,') throw new Error("html2canvas 產生的圖像數據為空。");
+            if (canvas.width === 0 || canvas.height === 0) throw new Error("html2canvas generated a zero-sized canvas.");
 
-            // 初始化 jsPDF 實例
-            const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' - 縱向, 'mm' - 毫米, 'a4' - 紙張尺寸
+            const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidthMm = pdf.internal.pageSize.getWidth();
             const pdfHeightMm = pdf.internal.pageSize.getHeight();
-            const imgProps = pdf.getImageProperties(imgData); 
-
-            // 計算從像素到毫米的縮放比例
+            const imgProps = { width: canvas.width, height: canvas.height };
             const PxToMmScale = pdfWidthMm / imgProps.width; 
             
-            let currentSourcePxY = 0; // 當前在源 Canvas 上切割的 Y 軸起點
+            let currentSourcePxY = 0;
             const totalSourcePxHeight = imgProps.height;
             let pageCount = 0;
 
@@ -113,31 +103,28 @@ const HomePage: React.FC = () => {
             while(currentSourcePxY < totalSourcePxHeight) {
               pageCount++;
               if (pageCount > 1) pdf.addPage();
-              
-              // 如果是深色模式，為 PDF 頁面填充背景色
-              if (currentTheme === 'dark') {
+              if (themeToDownload === 'dark') {
                 pdf.setFillColor('#18181B'); 
                 pdf.rect(0, 0, pdfWidthMm, pdfHeightMm, 'F');
               }
               
-              // 計算當前頁面需要從源 Canvas 切割的高度（像素）
               const sourceRectHeightPx = Math.min((pdfHeightMm / PxToMmScale), totalSourcePxHeight - currentSourcePxY);
               if (sourceRectHeightPx <= 0) break;
 
-              // 創建一個臨時 Canvas 來存放切割出的單頁圖像
               const tempCanvas = document.createElement('canvas');
               tempCanvas.width = imgProps.width; 
               tempCanvas.height = sourceRectHeightPx;
               const tempCtx = tempCanvas.getContext('2d');
-              if (!tempCtx) throw new Error("無法從臨時畫布獲取 2D 上下文以進行頁面切割。");
+              if (!tempCtx) throw new Error("Could not get 2D context for temp canvas for page slicing.");
               tempCtx.drawImage(canvas, 0, currentSourcePxY, imgProps.width, sourceRectHeightPx, 0, 0, imgProps.width, sourceRectHeightPx);
               
-              const pageImgData = tempCanvas.toDataURL('image/png');
-              if (!pageImgData || pageImgData === 'data:,') throw new Error(`為第 ${pageCount} 頁生成的圖像數據為空。`);
+              // 使用高品質的 JPEG 格式以大幅減小檔案大小
+              const pageImgData = tempCanvas.toDataURL('image/jpeg', 0.95);
+              if (!pageImgData || pageImgData === 'data:,') throw new Error(`Generated empty image data for page ${pageCount}.`);
               
-              // 將單頁圖像添加到 PDF 中
               const displayHeightMm = sourceRectHeightPx * PxToMmScale;
-              pdf.addImage(pageImgData, 'PNG', 0, 0, pdfWidthMm, displayHeightMm);
+              // 添加圖片到 PDF，指定格式為 JPEG 並使用快速壓縮
+              pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidthMm, displayHeightMm, undefined, 'FAST');
               currentSourcePxY += sourceRectHeightPx;
               if (pageCount > 20) break; // 防止無限循環
             }
@@ -145,7 +132,7 @@ const HomePage: React.FC = () => {
             // 生成動態的文件名
             const today = new Date();
             const dateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-            const themePart = currentTheme === 'dark' ? t('sidebar.darkMode', { lng: i18n.language }) : t('sidebar.lightMode', { lng: i18n.language });
+            const themePart = themeToDownload === 'dark' ? t('sidebar.darkMode', { lng: i18n.language }) : t('sidebar.lightMode', { lng: i18n.language });
             const themeStr = `${themePart}${i18n.language === 'zh-Hant' ? '版' : ''}`;
             const docTypePart = i18n.language === 'zh-Hant' ? '履歷表(中文)' : 'Resume(English)';
             const namePart = '黃正德(Solo)';
@@ -154,16 +141,18 @@ const HomePage: React.FC = () => {
             pdf.save(cvFileName);
 
           } catch (error) {
-            console.error("生成 PDF 時發生詳細錯誤:", error);
-            alert(t('homePage.pdfGenerationError', '生成 PDF 失敗。請再試一次。詳情請查看控制台。'));
+            console.error("Error generating PDF:", error);
+            alert(t('homePage.pdfGenerationError', 'Failed to generate PDF. Please check the console for details.'));
           } finally {
             setIsGeneratingPdf(false);
-            setRenderPdfTriggerLang(null); // 清理觸發器狀態，卸載 CVDocument 組件
+            setRenderPdfTriggerLang(null);
+            setThemeForPdf(null); // 清理觸發器狀態
           }
         } else {
           setIsGeneratingPdf(false);
           setRenderPdfTriggerLang(null);
-          alert(t('homePage.pdfGenerationError', '無法準備履歷內容。Ref 為空。'));
+          setThemeForPdf(null);
+          alert(t('homePage.pdfGenerationError', 'Could not prepare CV content. Ref is null.'));
         }
       });
     });
@@ -172,12 +161,10 @@ const HomePage: React.FC = () => {
   // 將問候語和標題分割成多個部分，以便對特定單詞（如 'Solo'）應用不同樣式
   const greetingText = t('homePage.greeting');
   const greetingParts = greetingText.split('Solo');
-
-  const titleText = t('homePage.title');
-  const separator = ' / ';
-  const separatorIndex = titleText.indexOf(separator);
-  const titlePart1 = separatorIndex !== -1 ? titleText.substring(0, separatorIndex + separator.length) : titleText;
-  const titlePart2 = separatorIndex !== -1 ? titleText.substring(separatorIndex + separator.length) : '';
+  const subtitle = t('homePage.title');
+  const subtitleParts = subtitle.split('/');
+  const subtitlePart1 = subtitleParts[0] ? `${subtitleParts[0].trim()} / ` : '';
+  const subtitlePart2 = subtitleParts[1] ? subtitleParts[1].trim() : '';
 
   // --- 渲染 (JSX) ---
   return (
@@ -191,29 +178,50 @@ const HomePage: React.FC = () => {
 
       {/* 主要內容，帶有 Framer Motion 動畫 */}
       <motion.div className="relative z-10 p-6 pt-16 sm:pt-20 md:pt-6" variants={staggerContainerVariants(0.3)} initial="initial" animate="animate">
-        <motion.h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-theme-primary" variants={fadeInUpItemVariants}>
-          {greetingParts[0]}<span className={ACCENT_TEXT_GRADIENT_COLOR}>Solo</span>{greetingParts[1]}
+        <motion.h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-theme-primary font-playfair" variants={fadeInUpItemVariants}>
+          {greetingParts[0]}<span className="text-glow-cyan">Solo</span>{greetingParts[1]}
         </motion.h1>
-        <motion.p className="mt-4 text-xl sm:text-2xl md:text-3xl font-medium" variants={fadeInUpItemVariants}>
-          <span className={ACCENT_TEXT_GRADIENT_COLOR}>{titlePart1}</span>
-          <span className="text-theme-primary">{titlePart2}</span>
+        <motion.p className="mt-4 text-xl sm:text-2xl md:text-3xl font-medium font-playfair" variants={fadeInUpItemVariants}>
+          <span className="text-glow-cyan">{subtitlePart1}</span>
+          <span className="text-theme-secondary">{subtitlePart2}</span>
         </motion.p>
         <motion.p className="mt-6 max-w-2xl mx-auto text-theme-secondary text-lg" variants={fadeInUpItemVariants}>
           {t('homePage.description')}
         </motion.p>
         <motion.div className="mt-12 sm:mt-10" variants={fadeInUpItemVariants}>
-          <button onClick={handleDownloadCV} disabled={isGeneratingPdf} className={`button-theme-accent font-semibold py-3 px-8 rounded-full text-lg transition-all duration-300 shadow-lg flex items-center mx-auto disabled:opacity-70 disabled:cursor-not-allowed`}>
-            <DownloadIcon className="w-5 h-5 mr-2" />
-            {isGeneratingPdf ? t('homePage.generatingPdf', '正在生成 PDF...') : t('homePage.downloadCV')}
-          </button>
+          <div className="flex justify-center items-center space-x-4">
+            {/* 淺色履歷按鈕 */}
+            <button
+              onClick={() => handleDownloadCVForTheme('light')}
+              disabled={isGeneratingPdf}
+              className={`font-semibold py-3 px-6 rounded-full text-base transition-all duration-300 shadow-md flex items-center disabled:opacity-70 disabled:cursor-not-allowed ${
+                currentTheme === 'light' ? 'button-theme-neutral' : 'button-theme-toggle'
+              } hover:scale-105 hover:shadow-[0_0_15px_var(--accent-shadow-color)]`}
+            >
+              <SunIcon className="w-5 h-5 mr-2" />
+              <span>{isGeneratingPdf && themeForPdf === 'light' ? t('homePage.generatingPdf') : t('homePage.downloadLightCV')}</span>
+            </button>
+
+            {/* 深色履歷按鈕 */}
+            <button
+              onClick={() => handleDownloadCVForTheme('dark')}
+              disabled={isGeneratingPdf}
+              className={`font-semibold py-3 px-6 rounded-full text-base transition-all duration-300 shadow-md flex items-center disabled:opacity-70 disabled:cursor-not-allowed ${
+                currentTheme === 'dark' ? 'button-theme-neutral' : 'button-theme-toggle'
+              } hover:scale-105 hover:shadow-[0_0_15px_var(--accent-shadow-color)]`}
+            >
+              <MoonIcon className="w-5 h-5 mr-2" />
+              <span>{isGeneratingPdf && themeForPdf === 'dark' ? t('homePage.generatingPdf') : t('homePage.downloadDarkCV')}</span>
+            </button>
+          </div>
         </motion.div>
       </motion.div>
 
-      {/* 隱藏的 PDF 內容渲染區域。只有在 `renderPdfTriggerLang` 被設置時才會渲染。 */}
-      {renderPdfTriggerLang && (
+      {/* 隱藏的 PDF 內容渲染區域 */}
+      {renderPdfTriggerLang && themeForPdf && (
         <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', zIndex: -100 }}>
           <div ref={pdfContentRef}>
-            {currentTheme === 'dark' ? (
+            {themeForPdf === 'dark' ? (
                 <CVDocumentDark language={renderPdfTriggerLang} />
             ) : (
                 <CVDocument language={renderPdfTriggerLang} />

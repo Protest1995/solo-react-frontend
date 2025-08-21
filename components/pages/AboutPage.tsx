@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
 import SectionTitle from '../ui/SectionTitle';
 import ServiceCard from '../ui/ServiceCard';
-import { ACCENT_COLOR, ACCENT_TEXT_GRADIENT_COLOR } from '../../constants';
+import { ACCENT_COLOR } from '../../constants';
 import CodeIcon from '../icons/CodeIcon';
 import PaletteIcon from '../icons/PaletteIcon';
 import CameraIcon from '../icons/CameraIcon'; 
@@ -126,8 +125,8 @@ const AboutPage: React.FC = () => {
                 variants={fadeInUpItemVariants}
             >
                 {/* 問候語和姓名 */}
-                <h3 className="text-4xl md:text-5xl font-semibold text-theme-primary">
-                    {t('aboutPage.greetingText')} <span className={ACCENT_TEXT_GRADIENT_COLOR}>{t('sidebar.profileName')}</span>
+                <h3 className="text-4xl md:text-5xl font-bold text-theme-primary font-playfair">
+                    {t('aboutPage.greetingText')} <span className="text-glow-cyan">{t('sidebar.profileName')}</span>
                 </h3>
                 {/* 個人簡介 */}
                 <p className="leading-relaxed">{t('aboutPage.bioFull')}</p>
