@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
@@ -155,7 +154,7 @@ const ResumePage: React.FC = () => {
             <WrenchScrewdriverIcon className={`w-7 h-7 mr-3 ${ACCENT_COLOR}`} />
             {t('resumePage.toolsSubTitle')}
           </motion.h3>
-          <motion.div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3" variants={staggerContainerVariants(0.05)} initial="initial" whileInView="animate" viewport={{ once: true, amount: 0.2 }}>
+          <motion.div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3" variants={staggerContainerVariants(0.05)} initial="initial" whileInView="animate" viewport={{ once: true, amount: 0.2 }}>
             {allTools.map((tool) => (
               <motion.div key={tool.nameKey} variants={fadeInUpItemVariants} className="flex items-center">
                 <span className={`inline-block w-1.5 h-1.5 rounded-full mr-3 ${ACCENT_SOLID_BG_COLOR}`}></span>

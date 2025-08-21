@@ -91,29 +91,11 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const isNavigatingRef = useRef(false);
   const lastWheelNavTime = useRef(0);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
   const [isCarouselVisible, setIsCarouselVisible] = useState(false); // 預覽面板預設為收合
 
   const { id, imageUrl, title, titleZh } = currentItem;
   
   const lightboxRoot = useMemo(() => document.getElementById('lightbox-root'), []);
-
-  // 監聽螢幕方向和尺寸變化
-  useEffect(() => {
-    const checkOrientation = () => {
-        const isLandscape = window.matchMedia("(orientation: landscape)").matches;
-        const isMobile = window.innerWidth < 1024;
-        setIsMobileLandscape(isLandscape && isMobile);
-    };
-    checkOrientation();
-    const mql = window.matchMedia("(orientation: landscape)");
-    window.addEventListener('resize', checkOrientation);
-    mql.addEventListener('change', checkOrientation);
-    return () => {
-        window.removeEventListener('resize', checkOrientation);
-        mql.removeEventListener('change', checkOrientation);
-    };
-  }, []);
   
   const currentIndex = useMemo(() => filteredItems.findIndex(item => item.id === currentItem.id), [filteredItems, currentItem.id]);
   
@@ -121,7 +103,9 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     if (carouselRef.current && isCarouselVisible) {
         const thumbnailElement = carouselRef.current.querySelector(`[data-index="${currentIndex}"]`) as HTMLElement | undefined;
         if (thumbnailElement) {
-            thumbnailElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            setTimeout(() => {
+                thumbnailElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }, 100);
         }
     }
   }, [currentIndex, isCarouselVisible]);
@@ -226,8 +210,8 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const iconColorClasses = isLightTheme ? 'text-gray-800' : 'text-white';
   const iconHoverClasses = `hover:text-custom-cyan`;
 
-  const imageContainerPaddingClasses = isMobileLandscape ? 'p-0' : 'pt-16 pb-10';
-  const mainImagePaddingBottom = isMobileLandscape ? '0rem' : (isCarouselVisible ? '12.75rem' : '3.5rem');
+  const imageContainerPaddingClasses = 'pt-16 pb-10';
+  const mainImagePaddingBottom = isCarouselVisible ? '12.75rem' : '3.5rem';
 
   const lightboxContent = (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
@@ -243,7 +227,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
           </motion.div>
         </div>
         
-        {filteredItems.length > 1 && !isMobileLandscape && (
+        {filteredItems.length > 1 && (
             <div key="lightbox-carousel-panel" className="absolute bottom-0 left-0 right-0 z-20 w-full">
                 <div className={`relative w-full mx-auto transition-colors rounded-t-lg ${carouselContainerClasses}`}>
                     <button
