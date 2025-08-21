@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
@@ -110,7 +111,7 @@ const AboutPage: React.FC = () => {
         {/* 主要內容網格佈局 */}
         <div className="flex flex-col lg:grid lg:grid-cols-7 gap-x-12 gap-y-8 items-center">
             {/* 個人照片 - 在手機和中尺寸時在上方，大尺寸時在左側 */}
-            <motion.div className="w-full max-w-md mx-auto lg:col-span-3 lg:max-w-none" variants={fadeInUpItemVariants}>
+            <motion.div className="w-full max-w-sm mx-auto lg:col-span-3" variants={fadeInUpItemVariants}>
                 {/* service-card-wrapper 用於實現動畫邊框效果 */}
                 <div className="service-card-wrapper shadow-xl">
                     <div className="service-card-inner">

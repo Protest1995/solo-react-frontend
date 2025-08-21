@@ -189,7 +189,7 @@ const HomePage: React.FC = () => {
           {t('homePage.description')}
         </motion.p>
         <motion.div className="mt-12 sm:mt-10" variants={fadeInUpItemVariants}>
-          <div className="flex justify-center items-center space-x-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
             {/* 淺色履歷按鈕 */}
             <button
               onClick={() => handleDownloadCVForTheme('light')}

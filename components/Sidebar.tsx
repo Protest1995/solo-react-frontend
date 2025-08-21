@@ -127,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // 桌面端收合時的樣式
   const desktopCollapsedClasses = "lg:w-20 lg:p-3 lg:items-center";
   // 收合按鈕的基礎樣式
-  const collapseButtonBaseClasses = `flex items-center justify-center rounded-full transition-all duration-300 ease-in-out text-custom-cyan hover:bg-theme-hover focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`;
+  const collapseButtonBaseClasses = `flex items-center justify-center rounded-full transition-all duration-300 ease-in-out text-custom-cyan hover:bg-theme-hover focus:outline-none focus:ring-0`;
   
   /**
    * 渲染個人資料頭部的內部組件。
@@ -256,7 +256,19 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* 社交媒體連結和版權資訊 (僅在展開模式下顯示) */}
       <div className={`text-center pb-4 mt-6 ${isDesktopCollapsed ? 'lg:hidden' : ''}`}>
         <div className="flex justify-center space-x-4 mb-4"> <a href="#" aria-label={t('sidebar.profileName') + " LinkedIn"} className="text-theme-primary transition-colors hover:text-custom-cyan"> <LinkedInIcon className="w-5 h-5" /> </a> <a href="#" aria-label={t('sidebar.profileName') + " GitHub"} className="text-theme-primary transition-colors hover:text-custom-cyan"> <GithubIcon className="w-5 h-5" /> </a> <a href="#" aria-label={t('sidebar.instagramAriaLabel')} className="text-theme-primary transition-colors hover:text-custom-cyan"> <InstagramIcon className="w-5 h-5" /> </a> </div>
-        <p className="text-xs text-theme-muted">{t('sidebar.copyright')}</p>
+        <p className="text-xs text-theme-muted">
+          {(() => {
+            const copyrightText = t('sidebar.copyright');
+            const parts = copyrightText.split('Solo');
+            return (
+              <>
+                {parts[0]}
+                <span className="text-custom-cyan">Solo</span>
+                {parts[1]}
+              </>
+            );
+          })()}
+        </p>
       </div>
     </aside>
   );
