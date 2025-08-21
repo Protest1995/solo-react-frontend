@@ -38,13 +38,16 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
 
   // 定義內容和圖片的動畫變體
   const contentVariants = {
-    inactive: { opacity: 0 },
-    active: { opacity: 1, transition: { staggerChildren: 0.2, delayChildren: 0.4, ease: "easeOut" as const } },
+    inactive: {}, // No opacity, just a container for stagger
+    active: { transition: { staggerChildren: 0.2, delayChildren: 0.4, ease: "easeOut" as const } },
   };
+  
+  // 為所有內容項目（標題、摘要、按鈕）定義統一的淡入+上移動畫
   const itemVariants = {
     inactive: { opacity: 0, y: 20 },
-    active: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const }},
+    active: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
   };
+
   const imageVariants = {
     inactive: { scale: 1.15, transition: { duration: 8, ease: 'linear' as const } },
     active: { scale: 1, transition: { duration: 8, ease: 'linear' as const } }
@@ -67,25 +70,24 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
         {/* 內容區域 */}
         <div className="relative z-10 h-full flex flex-col justify-center items-center text-white p-8">
             <motion.div
-              className="max-w-3xl w-full text-center flex flex-col items-center"
+              className="hero-content-container max-w-3xl w-full text-center flex flex-col items-center"
               variants={contentVariants}
               initial="inactive"
               animate={isActive ? "active" : "inactive"}
             >
-                <motion.h2 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight" variants={itemVariants}>
+                <motion.h2 className="hero-title font-playfair text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight" variants={itemVariants}>
                     {displayTitle}
                 </motion.h2>
                 <motion.p className="text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl mx-auto line-clamp-3 mb-8" variants={itemVariants}>
                       {displayExcerpt}
                 </motion.p>
-                <motion.div variants={itemVariants}>
-                    <button
-                        onClick={onClick}
-                        className="btn-hero-neon px-8 py-3 text-lg font-semibold transition-all duration-300 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 focus-visible:ring-custom-cyan"
-                    >
-                      {t('blogPage.startReading')}
-                    </button>
-                </motion.div>
+                <motion.button
+                    onClick={onClick}
+                    className="btn-hero-neon px-8 py-3 text-lg font-semibold transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 focus-visible:ring-custom-cyan transform-gpu"
+                    variants={itemVariants}
+                >
+                  {t('blogPage.startReading')}
+                </motion.button>
             </motion.div>
         </div>
     </div>

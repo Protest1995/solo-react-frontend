@@ -349,15 +349,25 @@ const App: React.FC = () => {
     })();
   }, []);
 
-  // 當前端已載入文章後，載入所有留言（按需載入每篇可在詳情頁呼叫，這裡簡化）
+  // 當前端已載入文章後，並行載入所有留言以提升性能
   useEffect(() => {
-    (async () => {
+    const fetchComments = async () => {
+      if (!userAddedPosts || userAddedPosts.length === 0) {
+        setAllComments([]);
+        return;
+      }
+
       try {
-        const results: Comment[] = [];
-        for (const p of userAddedPosts) {
-          const list = await ApiService.getCommentsByPost(p.id);
-          // 映射後端欄位到前端 Comment 介面
-          const mapped = (list || []).map((c: any) => ({
+        // 為每篇文章創建一個獲取留言的 Promise
+        const commentPromises = userAddedPosts.map(p => ApiService.getCommentsByPost(p.id));
+        // 使用 Promise.all 並行執行所有請求
+        const commentLists = await Promise.all(commentPromises);
+
+        // 將所有留言列表扁平化並映射到 Comment 介面
+        const results: Comment[] = commentLists
+          .filter(list => Array.isArray(list)) // 過濾掉無效的響應
+          .flat()
+          .map((c: any) => ({
             id: c.id,
             postId: c.postId,
             userId: c.userId,
@@ -367,14 +377,15 @@ const App: React.FC = () => {
             text: c.text,
             parentId: c.parentId || null,
           }));
-          results.push(...mapped);
-        }
+        
         setAllComments(results);
       } catch (e) {
         console.error('載入留言失敗', e);
         setAllComments([]);
       }
-    })();
+    };
+    
+    fetchComments();
   }, [userAddedPosts]);
 
   useEffect(() => {
