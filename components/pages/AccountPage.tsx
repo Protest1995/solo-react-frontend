@@ -82,6 +82,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
     setImageToCrop(null);
     setNewPassword('');
     setConfirmPassword('');
+    setUploadProgress(0); // 清除上傳進度
     // 不立刻清除提示文字，避免剛保存完成就被覆蓋造成閃一下
   }, [userProfile]);
 
@@ -190,6 +191,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
     setImageToCrop(null);
     setNewPassword('');
     setConfirmPassword('');
+    setUploadProgress(0);
     // 不強制清空提示
   };
 
@@ -272,6 +274,34 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
 
   return (
     <div className="space-y-12">
+      <AnimatePresence>
+        {isUploadingAvatar && (
+          <motion.div
+            className="fixed inset-0 bg-glass flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div
+                className="w-32 h-32 rounded-full flex flex-col items-center justify-center gap-2"
+                style={{
+                    boxShadow: '0 0 30px var(--accent-shadow-color)',
+                    border: '2px solid var(--accent-cyan-darker)',
+                    backgroundColor: 'rgba(var(--bg-secondary-rgb), 0.5)'
+                }}
+            >
+                <img
+                  src="/images/icon/icon.jpg"
+                  alt=""
+                  className="w-10 h-10 animate-spin"
+                />
+                <p className="mt-1 text-sm font-semibold text-theme-secondary tracking-wide text-center px-4">
+                  {t('accountPage.avatarUploading')} {uploadProgress}%
+                </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* 隱藏原生 date placeholder（包含本地化文字），在沒有值時保持空白 */}
       <style>{`
         .hide-date-placeholder::-webkit-datetime-edit,
@@ -322,11 +352,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
                 )}
               </div>
             </div>
-            {isUploadingAvatar ? (
-              <div className="mb-3 text-green-400 font-semibold text-sm text-center">
-                {t('accountPage.avatarUploading')} {uploadProgress}%
-              </div>
-            ) : uploadProgress === 100 ? (
+            {!isUploadingAvatar && uploadProgress === 100 ? (
               <div className="mb-3 text-green-400 font-semibold text-sm text-center">
                 {t('accountPage.avatarUploadSuccess')}
               </div>

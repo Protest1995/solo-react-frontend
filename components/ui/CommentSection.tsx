@@ -130,13 +130,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           {/* 未登入時的遮罩層 */}
           {!isAuthenticated && (
             <div
-              className="absolute inset-0 backdrop-blur-2xl rounded-lg flex items-center justify-center z-10 cursor-pointer"
-              style={{ backgroundColor: 'rgba(var(--bg-secondary-rgb), 0.7)' }}
+              className="absolute inset-0 bg-glass rounded-lg flex items-center justify-center z-10 cursor-pointer"
               onClick={onLoginClick}
               role="button"
               aria-label={t('comments.loginToComment')}
             >
-              <div className="flex items-center space-x-2 font-semibold text-theme-primary">
+              <div className="flex items-center space-x-2 font-semibold text-custom-cyan drop-shadow-[0_0_8px_var(--accent-shadow-color)]">
                 <LockClosedIcon className="w-5 h-5" />
                 <span>{t('comments.loginToComment')}</span>
               </div>

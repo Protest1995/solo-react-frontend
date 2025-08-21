@@ -11,6 +11,7 @@ import { getCategoryInfoFromKey } from '../data/blogData';
 import MDEditor from '@uiw/react-md-editor';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import PostNavigation from '../ui/PostNavigation';
+import { getOptimizedImageUrl } from '../../utils';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -75,6 +76,7 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
   const navigate = useNavigate();
   // 狀態：Markdown 編輯器的主題模式
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('dark');
+  const [isScrolled, setIsScrolled] = useState(false);
   
   // --- 副作用 (useEffect) ---
   
@@ -93,6 +95,24 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
     const initialMode = document.body.classList.contains('theme-light') ? 'light' : 'dark';
     setColorMode(initialMode);
     return () => observer.disconnect();
+  }, []);
+
+  // 新增：監聽滾動事件以觸發毛玻璃效果
+  useEffect(() => {
+    const handleScroll = () => {
+      // 如果滾動距離大於 50px，則設定 isScrolled 為 true
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    // 添加滾動事件監聽器
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // 初始加載時檢查一次，以處理頁面刷新時已經滾動的情況
+    handleScroll();
+
+    // 組件卸載時移除監聽器，避免內存洩漏
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   // --- 計算屬性 (useMemo) ---
@@ -117,6 +137,31 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
     };
   }, [post, t, i18n.language, categoryInfo]);
 
+  // --- 動畫變體 (Animation Variants) ---
+  const heroContentContainerVariants = {
+    initial: {},
+    animate: {
+      transition: {
+        staggerChildren: 0.2, // 子元素之間的動畫延遲
+        delayChildren: 0.4,   // 第一個子元素開始前的延遲
+      }
+    }
+  };
+
+  const heroContentItemVariants = {
+    initial: { opacity: 0, scale: 0.8, y: 10 },
+    animate: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 1, 0.5, 1] as const, // 使用平滑的 ease-out 曲線
+      }
+    }
+  };
+
+
   // --- 渲染 (JSX) ---
   return (
     // 使用負邊距抵消父容器的 padding，使英雄區塊能夠全寬顯示
@@ -126,25 +171,38 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
             {/* 背景圖片 */}
             <div 
                 className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${post.imageUrl})` }}
+                style={{ backgroundImage: `url(${getOptimizedImageUrl(post.imageUrl, 1920)})` }}
             />
             {/* 黑色遮罩層，增強文字可讀性 */}
             <div className="absolute inset-0 bg-black opacity-60" />
             {/* 內容容器 */}
-            <div className="relative z-10 text-center max-w-4xl p-8">
-                <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4">{displayTitle}</h1>
-                <div className={`text-sm font-medium uppercase tracking-wider text-custom-cyan`}>
+            <motion.div 
+                className="relative z-10 text-center max-w-4xl p-8"
+                variants={heroContentContainerVariants}
+                initial="initial"
+                animate="animate"
+            >
+                <motion.h1 
+                    className="text-4xl md:text-6xl font-extrabold leading-tight mb-4"
+                    variants={heroContentItemVariants}
+                >
+                    {displayTitle}
+                </motion.h1>
+                <motion.div 
+                    className={`text-sm font-medium uppercase tracking-wider text-custom-cyan`}
+                    variants={heroContentItemVariants}
+                >
                     <span>{new Date(post.date).toLocaleDateString(i18n.language, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     <span className="mx-2">/</span>
                     <span>{postCategory}</span>
                     <span className="mx-2">/</span>
                     <span>{t('blogPage.writtenBy')} {t('sidebar.profileName')}</span>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
         </div>
 
         {/* 固定的導航/操作欄 */}
-        <div className="bg-theme-primary py-3 sticky top-0 z-30">
+        <div className={`py-3 sticky top-0 z-30 transition-all duration-300 ${isScrolled ? 'bg-glass border-b border-theme-primary' : 'bg-transparent'}`}>
              <div className="max-w-7xl mx-auto px-6 flex justify-between items-center gap-4">
                 {/* 左側：麵包屑導航 */}
                 <div className="flex items-center gap-4">

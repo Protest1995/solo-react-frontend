@@ -7,7 +7,7 @@ import { BlogPostData, Page } from '../../types';
 // 引入圖標組件
 import { ChevronRightIcon } from 'lucide-react';
 // 引入工具函數
-import { stripMarkdown } from '../../utils';
+import { stripMarkdown, getOptimizedImageUrl } from '../../utils';
 // 引入 Framer Motion 動畫庫
 import { motion } from 'framer-motion';
 
@@ -84,7 +84,7 @@ const Postcard: React.FC<PostcardProps> = ({ post, navigateTo }) => {
       viewport={{ once: true, amount: 0.8 }}
     >
       <motion.img
-        src={post.imageUrl}
+        src={getOptimizedImageUrl(post.imageUrl, 600)}
         alt={displayTitle}
         className="postcard-image"
         variants={imageVariants}

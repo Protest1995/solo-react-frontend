@@ -7,7 +7,7 @@ import { BlogPostData } from '../../types';
 // 引入 Framer Motion 動畫庫
 import { motion } from 'framer-motion';
 // 引入工具函數，用於移除 Markdown 格式
-import { stripMarkdown } from '../../utils';
+import { stripMarkdown, getOptimizedImageUrl } from '../../utils';
 import EyeIcon from '../icons/EyeIcon';
 import ChatBubbleIcon from '../icons/ChatBubbleIcon';
 
@@ -23,7 +23,7 @@ const titleVariants = {
   hover: { color: 'var(--accent-cyan)', transition: { duration: 0.3, ease: "easeOut" as const } }, // 懸停狀態：變為強調色
 };
 
-// 定義卡片頁腳圖標的動畫變體
+// 定義卡片頁脚圖標的動畫變體
 const footerIconVariants = {
   rest: { color: 'var(--text-muted)' }, // 靜止狀態：使用主題的次要文字顏色
   hover: { color: 'var(--accent-cyan)', transition: { duration: 0.3, ease: "easeOut" as const } }, // 懸停狀態：變為強調色
@@ -127,7 +127,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
       {/* 圖片容器 */}
       <div className="relative rounded-t-lg overflow-hidden">
         <motion.img
-          src={post.imageUrl}
+          src={getOptimizedImageUrl(post.imageUrl, 400)}
           alt={displayTitle}
           className="w-full h-48 object-cover"
           variants={imageVariants} // 應用圖片懸停動畫

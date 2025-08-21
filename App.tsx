@@ -1,5 +1,4 @@
 
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -24,8 +23,6 @@ import AddBlogPostPage from './components/pages/AddBlogPostPage';
 import EditBlogPostPage from './components/pages/EditBlogPostPage';
 import PhotoManagementPage from './components/pages/PhotoManagementPage';
 import PostManagementPage from './components/pages/PostManagementPage';
-import SplashScreen from './components/ui/SplashScreen';
-import SpinnerIcon from './components/icons/SpinnerIcon';
 import Footer from './components/ui/Footer';
 import { blogCategoryDefinitions } from './components/data/blogData';
 import { NAVIGATION_ITEMS, AUTH_NAVIGATION_ITEMS } from './constants';
@@ -71,47 +68,191 @@ const SuperUserRoute: React.FC<SuperUserRouteProps> = ({ isSuperUser, children }
 const LoginPageWrapper: React.FC = () => <LoginPage />;
 const RegisterPageWrapper: React.FC = () => <RegisterPage />;
 
-const PortfolioPageWrapper: React.FC<any> = (props) => <PortfolioPage {...props} />;
-const BlogPageWrapper: React.FC<any> = (props) => <BlogPage {...props} />;
-const BlogPostDetailWrapper: React.FC<any> = ({ userAddedPosts, allComments, contentLoading, ...props }) => {
+const PortfolioPageWrapper: React.FC<{
+    navigateTo: (page: Page, data?: any) => void;
+    isAuthenticated: boolean;
+    isSuperUser: boolean;
+    portfolioItems: PortfolioItemData[];
+    onAddPortfolioItem: (item: PortfolioItemData) => void;
+    onDeletePortfolioItems: (ids: string[]) => void;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems }) => {
+    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} />;
+};
+
+const BlogPageWrapper: React.FC<{ 
+    navigateTo: (page: Page, data?: any) => void; 
+    isSuperUser: boolean; 
+    allPosts: BlogPostData[];
+    onDeletePosts: (ids: string[]) => void;
+}> = ({ navigateTo, isSuperUser, allPosts, onDeletePosts }) => {
+    return <BlogPage navigateTo={navigateTo} allPosts={allPosts} onDeletePosts={onDeletePosts} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} />;
+};
+
+const BlogPostDetailWrapper: React.FC<{ 
+    navigateTo: (page: Page, data?: any) => void; 
+    isAuthenticated: boolean; 
+    isSuperUser: boolean; 
+    currentUserProfile: UserProfile; 
+    allPosts: BlogPostData[];
+    postDetailCache: { [key: string]: { post: BlogPostData; comments: Comment[] } };
+    onUpdateCache: (postId: string, data: { post: BlogPostData; comments: Comment[] }) => void;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, currentUserProfile, allPosts, postDetailCache, onUpdateCache }) => {
     const { postId } = useParams();
     const location = useLocation();
-    const post = useMemo(() => userAddedPosts.find((p: BlogPostData) => p.id === postId), [postId, userAddedPosts]);
+    const { t, i18n } = useTranslation();
+    
+    const [post, setPost] = useState<BlogPostData | null>(null);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!postId) return;
+
+        // Check cache first
+        if (postDetailCache[postId]) {
+            const cachedData = postDetailCache[postId];
+            setPost(cachedData.post);
+            setComments(cachedData.comments);
+            setLoading(false);
+            return;
+        }
+        
+        setLoading(true);
+        (async () => {
+            try {
+                const [postData, commentsData] = await Promise.all([
+                    ApiService.getPost(postId),
+                    ApiService.getCommentsByPost(postId)
+                ]);
+                const validComments = Array.isArray(commentsData) ? commentsData : [];
+                setPost(postData);
+                setComments(validComments);
+                onUpdateCache(postId, { post: postData, comments: validComments });
+            } catch (e) {
+                console.error("Failed to load post details", e);
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [postId, postDetailCache, onUpdateCache]);
+    
+    useEffect(() => {
+        if (post) {
+            const title = i18n.language === 'zh-Hant' && post.titleZh ? post.titleZh : (post.title || t('blogPage.untitledPost'));
+            document.title = title;
+        }
+    }, [post, i18n.language, t]);
+
+    const handleAddComment = useCallback(async (postId: string, text: string, parentId: string | null = null) => {
+        if (!isAuthenticated) return;
+        try {
+            const created = await ApiService.addComment({ postId, text, parentId });
+            setComments(p => [...p, {
+                id: created.id,
+                postId: created.postId,
+                userId: created.userId,
+                username: created.username,
+                avatarUrl: created.avatarUrl,
+                date: created.date,
+                text: created.text,
+                parentId: created.parentId || null,
+            }]);
+        } catch (e) {
+            console.error('Failed to add comment', e);
+            alert('Failed to add comment, please try again.');
+        }
+    }, [isAuthenticated]);
+
+    const handleDeleteComment = useCallback(async (id: string) => {
+        if (!isSuperUser) return;
+        try {
+            await ApiService.deleteComment(id);
+            setComments(p => {
+                const toDelete = new Set<string>([id]);
+                const findChildren = (parentId: string) => {
+                    p.filter(c => c.parentId === parentId).forEach(c => { toDelete.add(c.id); findChildren(c.id); });
+                };
+                findChildren(id);
+                return p.filter(c => !toDelete.has(c.id));
+            });
+        } catch (e) {
+            console.error('Failed to delete comment', e);
+            alert('Failed to delete comment.');
+        }
+    }, [isSuperUser]);
+
+    if (loading) return null;
+    if (!post) return <Navigate to="/blog" replace />;
+
     const originCategoryInfo = location.state?.fromCategory as CategoryInfo | null;
 
-    if (contentLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-[60vh]">
-                <SpinnerIcon className="w-12 h-12 text-custom-cyan" />
-            </div>
-        );
-    }
-
-    if (!post) {
-        return <Navigate to="/blog" replace />;
-    }
-
-    return <BlogPostDetailPage post={post} allPosts={userAddedPosts} comments={allComments.filter((c: Comment) => c.postId === post.id)} {...props} originCategoryInfo={originCategoryInfo} />;
+    return <BlogPostDetailPage post={post} allPosts={allPosts} comments={comments} navigateTo={navigateTo} isAuthenticated={isAuthenticated} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} isSuperUser={isSuperUser} currentUserProfile={currentUserProfile} originCategoryInfo={originCategoryInfo} />;
 };
-const CategoryArchiveWrapper: React.FC<any> = ({ allPosts, ...props }) => {
+
+
+const CategoryArchiveWrapper: React.FC<{ 
+    navigateTo: (page: Page, data?: any) => void; 
+    isAuthenticated: boolean; 
+    isSuperUser: boolean;
+    allPosts: BlogPostData[];
+    onDeletePosts: (ids: string[]) => void;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, allPosts, onDeletePosts }) => {
     const { categoryKey } = useParams();
+    
     const categoryInfo = useMemo(() => {
         if (categoryKey === 'all') return { titleKey: 'portfolioPage.filterAll', categoryKeys: [], isEditable: true };
         return blogCategoryDefinitions.find(def => (def.titleKey.split('.').pop() || '') === categoryKey) || null;
     }, [categoryKey]);
+
     if (!categoryInfo) return <Navigate to="/blog" replace />;
-    return <CategoryArchivePage categoryInfo={categoryInfo} allPosts={allPosts} {...props} />;
+
+    return <CategoryArchivePage categoryInfo={categoryInfo} allPosts={allPosts} navigateTo={navigateTo} onDeletePosts={onDeletePosts} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} />;
 };
+
 const AccountPageWrapper: React.FC<any> = (props) => <AccountPage {...props} />;
 const AddBlogPostPageWrapper: React.FC<any> = (props) => <AddBlogPostPage {...props} />;
-const EditBlogPostWrapper: React.FC<any> = ({ userAddedPosts, ...props }) => {
+const EditBlogPostWrapper: React.FC<any> = (props) => {
     const { postId } = useParams();
-    const postToEdit = useMemo(() => userAddedPosts.find((p: BlogPostData) => p.id === postId), [postId, userAddedPosts]);
+    const [postToEdit, setPostToEdit] = useState<BlogPostData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!postId) return;
+        (async () => {
+            try {
+                const post = await ApiService.getPost(postId);
+                setPostToEdit(post);
+            } catch (e) {
+                console.error('Failed to load post for editing', e);
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [postId]);
+
+    if (loading) return null;
     if (!postToEdit) return <Navigate to="/blog" replace />;
+    
     return <EditBlogPostPage postToEdit={postToEdit} {...props} />;
 };
-const PhotoManagementPageWrapper: React.FC<any> = (props) => <PhotoManagementPage {...props} />;
-const PostManagementPageWrapper: React.FC<any> = (props) => <PostManagementPage {...props} />;
+const PhotoManagementPageWrapper: React.FC<{
+    navigateTo: (page: Page, data?: any) => void;
+    portfolioItems: PortfolioItemData[];
+    onAdd: (item: PortfolioItemData) => void;
+    onUpdate: (item: PortfolioItemData) => void;
+    onDelete: (ids: string[]) => void;
+}> = (props) => {
+    return <PhotoManagementPage {...props} />;
+};
+const PostManagementPageWrapper: React.FC<{
+    navigateTo: (page: Page, data?: any) => void;
+    posts: BlogPostData[];
+    onAdd: (post: BlogPostData) => void;
+    onUpdate: (post: BlogPostData) => void;
+    onDelete: (ids: string[]) => void;
+}> = (props) => {
+    return <PostManagementPage {...props} />;
+};
 
 
 // 定義主題類型
@@ -194,7 +335,7 @@ const Layout: React.FC<LayoutProps> = ({
           </div>
       </header>
       <main className={mainContentClasses}>
-        <div className="p-6 md:p-12 min-h-screen">
+        <div className="p-6 md:p-12 min-h-screen flex flex-col">
           <Outlet />
         </div>
         {isBlogPage && <Footer navigateTo={navigateTo} />}
@@ -212,19 +353,8 @@ const App: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
-  const [isAppLoading, setIsAppLoading] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    try {
-        const hasLoaded = sessionStorage.getItem('hasLoaded');
-        return !hasLoaded;
-    } catch (e) {
-        console.error("Could not access sessionStorage for splash screen state.", e);
-        return true;
-    }
-  });
-  
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
@@ -235,7 +365,11 @@ const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
-  const [contentLoading, setContentLoading] = useState(true);
+  
+  const [appDataLoading, setAppDataLoading] = useState(true);
+  const [allPosts, setAllPosts] = useState<BlogPostData[]>([]);
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItemData[]>([]);
+  const [postDetailCache, setPostDetailCache] = useState<{ [key: string]: { post: BlogPostData; comments: Comment[] } }>({});
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
     username: t('sidebar.profileName'),
@@ -247,21 +381,24 @@ const App: React.FC = () => {
     phone: '',
   }); 
   
-  const [userAddedPosts, setUserAddedPosts] = useState<BlogPostData[]>([]);
-  const [userAddedPortfolioItems, setUserAddedPortfolioItems] = useState<PortfolioItemData[]>([]);
-  
-  const [allComments, setAllComments] = useState<Comment[]>([]);
-
   const isSuperUser = isAuthenticated && ((user?.role === 'SUPER_USER') || (user?.role === 'ADMIN') || (user?.username === 'admin'));
 
-  const handleAnimationComplete = () => {
-    try {
-        sessionStorage.setItem('hasLoaded', 'true');
-    } catch(e) {
-        console.error("Could not write to sessionStorage", e);
-    }
-    setIsAppLoading(false);
-  };
+  useEffect(() => {
+      (async () => {
+          try {
+              const [postsData, portfolioData] = await Promise.all([
+                  ApiService.request<BlogPostData[]>({ url: '/api/posts', method: 'GET' }),
+                  ApiService.request<PortfolioItemData[]>({ url: '/api/portfolio', method: 'GET' })
+              ]);
+              setAllPosts(Array.isArray(postsData) ? postsData : []);
+              setPortfolioItems(Array.isArray(portfolioData) ? portfolioData : []);
+          } catch (e) {
+              console.error('Failed to load initial app data', e);
+          } finally {
+              setAppDataLoading(false);
+          }
+      })();
+  }, []);
 
   useEffect(() => { localStorage.setItem('theme', JSON.stringify(theme)); document.body.classList.remove('theme-light', 'theme-dark'); document.body.classList.add(`theme-${theme}`); }, [theme]);
   useEffect(() => { localStorage.setItem('sidebarCollapsed', JSON.stringify(isSidebarCollapsed)); }, [isSidebarCollapsed]);
@@ -328,66 +465,6 @@ const App: React.FC = () => {
     };
   }, [isMobileView]); // Re-run this effect only when mobile view changes
 
-  // 以 API 載入作品集與部落格資料（不回退 JSON）
-  useEffect(() => {
-    (async () => {
-      setContentLoading(true);
-      try {
-        const [portfolio, posts] = await Promise.all([
-          ApiService.request<PortfolioItemData[]>({ url: '/api/portfolio', method: 'GET' }),
-          ApiService.request<BlogPostData[]>({ url: '/api/posts', method: 'GET' }),
-        ]);
-        setUserAddedPortfolioItems(Array.isArray(portfolio) ? portfolio : []);
-        setUserAddedPosts(Array.isArray(posts) ? posts : []);
-      } catch (e) {
-        console.error('載入內容失敗', e);
-        setUserAddedPortfolioItems([]);
-        setUserAddedPosts([]);
-      } finally {
-        setContentLoading(false);
-      }
-    })();
-  }, []);
-
-  // 當前端已載入文章後，並行載入所有留言以提升性能
-  useEffect(() => {
-    const fetchComments = async () => {
-      if (!userAddedPosts || userAddedPosts.length === 0) {
-        setAllComments([]);
-        return;
-      }
-
-      try {
-        // 為每篇文章創建一個獲取留言的 Promise
-        const commentPromises = userAddedPosts.map(p => ApiService.getCommentsByPost(p.id));
-        // 使用 Promise.all 並行執行所有請求
-        const commentLists = await Promise.all(commentPromises);
-
-        // 將所有留言列表扁平化並映射到 Comment 介面
-        const results: Comment[] = commentLists
-          .filter(list => Array.isArray(list)) // 過濾掉無效的響應
-          .flat()
-          .map((c: any) => ({
-            id: c.id,
-            postId: c.postId,
-            userId: c.userId,
-            username: c.username,
-            avatarUrl: c.avatarUrl,
-            date: c.date,
-            text: c.text,
-            parentId: c.parentId || null,
-          }));
-        
-        setAllComments(results);
-      } catch (e) {
-        console.error('載入留言失敗', e);
-        setAllComments([]);
-      }
-    };
-    
-    fetchComments();
-  }, [userAddedPosts]);
-
   useEffect(() => {
     if (isMobileView && isSidebarOpen) {
       document.body.style.overflow = 'hidden';
@@ -412,10 +489,6 @@ const App: React.FC = () => {
         pageTitle = t(staticNavItem.label);
     } else {
         const routeConfig: { path: string; title?: string | ((params: any) => string | undefined) }[] = [
-            { path: '/blog/:postId', title: (params) => {
-                const post = userAddedPosts.find(p => p.id === params.postId);
-                return post ? (i18n.language === 'zh-Hant' && post.titleZh ? post.titleZh : (post.title || t('blogPage.untitledPost'))) : t('blogPage.blog');
-            }},
             { path: '/blog/category/:categoryKey', title: (params) => {
                 if (params.categoryKey === 'all') return t('portfolioPage.filterAll');
                 const categoryInfo = blogCategoryDefinitions.find(def => (def.titleKey.split('.').pop() || '') === params.categoryKey);
@@ -447,7 +520,7 @@ const App: React.FC = () => {
     } else {
         document.title = baseTitle;
     }
-  }, [location.pathname, t, i18n.language, userAddedPosts]);
+  }, [location.pathname, t, i18n.language]);
 
 
   const toggleTheme = useCallback(() => setTheme(p => p === 'light' ? 'dark' : 'light'), []);
@@ -522,81 +595,68 @@ const App: React.FC = () => {
     });
     navigate('/');
   }, [navigate, t]);
+  
   const handleUpdateUserProfile = useCallback((d: Partial<UserProfile>) => { if (!isAuthenticated) return; setUserProfile(p => ({...p, ...d})); }, [isAuthenticated]);
   const handleUpdateAvatar = useCallback((url: string) => { if (!isAuthenticated) return; setUserProfile(p => ({...p, avatarUrl: url})); }, [isAuthenticated]);
-  const handleSaveBlogPost = useCallback((postData: BlogPostData) => { if (!isSuperUser) return; setUserAddedPosts(p => { const i = p.findIndex(item => item.id === postData.id); if (i > -1) { const n = [...p]; n[i] = postData; return n; } return [postData, ...p]; }); navigate(`/blog/${postData.id}`); }, [isSuperUser, navigate]);
-  const handleAddBlogPost = useCallback((postData: BlogPostData) => { if (!isSuperUser) return; setUserAddedPosts(p => [postData, ...p]); }, [isSuperUser]);
-  const handleUpdateBlogPost = useCallback((postData: BlogPostData) => { if (!isSuperUser) return; setUserAddedPosts(p => p.map(post => post.id === postData.id ? postData : post)); }, [isSuperUser]);
-  const handleDeleteBlogPosts = useCallback(async (ids: string[]) => { 
-    if (!isSuperUser) return; 
-    
-    try {
-      // 調用後端 API 刪除文章
-      await Promise.all(ids.map(id => ApiService.deletePost(id)));
-      
-      // 更新本地狀態
-      setUserAddedPosts(p => p.filter(post => !ids.includes(post.id)));
-    } catch (error) {
-      console.error('刪除文章失敗:', error);
-      alert('刪除文章失敗，請重試');
+  const handleSaveBlogPost = useCallback((postData: BlogPostData) => {
+    const isEditing = allPosts.some(p => p.id === postData.id);
+    if (isEditing) {
+        setAllPosts(prev => prev.map(p => p.id === postData.id ? postData : p));
+    } else {
+        setAllPosts(prev => [postData, ...prev]);
     }
-  }, [isSuperUser]);
-  const handleAddPortfolioItem = useCallback((item: PortfolioItemData) => { if (!isSuperUser) return; setUserAddedPortfolioItems(p => [item, ...p]); }, [isSuperUser]);
-  const handleUpdatePortfolioItem = useCallback((item: PortfolioItemData) => { if (!isSuperUser) return; setUserAddedPortfolioItems(p => p.map(i => i.id === item.id ? item : i)); }, [isSuperUser]);
-  const handleDeletePortfolioItems = useCallback(async (ids: string[]) => { 
-    if (!isSuperUser) return; 
-    
-    try {
-      // 調用後端 API 刪除作品項目
-      await Promise.all(ids.map(id => ApiService.deletePortfolioItem(id)));
-      
-      // 更新本地狀態
-      setUserAddedPortfolioItems(p => p.filter(i => !ids.includes(i.id)));
-    } catch (error) {
-      console.error('刪除作品項目失敗:', error);
-      alert('刪除作品項目失敗，請重試');
-    }
-  }, [isSuperUser]);   
-
-  const handleAddComment = useCallback(async (postId: string, text: string, parentId: string | null = null) => {
-    if (!isAuthenticated) return;
-    try {
-      const created = await ApiService.addComment({ postId, text, parentId });
-      const mapped: Comment = {
-        id: created.id,
-        postId: created.postId,
-        userId: created.userId,
-        username: created.username,
-        avatarUrl: created.avatarUrl,
-        date: created.date,
-        text: created.text,
-        parentId: created.parentId || null,
-      };
-      setAllComments(p => [...p, mapped]);
-    } catch (e) {
-      console.error('新增留言失敗', e);
-      alert('新增留言失敗，請稍後再試');
-    }
-  }, [isAuthenticated]);
-
-  const handleDeleteComment = useCallback(async (id: string) => {
-    if (!isSuperUser) return; 
-    try {
-      await ApiService.deleteComment(id);
-      setAllComments(p => {
-        const toDelete = new Set<string>([id]);
-        const findChildren = (parentId: string) => {
-          p.filter(c => c.parentId === parentId).forEach(c => { toDelete.add(c.id); findChildren(c.id); });
-        };
-        findChildren(id);
-        return p.filter(c => !toDelete.has(c.id));
-      });
-    } catch (e) {
-      console.error('刪除留言失敗', e);
-      alert('刪除留言失敗');
-    }
-  }, [isSuperUser]);
+    navigate(`/blog/${postData.id}`);
+  }, [navigate, allPosts]);
   const toggleSidebar = useCallback(() => setIsSidebarOpen(p => !p), []);
+
+  const handleDeletePosts = useCallback(async (ids: string[]) => {
+    if (!isSuperUser) return;
+    try {
+        await Promise.all(ids.map(id => ApiService.deletePost(id)));
+        setAllPosts(p => p.filter(post => !ids.includes(post.id)));
+    } catch (error) {
+        console.error('Failed to delete posts:', error);
+        alert('Failed to delete posts, please try again.');
+    }
+  }, [isSuperUser]);
+  
+  const handleAddPost = useCallback((post: BlogPostData) => {
+    if (!isSuperUser) return;
+    setAllPosts(prev => [post, ...prev]);
+  }, [isSuperUser]);
+
+  const handleUpdatePost = useCallback((updatedPost: BlogPostData) => {
+    if (!isSuperUser) return;
+    setAllPosts(prev => prev.map(post => post.id === updatedPost.id ? updatedPost : post));
+  }, [isSuperUser]);
+
+  const handleUpdatePostDetailCache = useCallback((postId: string, data: { post: BlogPostData; comments: Comment[] }) => {
+      setPostDetailCache(prev => ({
+          ...prev,
+          [postId]: data
+      }));
+  }, []);
+
+  const handleDeletePortfolioItems = useCallback(async (ids: string[]) => {
+    if (!isSuperUser) return;
+    try {
+        await Promise.all(ids.map(id => ApiService.deletePortfolioItem(id)));
+        setPortfolioItems(p => p.filter(i => !ids.includes(i.id)));
+    } catch (error) {
+        console.error('Failed to delete portfolio items:', error);
+        alert('Failed to delete items, please try again.');
+    }
+  }, [isSuperUser]);
+
+  const handleAddPortfolioItem = useCallback((item: PortfolioItemData) => {
+    if (!isSuperUser) return;
+    setPortfolioItems(prev => [item, ...prev]);
+  }, [isSuperUser]);
+
+  const handleUpdatePortfolioItem = useCallback((updatedItem: PortfolioItemData) => {
+      if (!isSuperUser) return;
+      setPortfolioItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+  }, [isSuperUser]);
 
   const mainContentClasses = useMemo(() => `
     transition-all duration-300 ease-in-out
@@ -610,169 +670,145 @@ const App: React.FC = () => {
   `;
   const glassEffectClass = isScrolled ? 'bg-glass border-b border-theme-primary' : '';
   
-  const showAppContent = !isAppLoading && !authLoading;
+  if (appDataLoading) {
+      return null;
+  }
 
   return (
       <div className="bg-theme-primary text-theme-primary">
-        <AnimatePresence>
-          {isAppLoading && <SplashScreen onAnimationComplete={handleAnimationComplete} />}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {!isAppLoading && authLoading && (
-            <motion.div
-              key="auth-loader"
-              className="fixed inset-0 z-[99] flex items-center justify-center bg-theme-primary"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <SpinnerIcon className="w-12 h-12 text-custom-cyan" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {showAppContent && (
-            <Routes>
-                <Route path="/" element={
-                    <Layout
-                        isSidebarOpen={isSidebarOpen}
-                        isMobileView={isMobileView}
-                        isLandscape={isLandscape}
+        <Routes>
+            <Route path="/" element={
+                <Layout
+                    isSidebarOpen={isSidebarOpen}
+                    isMobileView={isMobileView}
+                    isLandscape={isLandscape}
+                    isAuthenticated={isAuthenticated}
+                    isSuperUser={isSuperUser}
+                    username={userProfile.username}
+                    avatarUrl={userProfile.avatarUrl}
+                    currentTheme={theme}
+                    isSidebarCollapsed={isSidebarCollapsed}
+                    showBackToTop={showBackToTop}
+                    mobileHeaderClasses={mobileHeaderClasses}
+                    glassEffectClass={glassEffectClass}
+                    mainContentClasses={mainContentClasses}
+                    toggleSidebar={toggleSidebar}
+                    closeSidebar={() => setIsSidebarOpen(false)}
+                    handleLogout={handleLogout}
+                    toggleTheme={toggleTheme}
+                    toggleCollapse={toggleCollapse}
+                    navigateTo={navigateTo}
+                />
+            }>
+                <Route index element={<HomePage />} />
+                <Route path="about" element={<AboutPage />} />
+                <Route path="resume" element={<ResumePage />} />
+                <Route path="portfolio" element={
+                    <PortfolioPageWrapper
+                        navigateTo={navigateTo}
                         isAuthenticated={isAuthenticated}
                         isSuperUser={isSuperUser}
-                        username={userProfile.username}
-                        avatarUrl={userProfile.avatarUrl}
-                        currentTheme={theme}
-                        isSidebarCollapsed={isSidebarCollapsed}
-                        showBackToTop={showBackToTop}
-                        mobileHeaderClasses={mobileHeaderClasses}
-                        glassEffectClass={glassEffectClass}
-                        mainContentClasses={mainContentClasses}
-                        toggleSidebar={toggleSidebar}
-                        closeSidebar={() => setIsSidebarOpen(false)}
-                        handleLogout={handleLogout}
-                        toggleTheme={toggleTheme}
-                        toggleCollapse={toggleCollapse}
-                        navigateTo={navigateTo}
+                        portfolioItems={portfolioItems}
+                        onAddPortfolioItem={handleAddPortfolioItem}
+                        onDeletePortfolioItems={handleDeletePortfolioItems}
                     />
-                }>
-                    <Route index element={<HomePage />} />
-                    <Route path="about" element={<AboutPage />} />
-                    <Route path="resume" element={<ResumePage />} />
-                    <Route path="portfolio" element={
-                        <PortfolioPageWrapper
-                            userAddedPortfolioItems={userAddedPortfolioItems}
-                            onAddPortfolioItem={handleAddPortfolioItem}
-                            onDeletePortfolioItems={handleDeletePortfolioItems}
+                } />
+                <Route path="blog" element={
+                    <BlogPageWrapper
+                        navigateTo={navigateTo}
+                        isSuperUser={isSuperUser}
+                        allPosts={allPosts}
+                        onDeletePosts={handleDeletePosts}
+                    />
+                } />
+                <Route path="blog/:postId" element={
+                    <BlogPostDetailWrapper
+                        navigateTo={navigateTo}
+                        isAuthenticated={isAuthenticated}
+                        isSuperUser={isSuperUser}
+                        currentUserProfile={userProfile}
+                        allPosts={allPosts}
+                        postDetailCache={postDetailCache}
+                        onUpdateCache={handleUpdatePostDetailCache}
+                    />
+                } />
+                <Route path="blog/category/:categoryKey" element={
+                    <CategoryArchiveWrapper
+                        navigateTo={navigateTo}
+                        isAuthenticated={isAuthenticated}
+                        isSuperUser={isSuperUser}
+                        allPosts={allPosts}
+                        onDeletePosts={handleDeletePosts}
+                    />
+                } />
+                <Route path="contact" element={<ContactPage />} />
+                <Route path="login" element={<LoginPageWrapper />} />
+                <Route path="register" element={<RegisterPageWrapper />} />
+                <Route path="account" element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <AccountPageWrapper
+                            userProfile={userProfile}
+                            onUpdateProfile={handleUpdateUserProfile}
+                            onUpdateAvatar={handleUpdateAvatar}
                             isAuthenticated={isAuthenticated}
-                            isSuperUser={isSuperUser}
-                            navigateToLogin={() => navigateTo(Page.Login)}
                         />
-                    } />
-                    <Route path="blog" element={
-                        <BlogPageWrapper
-                            navigateTo={navigateTo}
-                            allPosts={userAddedPosts}
-                            onDeletePosts={handleDeleteBlogPosts}
-                            isSuperUser={isSuperUser}
-                            navigateToLogin={() => navigateTo(Page.Login)}
-                        />
-                    } />
-                    <Route path="blog/:postId" element={
-                        <BlogPostDetailWrapper
-                            userAddedPosts={userAddedPosts}
-                            navigateTo={navigateTo}
-                            isAuthenticated={isAuthenticated}
-                            allComments={allComments}
-                            onAddComment={handleAddComment}
-                            onDeleteComment={handleDeleteComment}
-                            isSuperUser={isSuperUser}
-                            currentUserProfile={userProfile}
-                            contentLoading={contentLoading}
-                        />
-                    } />
-                    <Route path="blog/category/:categoryKey" element={
-                        <CategoryArchiveWrapper
-                            allPosts={userAddedPosts}
-                            navigateTo={navigateTo}
-                            onDeletePosts={handleDeleteBlogPosts}
-                            isAuthenticated={isAuthenticated}
-                            isSuperUser={isSuperUser}
-                            navigateToLogin={() => navigateTo(Page.Login)}
-                        />
-                    } />
-                    <Route path="contact" element={<ContactPage />} />
-                    <Route path="login" element={<LoginPageWrapper />} />
-                    <Route path="register" element={<RegisterPageWrapper />} />
-                    <Route path="account" element={
-                        <ProtectedRoute isAuthenticated={isAuthenticated}>
-                            <AccountPageWrapper
-                                userProfile={userProfile}
-                                onUpdateProfile={handleUpdateUserProfile}
-                                onUpdateAvatar={handleUpdateAvatar}
+                    </ProtectedRoute>
+                } />
+                <Route path="blog/add" element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <SuperUserRoute isSuperUser={isSuperUser}>
+                            <AddBlogPostPageWrapper
+                                navigateTo={navigateTo}
+                                onSave={handleSaveBlogPost}
                                 isAuthenticated={isAuthenticated}
+                                isSuperUser={isSuperUser}
+                                navigateToLogin={() => navigateTo(Page.Login)}
                             />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="blog/add" element={
-                        <ProtectedRoute isAuthenticated={isAuthenticated}>
-                            <SuperUserRoute isSuperUser={isSuperUser}>
-                                <AddBlogPostPageWrapper
-                                    navigateTo={navigateTo}
-                                    onSave={handleSaveBlogPost}
-                                    isAuthenticated={isAuthenticated}
-                                    isSuperUser={isSuperUser}
-                                    navigateToLogin={() => navigateTo(Page.Login)}
-                                />
-                            </SuperUserRoute>
-                        </ProtectedRoute>
-                    } />
-                    <Route path="blog/edit/:postId" element={
-                        <ProtectedRoute isAuthenticated={isAuthenticated}>
-                            <SuperUserRoute isSuperUser={isSuperUser}>
-                                <EditBlogPostWrapper
-                                    userAddedPosts={userAddedPosts}
-                                    navigateTo={navigateTo}
-                                    onSave={handleSaveBlogPost}
-                                    isAuthenticated={isAuthenticated}
-                                    isSuperUser={isSuperUser}
-                                    navigateToLogin={() => navigateTo(Page.Login)}
-                                />
-                            </SuperUserRoute>
-                        </ProtectedRoute>
-                    } />
-                    <Route path="manage/photos" element={
-                        <ProtectedRoute isAuthenticated={isAuthenticated}>
-                            <SuperUserRoute isSuperUser={isSuperUser}>
-                                <PhotoManagementPageWrapper
-                                    portfolioItems={userAddedPortfolioItems}
-                                    onDelete={handleDeletePortfolioItems}
-                                    onAdd={handleAddPortfolioItem}
-                                    onUpdate={handleUpdatePortfolioItem}
-                                    navigateTo={navigateTo}
-                                />
-                            </SuperUserRoute>
-                        </ProtectedRoute>
-                    } />
-                    <Route path="manage/posts" element={
-                        <ProtectedRoute isAuthenticated={isAuthenticated}>
-                            <SuperUserRoute isSuperUser={isSuperUser}>
-                                <PostManagementPageWrapper
-                                    posts={userAddedPosts}
-                                    onDelete={handleDeleteBlogPosts}
-                                    onAdd={handleAddBlogPost}
-                                    onUpdate={handleUpdateBlogPost}
-                                    navigateTo={navigateTo}
-                                />
-                            </SuperUserRoute>
-                        </ProtectedRoute>
-                    } />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Route>
-            </Routes>
-        )}
+                        </SuperUserRoute>
+                    </ProtectedRoute>
+                } />
+                <Route path="blog/edit/:postId" element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <SuperUserRoute isSuperUser={isSuperUser}>
+                            <EditBlogPostWrapper
+                                navigateTo={navigateTo}
+                                onSave={handleSaveBlogPost}
+                                isAuthenticated={isAuthenticated}
+                                isSuperUser={isSuperUser}
+                                navigateToLogin={() => navigateTo(Page.Login)}
+                            />
+                        </SuperUserRoute>
+                    </ProtectedRoute>
+                } />
+                <Route path="manage/photos" element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <SuperUserRoute isSuperUser={isSuperUser}>
+                            <PhotoManagementPageWrapper 
+                                navigateTo={navigateTo}
+                                portfolioItems={portfolioItems}
+                                onAdd={handleAddPortfolioItem}
+                                onUpdate={handleUpdatePortfolioItem}
+                                onDelete={handleDeletePortfolioItems}
+                             />
+                        </SuperUserRoute>
+                    </ProtectedRoute>
+                } />
+                <Route path="manage/posts" element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <SuperUserRoute isSuperUser={isSuperUser}>
+                            <PostManagementPageWrapper 
+                                navigateTo={navigateTo}
+                                posts={allPosts}
+                                onAdd={handleAddPost}
+                                onUpdate={handleUpdatePost}
+                                onDelete={handleDeletePosts}
+                            />
+                        </SuperUserRoute>
+                    </ProtectedRoute>
+                } />
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+        </Routes>
       </div>
   );
 };

@@ -256,7 +256,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                 <div className={`relative w-full mx-auto transition-colors rounded-t-lg ${carouselContainerClasses}`}>
                     <button
                         onClick={() => setIsCarouselVisible(!isCarouselVisible)}
-                        className={`mx-auto block p-2 transition-colors z-20 ${iconColorClasses} ${iconHoverClasses} focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
+                        className={`w-full flex justify-center p-2 cursor-pointer transition-colors z-10 ${iconColorClasses} ${iconHoverClasses} focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
                         aria-label={isCarouselVisible ? "Hide Thumbnails" : "Show Thumbnails"}
                         aria-expanded={isCarouselVisible}
                     >

@@ -23,7 +23,7 @@ export const stripMarkdown = (markdown: string): string => {
   plainText = plainText.replace(/^#{1,6}\s+/gm, '');
   // 粗體: **text** 或 __text__ -> 只保留 text
   plainText = plainText.replace(/(\*\*|__)(.*?)\1/g, '$2');
-  // 斜體: *text* 或 _text_ -> 只保留 text
+  // 斜體: *text* 或 _text__ -> 只保留 text
   plainText = plainText.replace(/(\*|_)(.*?)\1/g, '$2');
   // 刪除線: ~~text~~ -> 只保留 text
   plainText = plainText.replace(/~~(.*?)~~/g, '$1');
@@ -47,4 +47,19 @@ export const stripMarkdown = (markdown: string): string => {
   plainText = plainText.replace(/\s+/g, ' ').trim();
 
   return plainText;
+};
+
+/**
+ * Generates an optimized Cloudinary image URL.
+ * Inserts transformation parameters for automatic quality, format, and a specified width.
+ * @param originalUrl The original Cloudinary image URL.
+ * @param width The target width for the image. Defaults to 800px.
+ * @returns The new URL with optimization parameters, or the original URL if it's not a Cloudinary URL.
+ */
+export const getOptimizedImageUrl = (originalUrl: string, width: number = 800): string => {
+  if (!originalUrl || !originalUrl.includes('/upload/')) {
+    return originalUrl;
+  }
+  const transformation = `w_${width},q_auto,f_auto`;
+  return originalUrl.replace('/upload/', `/upload/${transformation}/`);
 };

@@ -28,6 +28,7 @@ import ChevronDownIcon from '../icons/ChevronDownIcon';
 import CameraIcon from '../icons/CameraIcon';
 // 引入 API 服務，用於與後端進行通信
 import { ApiService } from '../../src/services/api';
+import { getOptimizedImageUrl } from '../../utils';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -415,7 +416,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
             <Masonry breakpointCols={breakpointColumnsObj} className="masonry-grid" columnClassName="masonry-grid_column">
               {itemsToDisplay.map((item) => ( 
                 <motion.div key={item.id} layout variants={fadeInUpItemVariants} initial="initial" animate="animate" exit="initial" transition={{ duration: 0.5, delay: 0.05 }} className="w-full"> 
-                  <PortfolioCard {...item} onClick={() => openLightbox(item, filteredItems)} isDeleteModeActive={isDeleteModeActive} isSelectedForDeletion={selectedIdsForDeletion.includes(item.id)} onToggleSelectionForDeletion={handleToggleSelectionForDeletion} isCardDisabled={isDeleteModeActive && !!item.isStatic} /> 
+                  <PortfolioCard {...item} imageUrl={getOptimizedImageUrl(item.imageUrl)} onClick={() => openLightbox(item, filteredItems)} isDeleteModeActive={isDeleteModeActive} isSelectedForDeletion={selectedIdsForDeletion.includes(item.id)} onToggleSelectionForDeletion={handleToggleSelectionForDeletion} isCardDisabled={isDeleteModeActive && !!item.isStatic} /> 
                 </motion.div> 
               ))}
             </Masonry>

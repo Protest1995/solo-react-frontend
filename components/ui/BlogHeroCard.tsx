@@ -16,7 +16,7 @@ import { fadeInUpItemVariants } from '../../animationVariants';
 import ChevronLeftIcon from '../icons/ChevronLeftIcon';
 import ChevronRightIcon from '../icons/ChevronRightIcon';
 // 引入工具函數，用於移除 Markdown 格式
-import { stripMarkdown } from '../../utils';
+import { stripMarkdown, getOptimizedImageUrl } from '../../utils';
 
 // 輪播卡片屬性介面
 interface BlogHeroCarouselProps {
@@ -64,7 +64,7 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
         {/* 背景圖片，帶有緩慢的縮放動畫（Ken Burns 效果）*/}
         <motion.img
           key={post.id + "-img"}
-          src={post.imageUrl}
+          src={getOptimizedImageUrl(post.imageUrl, 1920)}
           alt={displayTitle}
           className="absolute inset-0 w-full h-full max-w-full max-h-full object-cover"
           variants={imageVariants}
