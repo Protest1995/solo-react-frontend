@@ -205,9 +205,9 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
         <div className={`py-3 sticky top-0 z-30 transition-all duration-300 ${isScrolled ? 'bg-glass border-b border-theme-primary' : 'bg-transparent'}`}>
              <div className="max-w-7xl mx-auto px-6 flex justify-between items-center gap-4">
                 {/* 左側：麵包屑導航 */}
-                <div className="flex items-center gap-4">
-                    <div className="text-sm text-theme-secondary flex items-center space-x-2 truncate">
-                        <Link to="/blog" className="flex items-center hover:text-custom-cyan transition-colors flex-shrink-0">
+                <div className="min-w-0">
+                    <div className="text-sm text-theme-secondary flex flex-wrap items-center space-x-2 pl-[calc(1rem+0.375rem)]">
+                        <Link to="/blog" className="flex items-center hover:text-custom-cyan transition-colors flex-shrink-0 ml-[calc(-1rem-0.375rem)]">
                             <PenPaperIcon className="w-4 h-4 mr-1.5" />
                             <span>{t('blogPage.viewAll')}</span>
                         </Link>
@@ -224,11 +224,14 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
                     </div>
                 </div>
                 {/* 右側：編輯按鈕 (僅對超級管理員顯示) */}
-                <div className="flex justify-end">
+                <div className="flex justify-end flex-shrink-0">
                     {isSuperUser && (
-                      <button onClick={() => navigateTo(Page.EditBlogPost, post)} className={`inline-flex items-center text-sm font-medium py-2 px-4 rounded-md focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} transition-all duration-200 bg-theme-tertiary hover:bg-theme-hover text-theme-primary hover:text-custom-cyan`}>
-                        <PencilIcon className="w-4 h-4 md:mr-2" />
-                        <span className="hidden md:inline">{t('blogPage.editButton')}</span>
+                      <button
+                        onClick={() => navigateTo(Page.EditBlogPost, post)}
+                        className={`inline-flex items-center justify-center p-2 rounded-full text-theme-primary hover:text-custom-cyan transition-colors duration-200 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
+                        aria-label={t('blogPage.editButton')}
+                      >
+                        <PencilIcon className="w-5 h-5" />
                       </button>
                     )}
                 </div>

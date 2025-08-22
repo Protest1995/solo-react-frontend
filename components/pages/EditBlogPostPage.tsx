@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
 import { BlogPostData, Page } from '../../types';
 import SectionTitle from '../ui/SectionTitle';
-import ArrowLeftIcon from '../icons/ArrowLeftIcon';
 import SparklesIcon from '../icons/SparklesIcon';
 import { GoogleGenAI } from '@google/genai';
 import { sectionDelayShow, staggerContainerVariants, fadeInUpItemVariants } from '../../animationVariants';
@@ -215,14 +214,14 @@ const EditBlogPostPage: React.FC<EditBlogPostPageProps> = ({
       
       const base64Data = await base64Promise;
       const imagePart = { inlineData: { mimeType: selectedFile?.type || 'image/jpeg', data: base64Data } };
-      const prompt = `You are a professional blog writer. Analyze this image. Write a very short, engaging blog post excerpt (around 50-70 words) formatted in Markdown. The post should include at least one bolded phrase or a heading. Respond with a single JSON object containing two keys: "contentEn" for the English content in Markdown, and "contentZh" for the Traditional Chinese content in Markdown.`;
+      const prompt = `You are a professional blog writer. Analyze this image. Write an engaging blog post (around 200-300 words) formatted in Markdown. The post should include a main heading (h2), at least one subheading (h3), and a bulleted list. Respond with a single JSON object containing two keys: "contentEn" for the English content in Markdown, and "contentZh" for the Traditional Chinese content in Markdown.`;
       const aiResponse = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: { parts: [imagePart, { text: prompt }] }, config: { responseMimeType: "application/json" } });
       
       let jsonStr = aiResponse.text?.trim() || '';
-      if (!jsonStr) throw new Error("AI response is empty");
       const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
       const match = jsonStr.match(fenceRegex);
       if (match && match[2]) jsonStr = match[2].trim();
+      if (!jsonStr) throw new Error("AI response is empty");
       const parsedData = JSON.parse(jsonStr);
       if (parsedData.contentEn && parsedData.contentZh) { setContent(parsedData.contentEn); setContentZh(parsedData.contentZh); } else { throw new Error("AI response did not contain the expected JSON structure for content."); }
     } catch (e) { console.error("Failed to generate AI content:", e); alert("AI 內容生成失敗，請再試一次或手動填寫。"); } finally { setIsGeneratingContent(false); }
@@ -273,12 +272,8 @@ const EditBlogPostPage: React.FC<EditBlogPostPageProps> = ({
   // --- 渲染 (JSX) ---
   return (
     <div className="space-y-12">
-      <motion.div {...sectionDelayShow(0)} className="flex justify-between items-center">
+      <motion.div {...sectionDelayShow(0)}>
         <SectionTitle titleKey="blogPage.editFormTitle" />
-        <button onClick={handleCancel} className="button-theme-neutral font-semibold py-2 px-5 rounded-md transition-all flex items-center">
-          <ArrowLeftIcon className="w-5 h-5 mr-2" />
-          {t('blogPage.backToBlog')}
-        </button>
       </motion.div>
 
       <motion.div className="bg-theme-primary p-8 rounded-lg shadow-inner max-w-4xl mx-auto" variants={staggerContainerVariants(0.05)} initial="initial" animate="animate">
