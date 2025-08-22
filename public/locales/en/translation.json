@@ -407,7 +407,10 @@
   },
   "categoryPage": {
     "title": "Category: {{categoryName}}",
-    "backToBlog": "Back to Main Blog"
+    "backToBlog": "Back to Main Blog",
+    "searchPlaceholder": "Search in this category...",
+    "subtitleAll": "All Posts",
+    "subtitleGeneral": "Posts Related to {{category}}"
   },
   "photoManagementPage": {
     "title": "Photo Management",

@@ -80,6 +80,17 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
       window.scrollTo(0, 0); // 換頁後滾動到頁面頂部
   }, [searchParams, setSearchParams]);
 
+  // --- 副標題 (useMemo) ---
+  // 根據當前分類動態生成副標題
+  const subtitle = useMemo(() => {
+    if (categoryInfo.titleKey === 'portfolioPage.filterAll') {
+      return t('categoryPage.subtitleAll');
+    }
+    const categoryName = t(categoryInfo.titleKey);
+    // 使用 i18next 的插值功能來生成動態文本
+    return t('categoryPage.subtitleGeneral', { category: categoryName });
+  }, [categoryInfo.titleKey, t]);
+
   // --- 計算屬性 (useMemo) ---
   
   // `sortedPosts` 是一個經過過濾和排序的文章列表。
@@ -191,7 +202,7 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
   return (
     <div className="space-y-12">
       <motion.div {...sectionDelayShow(0)}>
-          <SectionTitle titleKey={categoryInfo.titleKey} />
+          <SectionTitle titleKey={categoryInfo.titleKey} subtitle={subtitle} />
       </motion.div>
       
       <motion.div {...sectionDelayShow(0.2)} className="flex justify-end items-center">

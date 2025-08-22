@@ -273,7 +273,9 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
   const birthdayInputType = isBirthdayInputFocused || birthday ? 'date' : 'text';
 
   return (
-    <div className="space-y-12">
+    // NOTE: Added a negative top margin (-mt-8) to reduce the space above the "My Account" title.
+    // The best practice is to reduce the top padding in the parent layout component that renders this page.
+    <div className="space-y-12 -mt-12">
       <AnimatePresence>
         {isUploadingAvatar && (
           <motion.div

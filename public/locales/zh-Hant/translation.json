@@ -407,7 +407,10 @@
   },
   "categoryPage": {
     "title": "分類: {{categoryName}}",
-    "backToBlog": "返回部落格主頁"
+    "backToBlog": "返回部落格主頁",
+    "searchPlaceholder": "在此分類中搜尋...",
+    "subtitleAll": "所有文章",
+    "subtitleGeneral": "{{category}}相關文章"
   },
   "photoManagementPage": {
     "title": "相片總覽",
