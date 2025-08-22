@@ -53,6 +53,7 @@ interface PortfolioPageProps {
   isAuthenticated: boolean; // 用戶是否登入
   isSuperUser: boolean; // 用戶是否為超級管理員
   navigateToLogin: () => void; // 導航到登入頁的函數
+  isLandscape: boolean;
 }
 
 // 分類篩選器的選項
@@ -78,6 +79,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   isAuthenticated,
   isSuperUser,
   navigateToLogin,
+  isLandscape,
 }) => {
   // --- 鉤子 (Hooks) ---
   const { t, i18n } = useTranslation();
@@ -435,7 +437,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
       )}
 
       {/* 燈箱 */}
-      {selectedItem && lightboxItemsSource && ( <Lightbox currentItem={selectedItem} filteredItems={lightboxItemsSource} onClose={closeLightbox} onSelectItem={setSelectedItem} /> )}
+      {selectedItem && lightboxItemsSource && ( <Lightbox currentItem={selectedItem} filteredItems={lightboxItemsSource} onClose={closeLightbox} onSelectItem={setSelectedItem} isLandscape={isLandscape} /> )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -75,8 +76,9 @@ const PortfolioPageWrapper: React.FC<{
     portfolioItems: PortfolioItemData[];
     onAddPortfolioItem: (item: PortfolioItemData) => void;
     onDeletePortfolioItems: (ids: string[]) => void;
-}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems }) => {
-    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} />;
+    isLandscape: boolean;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems, isLandscape }) => {
+    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isLandscape={isLandscape} />;
 };
 
 const BlogPageWrapper: React.FC<{ 
@@ -241,6 +243,7 @@ const PhotoManagementPageWrapper: React.FC<{
     onAdd: (item: PortfolioItemData) => void;
     onUpdate: (item: PortfolioItemData) => void;
     onDelete: (ids: string[]) => void;
+    isLandscape: boolean;
 }> = (props) => {
     return <PhotoManagementPage {...props} />;
 };
@@ -711,6 +714,7 @@ const App: React.FC = () => {
                         portfolioItems={portfolioItems}
                         onAddPortfolioItem={handleAddPortfolioItem}
                         onDeletePortfolioItems={handleDeletePortfolioItems}
+                        isLandscape={isLandscape}
                     />
                 } />
                 <Route path="blog" element={
@@ -789,6 +793,7 @@ const App: React.FC = () => {
                                 onAdd={handleAddPortfolioItem}
                                 onUpdate={handleUpdatePortfolioItem}
                                 onDelete={handleDeletePortfolioItems}
+                                isLandscape={isLandscape}
                              />
                         </SuperUserRoute>
                     </ProtectedRoute>

@@ -13,6 +13,7 @@ import { ACCENT_FOCUS_VISIBLE_RING_CLASS, ACCENT_BORDER_COLOR } from '../../cons
 // 引入圖標組件
 import CloseIcon from '../icons/CloseIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
+import ChevronLeftIcon from '../icons/ChevronLeftIcon';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -30,6 +31,7 @@ interface LightboxProps {
   filteredItems: PortfolioItemData[];
   onClose: () => void;
   onSelectItem: (item: PortfolioItemData) => void;
+  isLandscape: boolean;
 }
 
 /**
@@ -56,27 +58,37 @@ const Thumbnail: React.FC<{
   index: number;
   onClick: (index: number) => void;
   isActive: boolean;
-}> = ({ item, index, onClick, isActive }) => (
-  <div
-    data-index={index}
-    onClick={() => onClick(index)}
-    className={`relative flex-shrink-0 w-36 h-32 mx-1 rounded-md cursor-pointer flex items-center justify-center p-1 group ${isActive ? 'active-thumbnail' : ''}`}
-    role="button"
-    aria-label={`View image ${index + 1}`}
-    tabIndex={0}
-    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(index); }}
-  >
-    <div className="film-strip-thumbnail w-full h-full">
-        <img
-          data-src={getCloudinaryThumbnailUrl(item.imageUrl)}
-          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-          alt=""
-          draggable="false"
-          className="film-strip-image"
-        />
-    </div>
-  </div>
-);
+  isVertical: boolean;
+}> = ({ item, index, onClick, isActive, isVertical }) => {
+    const wrapperClass = isVertical
+        ? `relative flex-shrink-0 w-32 h-36 my-1 rounded-md cursor-pointer flex items-center justify-center p-1 group ${isActive ? 'active-thumbnail-vertical' : ''}`
+        : `relative flex-shrink-0 w-36 h-32 mx-1 rounded-md cursor-pointer flex items-center justify-center p-1 group ${isActive ? 'active-thumbnail' : ''}`;
+    
+    const innerDivClass = isVertical ? "film-strip-thumbnail-vertical w-full h-full" : "film-strip-thumbnail w-full h-full";
+    const imgClass = isVertical ? "film-strip-image-vertical" : "film-strip-image";
+    
+    return (
+        <div
+            data-index={index}
+            onClick={() => onClick(index)}
+            className={wrapperClass}
+            role="button"
+            aria-label={`View image ${index + 1}`}
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(index); }}
+        >
+            <div className={innerDivClass}>
+                <img
+                    data-src={getCloudinaryThumbnailUrl(item.imageUrl)}
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    alt=""
+                    draggable="false"
+                    className={imgClass}
+                />
+            </div>
+        </div>
+    );
+};
 
 
 /**
@@ -84,14 +96,15 @@ const Thumbnail: React.FC<{
  * 提供一個全螢幕的圖片瀏覽器，支持鍵盤、滑鼠滾輪和觸控滑動導航，並包含一個可摺疊的縮圖輪播。
  * 在行動裝置橫向模式下提供沉浸式體驗。
  */
-const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose, onSelectItem }) => {
+const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose, onSelectItem, isLandscape }) => {
   const { t, i18n } = useTranslation();
   // 狀態管理
   const [direction, setDirection] = useState(0);
   const isNavigatingRef = useRef(false);
   const lastWheelNavTime = useRef(0);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [isCarouselVisible, setIsCarouselVisible] = useState(false); // 預覽面板預設為收合
+  const [isCarouselVisible, setIsCarouselVisible] = useState(false); // 水平預覽面板預設為收合
+  const [isVerticalCarouselVisible, setIsVerticalCarouselVisible] = useState(true); // 垂直預覽面板在橫向模式下預設為展開
 
   const { id, imageUrl, title, titleZh } = currentItem;
   
@@ -99,8 +112,10 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   
   const currentIndex = useMemo(() => filteredItems.findIndex(item => item.id === currentItem.id), [filteredItems, currentItem.id]);
   
+  // 當前預覽項目滾動至可見區域
   useEffect(() => {
-    if (carouselRef.current && isCarouselVisible) {
+    const isAnyCarouselVisible = isCarouselVisible || (isLandscape && isVerticalCarouselVisible);
+    if (carouselRef.current && isAnyCarouselVisible) {
         const thumbnailElement = carouselRef.current.querySelector(`[data-index="${currentIndex}"]`) as HTMLElement | undefined;
         if (thumbnailElement) {
             setTimeout(() => {
@@ -108,47 +123,40 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
             }, 100);
         }
     }
-  }, [currentIndex, isCarouselVisible]);
+  }, [currentIndex, isCarouselVisible, isVerticalCarouselVisible, isLandscape]);
   
   // 優化後的懶加載邏輯：使用單一 IntersectionObserver
   useEffect(() => {
-    // 只有當預覽面板可見且 ref 已掛載時才執行
-    if (!isCarouselVisible || !carouselRef.current) return;
+    const isAnyCarouselVisible = isCarouselVisible || (isLandscape && isVerticalCarouselVisible);
+    if (!isAnyCarouselVisible || !carouselRef.current) return;
 
-    // 創建一個 IntersectionObserver 實例
     const observer = new IntersectionObserver(
         (entries) => {
-            // 遍歷所有被觀察的元素
             entries.forEach(entry => {
-                // 如果元素進入視口
                 if (entry.isIntersecting) {
                     const img = entry.target as HTMLImageElement;
                     const src = img.dataset.src;
                     if (src) {
-                        // 將 data-src 的值赋給 src，觸發圖片加載
                         img.src = src;
                         img.removeAttribute('data-src');
                     }
-                    // 圖片加載後，停止觀察此元素
                     observer.unobserve(img);
                 }
             });
         },
         {
-            root: carouselRef.current, // 觀察的根元素是滾動容器
-            rootMargin: '0px 200px 0px 200px', // 預加載視口左右 200px 範圍內的圖片
+            root: carouselRef.current,
+            rootMargin: isLandscape ? '200px 0px' : '0px 200px',
         }
     );
 
-    // 獲取所有待加載的圖片並開始觀察
     const imagesToObserve = carouselRef.current.querySelectorAll<HTMLImageElement>('img[data-src]');
     imagesToObserve.forEach(img => observer.observe(img));
 
-    // 清理函數：當組件卸載或預覽面板隱藏時，斷開觀察器
     return () => {
         observer.disconnect();
     };
-  }, [isCarouselVisible]); // 此 effect 只依賴 isCarouselVisible 的變化
+  }, [isCarouselVisible, isVerticalCarouselVisible, isLandscape]);
 
   const handleNavigation = useCallback((getNewIndex: (current: number) => number) => {
     if (isNavigatingRef.current) return;
@@ -179,9 +187,10 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     };
   }, [handleKeyDown]);
   
+  // 僅在非橫向模式下啟用滾輪水平滾動縮圖
   useEffect(() => {
     const carouselElement = carouselRef.current;
-    if (!carouselElement) return;
+    if (!carouselElement || isLandscape) return;
     const handleWheel = (e: WheelEvent) => {
       if (carouselElement.scrollWidth > carouselElement.clientWidth) {
         e.preventDefault();
@@ -190,7 +199,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     };
     carouselElement.addEventListener('wheel', handleWheel, { passive: false });
     return () => { if (carouselElement) carouselElement.removeEventListener('wheel', handleWheel); };
-  }, [isCarouselVisible]);
+  }, [isCarouselVisible, isLandscape]);
 
   const displayTitle = useMemo(() => {
     return (i18n.language === 'zh-Hant' && titleZh) ? titleZh : (title || '');
@@ -211,68 +220,110 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const iconHoverClasses = `hover:text-custom-cyan`;
 
   const imageContainerPaddingClasses = 'pt-16 pb-10';
-  const mainImagePaddingBottom = isCarouselVisible ? '12.75rem' : '3.5rem';
+  const mainImagePaddingBottom = !isLandscape && isCarouselVisible ? '12.75rem' : '3.5rem';
+  const mainImagePaddingLeft = isLandscape && isVerticalCarouselVisible ? '9rem' : '0';
 
   const lightboxContent = (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
-      <div className="relative flex flex-col w-full h-full max-w-screen-2xl">
-        <button onClick={onClose} className={`absolute top-4 right-4 z-50 p-2 rounded-full flex items-center justify-center transition-colors duration-200 ease-in-out focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} group`} aria-label={t('lightbox.close')}>
-          <CloseIcon className={`w-8 h-8 ${iconColorClasses} ${iconHoverClasses} transition-colors`} />
-        </button>
-        <div className={`relative flex-grow w-full flex flex-col items-center justify-center px-4 sm:px-16 overflow-hidden group ${imageContainerPaddingClasses}`} onWheel={(e) => { const now = Date.now(); if (now - lastWheelNavTime.current < 450) return; lastWheelNavTime.current = now; if (e.deltaY > 1) handleNext(); else if (e.deltaY < -1) handlePrevious(); }}>
-          <motion.div className="w-full h-full flex items-center justify-center transition-all duration-300 ease-in-out" animate={{ paddingBottom: mainImagePaddingBottom }}>
-            <AnimatePresence initial={false} custom={direction} mode="wait">
-              <motion.img key={id + "_img"} src={imageUrl} alt={displayTitle} className="block max-w-full max-h-full object-contain rounded-lg shadow-2xl lightbox-main-image" custom={direction} variants={imageVariants} initial="enter" animate="center" exit="exit" transition={transitionConfig} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.5} onDragEnd={onDragEnd} />
-            </AnimatePresence>
-          </motion.div>
-        </div>
-        
-        {filteredItems.length > 1 && (
-            <div key="lightbox-carousel-panel" className="absolute bottom-0 left-0 right-0 z-20 w-full">
-                <div className={`relative w-full mx-auto transition-colors rounded-t-lg ${carouselContainerClasses}`}>
-                    <button
-                        onClick={() => setIsCarouselVisible(!isCarouselVisible)}
-                        className={`w-full flex justify-center p-2 cursor-pointer transition-colors z-10 ${iconColorClasses} ${iconHoverClasses} focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
-                        aria-label={isCarouselVisible ? "Hide Thumbnails" : "Show Thumbnails"}
-                        aria-expanded={isCarouselVisible}
-                    >
-                        <motion.div animate={{ rotate: isCarouselVisible ? 0 : 180 }} transition={{ duration: 0.3 }}>
-                            <ChevronDownIcon className="w-6 h-6" />
-                        </motion.div>
-                    </button>
-                    <AnimatePresence>
-                    {isCarouselVisible && (
-                        <motion.div
-                            key="collapsible-content"
-                            className="w-full overflow-hidden"
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1, transition: { height: { duration: 0.4, ease: [0.2, 1, 0.3, 1] }, opacity: { duration: 0.3, delay: 0.1 } } }}
-                            exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.4, ease: [0.2, 1, 0.3, 1] }, opacity: { duration: 0.2 } } }}
+        <div className="relative flex w-full h-full max-w-screen-2xl">
+            {/* Vertical Film Strip for Landscape Mobile */}
+            {isLandscape && filteredItems.length > 1 && (
+                <motion.div
+                    key="vertical-carousel-container"
+                    className="absolute top-0 left-0 bottom-0 z-30 h-full flex items-center"
+                    animate={{ x: isVerticalCarouselVisible ? '0rem' : '-11rem' }}
+                    transition={transitionConfig}
+                >
+                    <div className={`relative h-full flex items-center transition-colors bg-lightbox-carousel-dark rounded-r-lg`}>
+                        <div className="h-full w-36 overflow-hidden">
+                          <div ref={carouselRef} className="relative h-full overflow-y-auto lightbox-thumbnail-scroller-vertical pr-2">
+                              <div className="flex flex-col items-center no-select py-16 w-max mx-auto">
+                                  {filteredItems.map((item, index) => (
+                                      <Thumbnail
+                                          key={item.id} item={item} index={index}
+                                          isActive={currentIndex === index}
+                                          onClick={handleThumbnailClick} isVertical={true}
+                                      />
+                                  ))}
+                              </div>
+                          </div>
+                        </div>
+                        <button
+                            onClick={() => setIsVerticalCarouselVisible(!isVerticalCarouselVisible)}
+                            className={`absolute top-1/2 -right-8 transform -translate-y-1/2 w-8 h-16 rounded-r-full flex items-center justify-center
+                                        cursor-pointer transition-colors z-10 bg-lightbox-carousel-dark text-white hover:text-custom-cyan 
+                                        focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
+                            aria-label={isVerticalCarouselVisible ? "Hide Thumbnails" : "Show Thumbnails"}
+                            aria-expanded={isVerticalCarouselVisible}
                         >
-                            <div className="pb-3 pt-2">
-                                <div className="relative w-full overflow-hidden">
-                                    <div ref={carouselRef} className="relative w-full overflow-x-auto lightbox-thumbnail-scroller">
-                                        <div className="flex items-center no-select pt-1 pb-4 px-2 w-max mx-auto">
-                                            {filteredItems.map((item, index) => (
-                                                <Thumbnail
-                                                    key={item.id}
-                                                    item={item}
-                                                    index={index}
-                                                    isActive={currentIndex === index}
-                                                    onClick={handleThumbnailClick}
-                                                />
-                                            ))}
+                            <motion.div animate={{ rotate: isVerticalCarouselVisible ? 0 : 180 }} transition={{ duration: 0.3 }}>
+                                <ChevronLeftIcon className="w-6 h-6" />
+                            </motion.div>
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+
+            <div className="relative flex-grow w-full flex flex-col items-center justify-center overflow-hidden group"
+                 onWheel={(e) => { const now = Date.now(); if (now - lastWheelNavTime.current < 450) return; lastWheelNavTime.current = now; if (e.deltaY > 1) handleNext(); else if (e.deltaY < -1) handlePrevious(); }}
+            >
+                <button onClick={onClose} className={`absolute top-4 right-4 z-50 p-2 rounded-full flex items-center justify-center transition-colors duration-200 ease-in-out focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} group`} aria-label={t('lightbox.close')}>
+                    <CloseIcon className={`w-8 h-8 ${iconColorClasses} ${iconHoverClasses} transition-colors`} />
+                </button>
+                <motion.div
+                    className={`w-full h-full flex items-center justify-center transition-all duration-300 ease-in-out ${imageContainerPaddingClasses} px-4 sm:px-16`}
+                    animate={{ paddingBottom: mainImagePaddingBottom, paddingLeft: mainImagePaddingLeft }}
+                >
+                    <AnimatePresence initial={false} custom={direction} mode="wait">
+                        <motion.img key={id + "_img"} src={imageUrl} alt={displayTitle} className="block max-w-full max-h-full object-contain rounded-lg shadow-2xl lightbox-main-image" custom={direction} variants={imageVariants} initial="enter" animate="center" exit="exit" transition={transitionConfig} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.5} onDragEnd={onDragEnd} />
+                    </AnimatePresence>
+                </motion.div>
+            </div>
+            
+            {!isLandscape && filteredItems.length > 1 && (
+                <div key="lightbox-carousel-panel" className="absolute bottom-0 left-0 right-0 z-20 w-full">
+                    <div className={`relative w-full mx-auto transition-colors rounded-t-lg ${carouselContainerClasses}`}>
+                        <button
+                            onClick={() => setIsCarouselVisible(!isCarouselVisible)}
+                            className={`w-full flex justify-center p-2 cursor-pointer transition-colors z-10 ${iconColorClasses} ${iconHoverClasses} focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
+                            aria-label={isCarouselVisible ? "Hide Thumbnails" : "Show Thumbnails"}
+                            aria-expanded={isCarouselVisible}
+                        >
+                            <motion.div animate={{ rotate: isCarouselVisible ? 0 : 180 }} transition={{ duration: 0.3 }}>
+                                <ChevronDownIcon className="w-6 h-6" />
+                            </motion.div>
+                        </button>
+                        <AnimatePresence>
+                        {isCarouselVisible && (
+                            <motion.div
+                                key="collapsible-content"
+                                className="w-full overflow-hidden"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1, transition: { height: { duration: 0.4, ease: [0.2, 1, 0.3, 1] }, opacity: { duration: 0.3, delay: 0.1 } } }}
+                                exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.4, ease: [0.2, 1, 0.3, 1] }, opacity: { duration: 0.2 } } }}
+                            >
+                                <div className="pb-3 pt-2">
+                                    <div className="relative w-full overflow-hidden">
+                                        <div ref={carouselRef} className="relative w-full overflow-x-auto lightbox-thumbnail-scroller">
+                                            <div className="flex items-center no-select pt-1 pb-4 px-2 w-max mx-auto">
+                                                {filteredItems.map((item, index) => (
+                                                    <Thumbnail
+                                                        key={item.id} item={item} index={index}
+                                                        isActive={currentIndex === index}
+                                                        onClick={handleThumbnailClick} isVertical={false}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    )}
-                    </AnimatePresence>
+                            </motion.div>
+                        )}
+                        </AnimatePresence>
+                    </div>
                 </div>
-            </div>
-        )}
-      </div>
+            )}
+        </div>
     </div>
   );
 

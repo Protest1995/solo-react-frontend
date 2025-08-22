@@ -272,7 +272,7 @@
         border: 1px solid var(--border-primary);
       }
       
-      /* --- 膠片縮圖樣式 --- */
+      /* --- 橫向膠片縮圖樣式 --- */
       .film-strip-thumbnail {
         position: relative;
         width: 100%;
@@ -313,69 +313,70 @@
         );
       }
 
-      .film-strip-thumbnail::before {
-        top: 0;
-      }
+      .film-strip-thumbnail::before { top: 0; }
+      .film-strip-thumbnail::after { bottom: 0; }
       
-      .film-strip-thumbnail::after {
-        bottom: 0;
-      }
-      
-      /* 為所有縮圖添加平滑移動的過渡效果 */
-      .lightbox-thumbnail-scroller .group {
-        transition: transform 0.3s ease-in-out;
-      }
+      .lightbox-thumbnail-scroller .group { transition: transform 0.3s ease-in-out; }
       
       .film-strip-image {
         position: absolute;
-        top: 12px; /* 6px (齒孔區域) + 6px (空隙) */
-        left: 2px; /* 左右邊框 */
-        width: calc(100% - 4px); /* 考慮左右邊框 */
-        height: calc(100% - 24px); /* 考慮上下齒孔區域和空隙 */
+        top: 12px;
+        left: 2px;
+        width: calc(100% - 4px);
+        height: calc(100% - 24px);
         object-fit: cover;
-        z-index: 1; /* 位於齒孔條下方 */
+        z-index: 1;
       }
       
-      /* 當縮圖被選中時，改變齒孔顏色、添加發光效果並向上移動 */
-      .active-thumbnail {
-        position: relative; /* 為偽元素創建堆疊上下文 */
-        z-index: 0;
-        transform: translateY(-8px); /* 向上移動 */
-      }
-      .active-thumbnail .film-strip-thumbnail {
-        --film-strip-hole-color: var(--accent-cyan);
-      }
+      .active-thumbnail { transform: translateY(-8px); }
+      .active-thumbnail .film-strip-thumbnail { --film-strip-hole-color: var(--accent-cyan); }
 
-      /* 發光效果的偽元素 */
       .active-thumbnail::before,
       .active-thumbnail::after {
-        content: '';
-        position: absolute;
-        height: 6px;
-        /* 定位以匹配膠片齒孔 */
-        top: 4px; /* 考慮父元素的 p-1 (4px) */
-        left: 4px;
-        right: 4px;
-        /* 使用相同的漸變來創建發光方塊 */
-        background-image: repeating-linear-gradient(
-          to right,
-          var(--accent-cyan) 0px,
-          var(--accent-cyan) 18px, /* 孔的寬度 */
-          transparent 18px,
-          transparent 28px /* 孔之間的間距 */
-        );
-        /* 使用濾鏡創建模糊/發散效果 */
+        content: ''; position: absolute; height: 6px;
+        top: 4px; left: 4px; right: 4px;
+        background-image: repeating-linear-gradient( to right, var(--accent-cyan) 0px, var(--accent-cyan) 18px, transparent 18px, transparent 28px );
         filter: drop-shadow(0 0 6px var(--accent-cyan));
-        opacity: 0.75;
-        /* 將其放置在主要縮圖內容的後面 */
-        z-index: -1;
-        pointer-events: none; /* 確保不干擾滑鼠事件 */
+        opacity: 0.75; z-index: -1; pointer-events: none;
       }
+      .active-thumbnail::after { top: auto; bottom: 4px; }
+      
+      /* --- 新增：直立膠片縮圖樣式 --- */
+      .film-strip-thumbnail-vertical {
+        position: relative; width: 100%; height: 100%;
+        background-color: var(--bg-film-strip); display: flex;
+        align-items: center; justify-content: center;
+        overflow: hidden; transition: background-color 0.3s ease;
+      }
+      .film-strip-thumbnail-vertical::before,
+      .film-strip-thumbnail-vertical::after {
+        content: ''; position: absolute; top: 0;
+        width: 6px; height: 100%; z-index: 2;
+        background-color: var(--film-strip-hole-color);
+        transition: background-color 0.4s ease;
+        -webkit-mask-image: repeating-linear-gradient( to bottom, black 0, black 18px, transparent 18px, transparent 28px );
+        mask-image: repeating-linear-gradient( to bottom, black 0, black 18px, transparent 18px, transparent 28px );
+      }
+      .film-strip-thumbnail-vertical::before { left: 0; }
+      .film-strip-thumbnail-vertical::after { right: 0; }
+      
+      .film-strip-image-vertical {
+        position: absolute; top: 2px; left: 12px;
+        width: calc(100% - 24px); height: calc(100% - 4px);
+        object-fit: cover; z-index: 1;
+      }
+      .active-thumbnail-vertical { transform: translateX(8px); }
+      .active-thumbnail-vertical .film-strip-thumbnail-vertical { --film-strip-hole-color: var(--accent-cyan); }
 
-      .active-thumbnail::after {
-        top: auto;
-        bottom: 4px;
+      .active-thumbnail-vertical::before,
+      .active-thumbnail-vertical::after {
+        content: ''; position: absolute; width: 6px;
+        top: 4px; bottom: 4px; left: 4px;
+        background-image: repeating-linear-gradient( to bottom, var(--accent-cyan) 0, var(--accent-cyan) 18px, transparent 18px, transparent 28px );
+        filter: drop-shadow(0 0 6px var(--accent-cyan));
+        opacity: 0.75; z-index: -1; pointer-events: none;
       }
+      .active-thumbnail-vertical::after { left: auto; right: 4px; }
       /* --- 膠片縮圖樣式結束 --- */
 
       /* --- 骨架屏閃爍動畫 --- */
@@ -501,31 +502,15 @@
       .blog-hero-swiper .swiper-slide { width: 100%; height: 100%; }
 
       /* --- 燈箱 (Lightbox) 自訂滾動條樣式 --- */
-      @media (min-width: 1024px) { 
-          .lightbox-thumbnail-scroller { 
-              scrollbar-width: thin; 
-              scrollbar-color: var(--border-secondary) var(--bg-tertiary); 
-          } 
-          .lightbox-thumbnail-scroller::-webkit-scrollbar { 
-              height: 4px; 
-          } 
-          .lightbox-thumbnail-scroller::-webkit-scrollbar-track { 
-              background: var(--bg-tertiary); 
-              border-radius: 2px; 
-          } 
-          .lightbox-thumbnail-scroller::-webkit-scrollbar-thumb { 
-              background-color: var(--border-secondary); 
-              border-radius: 2px; 
-              border: 1px solid var(--bg-tertiary); 
-          } 
+      .lightbox-thumbnail-scroller-vertical,
+      .lightbox-thumbnail-scroller {
+        /* For Firefox */
+        scrollbar-width: none;
       }
-      @media (max-width: 1023px) { 
-          .lightbox-thumbnail-scroller { 
-              scrollbar-width: none; 
-          } 
-          .lightbox-thumbnail-scroller::-webkit-scrollbar { 
-              display: none; 
-          } 
+      .lightbox-thumbnail-scroller-vertical::-webkit-scrollbar,
+      .lightbox-thumbnail-scroller::-webkit-scrollbar {
+        /* For Chrome, Safari, and Opera */
+        display: none;
       }
       
       /* --- 明信片 (Postcard) 樣式 --- */

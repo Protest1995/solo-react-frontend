@@ -49,6 +49,7 @@ interface PhotoManagementPageProps {
   onAdd: (item: PortfolioItemData) => void;
   onUpdate: (item: PortfolioItemData) => void;
   navigateTo: (page: Page, data?: any) => void;
+  isLandscape: boolean;
 }
 
 // 網格視圖卡片的動畫變體
@@ -64,7 +65,7 @@ const titleVariants = { rest: { color: 'var(--text-primary)' }, hover: { color: 
  * - 集成 Gemini AI 功能，可根據上傳的圖片自動生成標題。
  * - 支持批量刪除和單個項目刪除。
  */
-const PhotoManagementPage: React.FC<PhotoManagementPageProps> = ({ portfolioItems = [], onDelete, onAdd, onUpdate, navigateTo }) => {
+const PhotoManagementPage: React.FC<PhotoManagementPageProps> = ({ portfolioItems = [], onDelete, onAdd, onUpdate, navigateTo, isLandscape }) => {
   // --- 鉤子 (Hooks) ---
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -430,7 +431,7 @@ const PhotoManagementPage: React.FC<PhotoManagementPageProps> = ({ portfolioItem
         message={deletionMessage}
       />
       {/* 燈箱 */}
-      {selectedItem && lightboxItemsSource && ( <Lightbox currentItem={selectedItem} filteredItems={lightboxItemsSource} onClose={closeLightbox} onSelectItem={setSelectedItem} /> )}
+      {selectedItem && lightboxItemsSource && ( <Lightbox currentItem={selectedItem} filteredItems={lightboxItemsSource} onClose={closeLightbox} onSelectItem={setSelectedItem} isLandscape={isLandscape} /> )}
     </div>
   );
 };
