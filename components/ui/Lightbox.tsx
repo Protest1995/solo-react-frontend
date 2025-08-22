@@ -220,8 +220,9 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const iconHoverClasses = `hover:text-custom-cyan`;
 
   const imageContainerPaddingClasses = 'pt-16 pb-10';
-  const mainImagePaddingBottom = !isLandscape && isCarouselVisible ? '12.75rem' : '3.5rem';
-  const mainImagePaddingLeft = isLandscape && isVerticalCarouselVisible ? '9rem' : '0';
+  const mainImagePaddingBottom = !isLandscape && isCarouselVisible ? '12.75rem' : isLandscape ? '1rem' : '3.5rem';
+  const mainImagePaddingLeft = isLandscape && isVerticalCarouselVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
+  const mainImagePaddingRight = isLandscape && isVerticalCarouselVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
 
   const lightboxContent = (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
@@ -231,7 +232,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                 <motion.div
                     key="vertical-carousel-container"
                     className="absolute top-0 left-0 bottom-0 z-30 h-full flex items-center"
-                    animate={{ x: isVerticalCarouselVisible ? '0rem' : '-11rem' }}
+                    animate={{ x: isVerticalCarouselVisible ? '0rem' : '-9rem' }}
                     transition={transitionConfig}
                 >
                     <div className={`relative h-full flex items-center transition-colors bg-lightbox-carousel-dark rounded-r-lg`}>
@@ -251,7 +252,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                         <button
                             onClick={() => setIsVerticalCarouselVisible(!isVerticalCarouselVisible)}
                             className={`absolute top-1/2 -right-8 transform -translate-y-1/2 w-8 h-16 rounded-r-full flex items-center justify-center
-                                        cursor-pointer transition-colors z-10 bg-lightbox-carousel-dark text-white hover:text-custom-cyan 
+                                        cursor-pointer transition-colors z-10 bg-lightbox-carousel-dark ${isLightTheme ? 'text-zinc-800' : 'text-white'} hover:text-custom-cyan
                                         focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
                             aria-label={isVerticalCarouselVisible ? "Hide Thumbnails" : "Show Thumbnails"}
                             aria-expanded={isVerticalCarouselVisible}
@@ -271,8 +272,8 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                     <CloseIcon className={`w-8 h-8 ${iconColorClasses} ${iconHoverClasses} transition-colors`} />
                 </button>
                 <motion.div
-                    className={`w-full h-full flex items-center justify-center transition-all duration-300 ease-in-out ${imageContainerPaddingClasses} px-4 sm:px-16`}
-                    animate={{ paddingBottom: mainImagePaddingBottom, paddingLeft: mainImagePaddingLeft }}
+                    className={`w-full h-full flex items-center justify-center transition-all duration-300 ease-in-out ${isLandscape ? 'pt-4 px-2' : `${imageContainerPaddingClasses} px-4 sm:px-16`}`}
+                    animate={{ paddingBottom: mainImagePaddingBottom, paddingLeft: mainImagePaddingLeft, paddingRight: mainImagePaddingRight }}
                 >
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                         <motion.img key={id + "_img"} src={imageUrl} alt={displayTitle} className="block max-w-full max-h-full object-contain rounded-lg shadow-2xl lightbox-main-image" custom={direction} variants={imageVariants} initial="enter" animate="center" exit="exit" transition={transitionConfig} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.5} onDragEnd={onDragEnd} />
