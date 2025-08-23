@@ -465,7 +465,15 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
       )}
 
       {/* 燈箱 */}
-      {selectedItem && lightboxItemsSource && ( <Lightbox currentItem={selectedItem} filteredItems={filteredItems} onClose={closeLightbox} onSelectItem={setSelectedItem} isLandscape={isLandscape} /> )}
+      {selectedItem && lightboxItemsSource && (
+        <Lightbox
+          currentItem={selectedItem}
+          filteredItems={lightboxItemsSource}
+          onClose={closeLightbox}
+          onSelectItem={setSelectedItem}
+          isLandscape={isLandscape}
+        />
+      )}
     </div>
   );
 };

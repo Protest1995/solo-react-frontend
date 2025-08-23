@@ -104,7 +104,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const lastWheelNavTime = useRef(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isCarouselVisible, setIsCarouselVisible] = useState(false); // 水平預覽面板預設為收合
-  const [isVerticalCarouselVisible, setIsVerticalCarouselVisible] = useState(true); // 垂直預覽面板在橫向模式下預設為展開
+  const [isVerticalCarouselVisible, setIsVerticalCarouselVisible] = useState(false); // 垂直預覽面板在橫向模式下預設為收合
 
   const { id, imageUrl, title, titleZh } = currentItem;
   
