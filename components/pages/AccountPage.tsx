@@ -64,7 +64,8 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
     setInitialProfile(userProfile);
     setUsername(userProfile.username);
     setEmail(userProfile.email);
-    setGender(userProfile.gender || 'not_specified');
+    // 只有當性別未設置時才使用 not_specified
+    setGender(userProfile.gender || userProfile.gender === '' ? userProfile.gender : 'not_specified');
     // 確保從後端回來的 ISO 或 yyyy-MM-dd 會轉為 yyyy/MM/dd 顯示
     const s = userProfile.birthday as any;
     if (s) {
@@ -96,7 +97,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
     const infoChanged =
       username !== initialProfile.username ||
       email !== initialProfile.email ||
-      gender !== (initialProfile.gender || 'not_specified') ||
+      gender !== initialProfile.gender ||
       birthday !== (initialProfile.birthday || '') ||
       address !== (initialProfile.address || '') ||
       phone !== (initialProfile.phone || '');
