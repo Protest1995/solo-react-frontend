@@ -97,8 +97,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const { t } = useTranslation();
   // 狀態：是否正在回覆此留言
   const [isReplying, setIsReplying] = useState(false);
-  // 狀態：是否已摺疊子留言 (預設為摺疊)
-  const [isCollapsed, setIsCollapsed] = useState(comment.children.length > 0);
+  // 狀態：是否已摺疊子留言 (預設為展開)
+  const [isCollapsed, setIsCollapsed] = useState(false);
   // 狀態：是否顯示刪除確認模態框
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 

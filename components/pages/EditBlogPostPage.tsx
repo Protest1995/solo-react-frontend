@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
@@ -49,6 +50,7 @@ interface EditBlogPostPageProps {
   postToEdit: BlogPostData; // 從父組件傳入的、要編輯的文章數據
   navigateTo: (page: Page, data?: any) => void; // 導航函數
   onSave: (postData: BlogPostData) => void; // 儲存文章後的回調函數
+  onCancel: (postData: BlogPostData) => void; // 新增：取消編輯的回調函數
   isAuthenticated: boolean; // 用戶是否登入
   isSuperUser: boolean; // 用戶是否為超級管理員
   navigateToLogin: () => void; // 導航到登入頁的函數
@@ -63,6 +65,7 @@ const EditBlogPostPage: React.FC<EditBlogPostPageProps> = ({
   postToEdit,
   navigateTo,
   onSave,
+  onCancel,
   isAuthenticated,
   isSuperUser,
   navigateToLogin,
@@ -121,10 +124,11 @@ const EditBlogPostPage: React.FC<EditBlogPostPageProps> = ({
 
   // --- 回調函數 (useCallback & Handlers) ---
 
-  // 處理取消編輯，導航回文章詳情頁
+  // 處理取消編輯，調用新的 onCancel 回調
   const handleCancel = useCallback(() => {
-    navigateTo(Page.BlogPostDetail, postToEdit);
-  }, [navigateTo, postToEdit]);
+    onCancel(postToEdit);
+  }, [onCancel, postToEdit]);
+
 
   // 處理文件選擇和上傳，邏輯與 `AddBlogPostPage` 相同
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {

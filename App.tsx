@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -35,13 +32,21 @@ import { ApiService } from './src/services/api';
 import { useAuth } from './src/contexts/AuthContext';
 
 // --- 新增 RightSidebar 所需的圖標 ---
+import LinkedInIcon from './components/icons/LinkedInIcon';
+import GithubIcon from './components/icons/GithubIcon';
+import InstagramIcon from './components/icons/InstagramIcon';
 import SettingsIcon from './components/icons/SettingsIcon';
 import LoginIcon from './components/icons/LoginIcon';
 import LogoutIcon from './components/icons/LogoutIcon';
 import { SunIcon } from './components/icons/SunIcon';
 import { MoonIcon } from './components/icons/MoonIcon';
 import CloseIcon from './components/icons/CloseIcon';
-
+import SuperUserIcon from './components/icons/SuperUserIcon';
+import ChevronDownIcon from './components/icons/ChevronDownIcon';
+import PhotoIcon from './components/icons/PhotoIcon';
+import DocumentTextIcon from './components/icons/DocumentTextIcon';
+import UserIcon from './components/icons/UserIcon';
+import LanguageIcon from './components/icons/LanguageIcon';
 
 // 將 motionTyped 轉型為 any 以解決類型問題
 const motion: any = motionTyped;
@@ -85,9 +90,9 @@ const PortfolioPageWrapper: React.FC<{
     portfolioItems: PortfolioItemData[];
     onAddPortfolioItem: (item: PortfolioItemData) => void;
     onDeletePortfolioItems: (ids: string[]) => void;
-    isLandscape: boolean;
-}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems, isLandscape }) => {
-    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isLandscape={isLandscape} />;
+    isMobileView: boolean;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems, isMobileView }) => {
+    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isMobileView={isMobileView} />;
 };
 
 const BlogPageWrapper: React.FC<{ 
@@ -107,7 +112,8 @@ const BlogPostDetailWrapper: React.FC<{
     allPosts: BlogPostData[];
     postDetailCache: { [key: string]: { post: BlogPostData; comments: Comment[] } };
     onUpdateCache: (postId: string, data: { post: BlogPostData; comments: Comment[] }) => void;
-}> = ({ navigateTo, isAuthenticated, isSuperUser, currentUserProfile, allPosts, postDetailCache, onUpdateCache }) => {
+    isMobileView: boolean;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, currentUserProfile, allPosts, postDetailCache, onUpdateCache, isMobileView }) => {
     const { postId } = useParams();
     const location = useLocation();
     const { t, i18n } = useTranslation();
@@ -155,10 +161,10 @@ const BlogPostDetailWrapper: React.FC<{
     }, [post, i18n.language, t]);
 
     const handleAddComment = useCallback(async (postId: string, text: string, parentId: string | null = null) => {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || !post) return;
         try {
             const created = await ApiService.addComment({ postId, text, parentId });
-            setComments(p => [...p, {
+            const newComment: Comment = {
                 id: created.id,
                 postId: created.postId,
                 userId: created.userId,
@@ -167,37 +173,60 @@ const BlogPostDetailWrapper: React.FC<{
                 date: created.date,
                 text: created.text,
                 parentId: created.parentId || null,
-            }]);
+            };
+            
+            const newComments = [...comments, newComment];
+            setComments(newComments);
+
+            const updatedPost = {
+                ...post,
+                commentsCount: (post.commentsCount || 0) + 1,
+            };
+            setPost(updatedPost);
+
+            onUpdateCache(postId, { post: updatedPost, comments: newComments });
         } catch (e) {
             console.error('Failed to add comment', e);
             alert('Failed to add comment, please try again.');
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, post, comments, onUpdateCache]);
 
     const handleDeleteComment = useCallback(async (id: string) => {
-        if (!isSuperUser) return;
+        if (!isSuperUser || !post) return;
         try {
             await ApiService.deleteComment(id);
-            setComments(p => {
-                const toDelete = new Set<string>([id]);
-                const findChildren = (parentId: string) => {
-                    p.filter(c => c.parentId === parentId).forEach(c => { toDelete.add(c.id); findChildren(c.id); });
-                };
-                findChildren(id);
-                return p.filter(c => !toDelete.has(c.id));
-            });
+            
+            const toDelete = new Set<string>([id]);
+            const findChildren = (parentId: string) => {
+                comments.filter(c => c.parentId === parentId).forEach(c => {
+                    toDelete.add(c.id);
+                    findChildren(c.id);
+                });
+            };
+            findChildren(id);
+            
+            const remainingComments = comments.filter(c => !toDelete.has(c.id));
+            setComments(remainingComments);
+
+            const updatedPost = {
+                ...post,
+                commentsCount: Math.max(0, (post.commentsCount || 0) - toDelete.size),
+            };
+            setPost(updatedPost);
+
+            onUpdateCache(post.id, { post: updatedPost, comments: remainingComments });
         } catch (e) {
             console.error('Failed to delete comment', e);
             alert('Failed to delete comment.');
         }
-    }, [isSuperUser]);
+    }, [isSuperUser, post, comments, onUpdateCache]);
 
     if (loading) return null;
     if (!post) return <Navigate to="/blog" replace />;
 
     const originCategoryInfo = location.state?.fromCategory as CategoryInfo | null;
 
-    return <BlogPostDetailPage post={post} allPosts={allPosts} comments={comments} navigateTo={navigateTo} isAuthenticated={isAuthenticated} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} isSuperUser={isSuperUser} currentUserProfile={currentUserProfile} originCategoryInfo={originCategoryInfo} />;
+    return <BlogPostDetailPage post={post} allPosts={allPosts} comments={comments} navigateTo={navigateTo} isAuthenticated={isAuthenticated} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} isSuperUser={isSuperUser} currentUserProfile={currentUserProfile} originCategoryInfo={originCategoryInfo} isMobileView={isMobileView}/>;
 };
 
 
@@ -252,7 +281,7 @@ const PhotoManagementPageWrapper: React.FC<{
     onAdd: (item: PortfolioItemData) => void;
     onUpdate: (item: PortfolioItemData) => void;
     onDelete: (ids: string[]) => void;
-    isLandscape: boolean;
+    isMobileView: boolean;
 }> = (props) => {
     return <PhotoManagementPage {...props} />;
 };
@@ -276,6 +305,7 @@ interface RightSidebarProps {
   onClose: () => void;
   navigateTo: (page: Page, data?: any) => void;
   isAuthenticated: boolean;
+  isSuperUser: boolean;
   handleLogout: () => void;
   currentTheme: Theme;
   toggleTheme: () => void;
@@ -289,6 +319,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   onClose,
   navigateTo,
   isAuthenticated,
+  isSuperUser,
   handleLogout,
   currentTheme,
   toggleTheme,
@@ -330,7 +361,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
             aria-hidden="true"
           />
           <motion.div
-            className="fixed top-0 right-0 bottom-0 w-64 bg-glass border-l border-theme-primary shadow-lg z-50 p-6 flex flex-col lg:hidden"
+            className="fixed top-16 right-0 bottom-0 w-80 bg-glass border-l border-theme-primary shadow-lg z-50 p-6 flex flex-col lg:hidden"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -338,19 +369,27 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
             role="dialog"
             aria-modal="true"
           >
-            <div className="flex justify-end items-center mb-8">
-              <div className="profile-image-wrapper w-10 h-10">
-                <div className="profile-image-inner flex items-center justify-center">
-                    <img 
-                        src={avatarUrl} 
-                        alt={username} 
-                        className="w-full h-full object-cover rounded-full"
-                    />
-                </div>
-              </div>
-            </div>
             
             <nav className="flex-grow flex flex-col space-y-2">
+              {isAuthenticated && isSuperUser && (
+                <>
+                  <button
+                    onClick={() => handleNavigation(Page.PhotoManagement)}
+                    className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                  >
+                    <PhotoIcon className="w-5 h-5 mr-3" />
+                    <span>{t('sidebar.photoManagement')}</span>
+                  </button>
+                  <button
+                    onClick={() => handleNavigation(Page.PostManagement)}
+                    className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                  >
+                    <DocumentTextIcon className="w-5 h-5 mr-3" />
+                    <span>{t('sidebar.postManagement')}</span>
+                  </button>
+                  <div className="border-t border-theme-primary my-2"></div>
+                </>
+              )}
               {isAuthenticated && (
                 <button
                   onClick={() => handleNavigation(Page.Account)}
@@ -364,38 +403,60 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
               {isAuthenticated ? (
                 <button
                   onClick={handleLogoutClick}
-                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                  className="w-full flex items-center py-2 px-3 rounded-md text-red-500 hover:bg-theme-hover hover:text-red-400 transition-colors"
                 >
-                  <LoginIcon className="w-5 h-5 mr-3" />
+                  <LogoutIcon className="w-5 h-5 mr-3" />
                   <span>{t('sidebar.logout')}</span>
                 </button>
               ) : (
                 <button
                   onClick={() => handleNavigation(Page.Login)}
-                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                  className="w-full flex items-center py-2 px-3 rounded-md text-custom-cyan hover:bg-theme-hover transition-colors"
                 >
-                  <LogoutIcon className="w-5 h-5 mr-3" />
+                  <LoginIcon className="w-5 h-5 mr-3" />
                   <span>{t('sidebar.login')}</span>
                 </button>
               )}
-            </nav>
 
-            <div className="flex-shrink-0 border-t border-theme-primary pt-4 space-y-3">
-               <button
+              <div className="border-t border-theme-primary my-2"></div>
+
+              <button
                   onClick={toggleLanguage}
-                  className="w-full flex items-center justify-center text-sm button-theme-neutral font-semibold py-2 px-4 rounded-md transition-colors"
-                >
-                  {i18n.language === 'en' ? t('switchToChinese', '切换为中文') : t('switchToEnglish', 'Switch to English')}
-                </button>
-                <button
+                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+              >
+                  <LanguageIcon className="w-5 h-5 mr-3" />
+                  <span>{i18n.language === 'en' ? '繁體中文' : 'English'}</span>
+              </button>
+              <button
                   onClick={toggleTheme}
-                  className="w-full flex items-center justify-center text-sm button-theme-toggle font-semibold py-2 px-4 rounded-md transition-colors"
-                >
+                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+              >
                   {currentTheme === 'light' ? 
-                    <><MoonIcon className="w-4 h-4 mr-2" /> {t('sidebar.darkMode')}</> : 
-                    <><SunIcon className="w-4 h-4 mr-2" /> {t('sidebar.lightMode')}</>
+                    <MoonIcon className="w-5 h-5 mr-3" /> : 
+                    <SunIcon className="w-5 h-5 mr-3" />
                   }
-                </button>
+                  <span>{currentTheme === 'light' ? t('sidebar.darkMode') : t('sidebar.lightMode')}</span>
+              </button>
+            </nav>
+            <div className="mt-auto pt-6 border-t border-theme-primary text-center">
+                <div className="flex justify-center space-x-4 mb-4">
+                    <a href="https://www.linkedin.com/in/solo-huang-203774214/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " LinkedIn"} className="text-theme-primary transition-colors hover:text-custom-cyan"> <LinkedInIcon className="w-5 h-5" /> </a>
+                    <a href="https://github.com/solohuang" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " GitHub"} className="text-theme-primary transition-colors hover:text-custom-cyan"> <GithubIcon className="w-5 h-5" /> </a>
+                    <a href="https://www.instagram.com/solo_snapshots/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.instagramAriaLabel')} className="text-theme-primary transition-colors hover:text-custom-cyan"> <InstagramIcon className="w-5 h-5" /> </a>
+                </div>
+                <p className="text-xs text-theme-muted whitespace-nowrap">
+                    {(() => {
+                        const copyrightText = t('sidebar.copyright');
+                        const parts = copyrightText.split('Solo');
+                        return (
+                             <>
+                                {parts[0]}
+                                <span className="text-custom-cyan">Solo</span>
+                                {parts[1]}
+                            </>
+                        );
+                    })()}
+                </p>
             </div>
           </motion.div>
         </>
@@ -439,7 +500,6 @@ interface LayoutProps {
   toggleTheme: () => void;
   toggleCollapse: () => void;
   navigateTo: (page: Page, data?: any) => void;
-  isLandscape: boolean;
   toggleRightSidebar: () => void;
 }
 
@@ -448,7 +508,6 @@ const Layout: React.FC<LayoutProps> = ({
   username, avatarUrl, currentTheme, isSidebarCollapsed, showBackToTop,
   mobileHeaderClasses, glassEffectClass, mainContentClasses,
   toggleSidebar, closeSidebar, handleLogout, toggleTheme, toggleCollapse, navigateTo,
-  isLandscape,
   toggleRightSidebar,
 }) => {
   const { t } = useTranslation();
@@ -483,7 +542,7 @@ const Layout: React.FC<LayoutProps> = ({
         isCollapsed={isSidebarCollapsed}
         toggleCollapse={toggleCollapse}
         isSuperUser={isSuperUser}
-        isLandscape={isLandscape}
+        isMobileView={isMobileView}
       />
       <header className={`${mobileHeaderClasses} ${glassEffectClass}`}>
           <div className="container mx-auto px-6 h-full flex justify-between items-center">
@@ -494,7 +553,7 @@ const Layout: React.FC<LayoutProps> = ({
             >
               <MenuIcon className="w-6 h-6 text-custom-cyan" />
             </button>
-            {isLandscape && (
+            {isMobileView && (
                 <button
                     onClick={toggleRightSidebar}
                     className="flex items-center"
@@ -502,11 +561,15 @@ const Layout: React.FC<LayoutProps> = ({
                 >
                     <div className="profile-image-wrapper w-10 h-10">
                       <div className="profile-image-inner flex items-center justify-center">
-                          <img 
-                              src={avatarUrl} 
-                              alt={username} 
-                              className="w-full h-full object-cover rounded-full"
-                          />
+                          {isAuthenticated ? (
+                              <img 
+                                  src={avatarUrl} 
+                                  alt={username} 
+                                  className="w-full h-full object-cover rounded-full"
+                              />
+                          ) : (
+                              <UserIcon className="w-7 h-7 text-theme-secondary" />
+                          )}
                       </div>
                     </div>
                 </button>
@@ -541,7 +604,6 @@ const App: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(getInitialSidebarCollapsed);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
-  const [isLandscape, setIsLandscape] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -588,7 +650,6 @@ const App: React.FC = () => {
     const handleResize = () => {
       const isCurrentlyMobile = window.innerWidth < 1024;
       setIsMobileView(isCurrentlyMobile);
-      setIsLandscape(isCurrentlyMobile && window.matchMedia("(orientation: landscape)").matches);
       if (!isCurrentlyMobile && isSidebarOpen) {
         setIsSidebarOpen(false); // Close mobile sidebar on resize to desktop
       }
@@ -677,6 +738,7 @@ const App: React.FC = () => {
             { path: '/blog/edit/:postId', title: t('blogPage.editFormTitle') },
             { path: '/login', title: t('loginPage.title') },
             { path: '/register', title: t('registerPage.title') },
+            { path: '/account', title: t('sidebar.account') },
             { path: '/blog/add', title: t('blogPage.addFormTitle') },
             { path: '/manage/photos', title: t('photoManagementPage.title') },
             { path: '/manage/posts', title: t('postManagementPage.title') },
@@ -778,6 +840,7 @@ const App: React.FC = () => {
   
   const handleUpdateUserProfile = useCallback((d: Partial<UserProfile>) => { if (!isAuthenticated) return; setUserProfile(p => ({...p, ...d})); }, [isAuthenticated]);
   const handleUpdateAvatar = useCallback((url: string) => { if (!isAuthenticated) return; setUserProfile(p => ({...p, avatarUrl: url})); }, [isAuthenticated]);
+  
   const handleSaveBlogPost = useCallback((postData: BlogPostData) => {
     const isEditing = allPosts.some(p => p.id === postData.id);
     if (isEditing) {
@@ -785,10 +848,48 @@ const App: React.FC = () => {
     } else {
         setAllPosts(prev => [postData, ...prev]);
     }
-    navigate(`/blog/${postData.id}`);
-  }, [navigate, allPosts]);
-  const toggleSidebar = useCallback(() => setIsSidebarOpen(p => !p), []);
-  const toggleRightSidebar = useCallback(() => setIsRightSidebarOpen(p => !p), []);
+    
+    // 當文章被編輯後，我們需要清除其在詳情頁的快取，
+    // 因為相關數據（特別是留言）可能已經過時。
+    // 這樣做可以強制 BlogPostDetailPage 在下次訪問時從伺服器重新獲取最新數據。
+    setPostDetailCache(prev => {
+      const newCache = { ...prev };
+      delete newCache[postData.id]; // 移除此文章的快取
+      return newCache;
+    });
+  }, [allPosts]);
+
+  const handleCancelEditBlogPost = useCallback((postData: BlogPostData) => {
+    // 當取消編輯時，也清除詳情頁的快取。
+    // 這很重要，因為用戶可能在詳情頁新增了留言，然後導航到編輯頁，最後又取消。
+    // 如果不清除快取，返回詳情頁時會顯示沒有新留言的舊版本。
+    setPostDetailCache(prev => {
+      const newCache = { ...prev };
+      delete newCache[postData.id];
+      return newCache;
+    });
+    navigateTo(Page.BlogPostDetail, postData);
+  }, [navigateTo]);
+
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(p => {
+      const nextState = !p;
+      if (nextState) {
+        setIsRightSidebarOpen(false);
+      }
+      return nextState;
+    });
+  }, []);
+  const toggleRightSidebar = useCallback(() => {
+    setIsRightSidebarOpen(p => {
+      const nextState = !p;
+      if (nextState) {
+        setIsSidebarOpen(false);
+      }
+      return nextState;
+    });
+  }, []);
   const closeRightSidebar = useCallback(() => setIsRightSidebarOpen(false), []);
 
   const handleDeletePosts = useCallback(async (ids: string[]) => {
@@ -842,7 +943,7 @@ const App: React.FC = () => {
 
   const mainContentClasses = useMemo(() => `
     transition-all duration-300 ease-in-out
-    ${isMobileView ? '' : (isSidebarCollapsed ? 'pl-20' : 'pl-80')}
+    ${isMobileView ? 'pt-16' : (isSidebarCollapsed ? 'pl-20' : 'pl-80')}
   `, [isMobileView, isSidebarCollapsed]);
   
   const mobileHeaderClasses = `
@@ -850,7 +951,7 @@ const App: React.FC = () => {
     transition-transform duration-300 ease-in-out
     ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}
   `;
-  const glassEffectClass = isScrolled ? 'bg-glass border-b border-theme-primary' : '';
+  const glassEffectClass = (isScrolled || isMobileView) ? 'bg-glass border-b border-theme-primary' : '';
   
   if (appDataLoading) {
       return null;
@@ -863,6 +964,7 @@ const App: React.FC = () => {
             onClose={closeRightSidebar}
             navigateTo={navigateTo}
             isAuthenticated={isAuthenticated}
+            isSuperUser={isSuperUser}
             handleLogout={handleLogout}
             currentTheme={theme}
             toggleTheme={toggleTheme}
@@ -891,7 +993,6 @@ const App: React.FC = () => {
                     toggleTheme={toggleTheme}
                     toggleCollapse={toggleCollapse}
                     navigateTo={navigateTo}
-                    isLandscape={isLandscape}
                     toggleRightSidebar={toggleRightSidebar}
                 />
             }>
@@ -906,7 +1007,7 @@ const App: React.FC = () => {
                         portfolioItems={portfolioItems}
                         onAddPortfolioItem={handleAddPortfolioItem}
                         onDeletePortfolioItems={handleDeletePortfolioItems}
-                        isLandscape={isLandscape}
+                        isMobileView={isMobileView}
                     />
                 } />
                 <Route path="blog" element={
@@ -926,6 +1027,7 @@ const App: React.FC = () => {
                         allPosts={allPosts}
                         postDetailCache={postDetailCache}
                         onUpdateCache={handleUpdatePostDetailCache}
+                        isMobileView={isMobileView}
                     />
                 } />
                 <Route path="blog/category/:categoryKey" element={
@@ -969,6 +1071,7 @@ const App: React.FC = () => {
                             <EditBlogPostWrapper
                                 navigateTo={navigateTo}
                                 onSave={handleSaveBlogPost}
+                                onCancel={handleCancelEditBlogPost}
                                 isAuthenticated={isAuthenticated}
                                 isSuperUser={isSuperUser}
                                 navigateToLogin={() => navigateTo(Page.Login)}
@@ -985,7 +1088,7 @@ const App: React.FC = () => {
                                 onAdd={handleAddPortfolioItem}
                                 onUpdate={handleUpdatePortfolioItem}
                                 onDelete={handleDeletePortfolioItems}
-                                isLandscape={isLandscape}
+                                isMobileView={isMobileView}
                              />
                         </SuperUserRoute>
                     </ProtectedRoute>

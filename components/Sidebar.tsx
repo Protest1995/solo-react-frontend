@@ -11,9 +11,6 @@ import { Page, NavItem, CategoryInfo } from '../types';
 // 引入應用程式的常數
 import { NAVIGATION_ITEMS, AUTH_NAVIGATION_ITEMS, ACCENT_FOCUS_VISIBLE_RING_CLASS } from '../constants';
 // 引入社交媒體和功能圖標組件
-import LinkedInIcon from './icons/LinkedInIcon';
-import GithubIcon from './icons/GithubIcon';
-import InstagramIcon from './icons/InstagramIcon';
 import LanguageSwitcher from './ui/LanguageSwitcher';
 import LoginIcon from './icons/LoginIcon';
 import LogoutIcon from './icons/LogoutIcon';
@@ -30,6 +27,9 @@ import DocumentTextIcon from './icons/DocumentTextIcon';
 import CloseIcon from './icons/CloseIcon';
 // 引入認證上下文
 import { useAuth } from '../src/contexts/AuthContext';
+import LinkedInIcon from './icons/LinkedInIcon';
+import GithubIcon from './icons/GithubIcon';
+import InstagramIcon from './icons/InstagramIcon';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -51,7 +51,7 @@ interface SidebarProps {
   isCollapsed: boolean; // 側邊欄在桌面端是否收合
   toggleCollapse: () => void; // 切換收合狀態的函數
   isSuperUser: boolean; // 用戶是否為超級管理員
-  isLandscape: boolean;
+  isMobileView: boolean;
 }
 
 /**
@@ -72,7 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   toggleCollapse,
   isSuperUser,
-  isLandscape,
+  isMobileView,
 }) => {
   // --- 鉤子 (Hooks) ---
   const { t, i18n } = useTranslation();
@@ -114,11 +114,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   const allNavItems = isAuthenticated ? [...NAVIGATION_ITEMS, ...AUTH_NAVIGATION_ITEMS] : NAVIGATION_ITEMS;
 
   // --- 動態 CSS Class ---
-  // 側邊欄基礎樣式
-  const sidebarBaseClasses = "fixed inset-y-0 left-0 flex flex-col transform transition-all duration-300 ease-in-out z-40";
-  // 移動端開啟時的樣式 (直向為基礎，橫向為覆蓋)
-  const mobileOpenClasses = `translate-x-0 w-4/5 max-w-sm bg-glass border-r border-theme-primary px-8 pb-8 pt-20`;
-  // 移動端關閉時的樣式 (直向為基礎，橫向為覆蓋)
+  // 側邊欄基礎樣式（移除了 inset-y-0 以進行條件應用）
+  const sidebarBaseClasses = "fixed left-0 flex flex-col transform transition-all duration-300 ease-in-out z-40";
+  // 移動端開啟時的樣式（pt-20 調整為 pt-4）
+  const mobileOpenClasses = `translate-x-0 w-4/5 max-w-sm bg-glass border-r border-theme-primary px-8 pb-8 pt-4`;
+  // 移動端關閉時的樣式
   const mobileClosedClasses = `-translate-x-full w-4/5 max-w-sm bg-theme-secondary`;
   // 桌面端基礎樣式
   const desktopBaseClasses = "lg:translate-x-0 lg:bg-theme-secondary";
@@ -164,9 +164,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // --- 渲染 (JSX) ---
   return (
-    <aside className={`${sidebarBaseClasses} ${isOpen ? mobileOpenClasses : mobileClosedClasses} ${desktopBaseClasses} ${isDesktopCollapsed ? desktopCollapsedClasses : desktopExpandedClasses}`}>
+    <aside className={`${sidebarBaseClasses} ${isMobileView ? 'top-16 bottom-0' : 'inset-y-0'} ${isOpen ? mobileOpenClasses : mobileClosedClasses} ${desktopBaseClasses} ${isDesktopCollapsed ? desktopCollapsedClasses : desktopExpandedClasses}`}>
       {/* 側邊欄頭部，包含個人資料和收合按鈕 (在手機橫向模式下隱藏) */}
-      {!isLandscape && (
+      {!isMobileView && (
           <div className={`w-full shrink-0 ${isDesktopCollapsed ? 'h-20 flex items-center justify-center' : 'mb-8'}`}>
             {/* 展開模式下的頭部 */}
             <div className={`w-full items-center justify-between ${isDesktopCollapsed ? 'hidden' : 'flex'}`}>
@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
         </ul>
         {/* 超級管理員工具菜單 */}
-        {isSuperUser && (
+        {isSuperUser && !isMobileView && (
           <div className="mt-4 pt-4 border-t border-theme-primary">
             {isDesktopCollapsed ? (
               // 收合模式下的管理員工具
@@ -231,10 +231,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
       </nav>
-      {/* 側邊欄底部，包含登入/登出、語言和主題切換 (在手機橫向模式下隱藏) */}
-      {!isLandscape && (
-        <div>
-          <div className={`w-full mt-auto pt-4 flex-col items-center space-y-4 ${isDesktopCollapsed ? 'lg:px-0' : ''} ${isSuperUser ? '' : 'border-t border-theme-primary'} flex`}>
+      {/* 側邊欄底部 */}
+      <div className="w-full mt-auto">
+        {/* 登入/登出、語言和主題切換 (在桌面端顯示) */}
+        {!isMobileView && (
+          <div className={`w-full pt-4 flex-col items-center space-y-4 ${isDesktopCollapsed ? 'lg:px-0' : ''} ${isSuperUser ? '' : 'border-t border-theme-primary'} flex`}>
             {isAuthenticated ? (
               <button
                 onClick={async () => {
@@ -264,25 +265,31 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button onClick={toggleTheme} className={`flex items-center justify-center rounded-full transition-all duration-300 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} button-theme-toggle ${isDesktopCollapsed ? 'w-10 h-10' : 'flex-1 px-3 py-1.5 text-sm'}`} aria-label={currentTheme === 'light' ? t('sidebar.switchToDarkMode') : t('sidebar.switchToLightMode')} title={isDesktopCollapsed ? (currentTheme === 'light' ? t('sidebar.darkMode') : t('sidebar.lightMode')) : undefined}> {currentTheme === 'light' ? <MoonIcon className={`w-4 h-4 ${isDesktopCollapsed ? '' : 'mr-1.5'}`} /> : <SunIcon className={`w-4 h-4 ${isDesktopCollapsed ? '' : 'mr-1.5'}`} />} <span className={`${isDesktopCollapsed ? 'lg:hidden' : ''}`}>{currentTheme === 'light' ? t('sidebar.darkMode') : t('sidebar.lightMode')}</span> </button>
             </div>
           </div>
-          {/* 社交媒體連結和版權資訊 (僅在展開模式下顯示) */}
-          <div className={`text-center pb-4 mt-6 ${isDesktopCollapsed ? 'lg:hidden' : ''}`}>
-            <div className="flex justify-center space-x-4 mb-4"> <a href="#" aria-label={t('sidebar.profileName') + " LinkedIn"} className="text-theme-primary transition-colors hover:text-custom-cyan"> <LinkedInIcon className="w-5 h-5" /> </a> <a href="#" aria-label={t('sidebar.profileName') + " GitHub"} className="text-theme-primary transition-colors hover:text-custom-cyan"> <GithubIcon className="w-5 h-5" /> </a> <a href="#" aria-label={t('sidebar.instagramAriaLabel')} className="text-theme-primary transition-colors hover:text-custom-cyan"> <InstagramIcon className="w-5 h-5" /> </a> </div>
-            <p className="text-xs text-theme-muted">
-              {(() => {
-                const copyrightText = t('sidebar.copyright');
-                const parts = copyrightText.split('Solo');
-                return (
-                  <>
-                    {parts[0]}
-                    <span className="text-custom-cyan">Solo</span>
-                    {parts[1]}
-                  </>
-                );
-              })()}
-            </p>
-          </div>
-        </div>
-      )}
+        )}
+        {/* 社交媒體與版權 (在桌面端展開時顯示) */}
+        {!isMobileView && !isDesktopCollapsed && (
+            <div className={`pt-6 mt-6 border-t border-theme-primary text-center`}>
+                <div className={`flex justify-center space-x-4 mb-4`}>
+                    <a href="https://www.linkedin.com/in/solo-huang-203774214/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " LinkedIn"} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <LinkedInIcon className="w-5 h-5 mx-auto" /> </a>
+                    <a href="https://github.com/solohuang" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " GitHub"} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <GithubIcon className="w-5 h-5 mx-auto" /> </a>
+                    <a href="https://www.instagram.com/solo_snapshots/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.instagramAriaLabel')} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <InstagramIcon className="w-5 h-5 mx-auto" /> </a>
+                </div>
+                <p className="text-xs text-theme-muted mt-4">
+                    {(() => {
+                        const copyrightText = t('sidebar.copyright');
+                        const parts = copyrightText.split('Solo');
+                        return (
+                             <>
+                                {parts[0]}
+                                <span className="text-custom-cyan">Solo</span>
+                                {parts[1]}
+                            </>
+                        );
+                    })()}
+                </p>
+            </div>
+        )}
+      </div>
     </aside>
   );
 };

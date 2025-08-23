@@ -21,9 +21,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
 ];
 
 // 已驗證用戶的導航項目列表
-export const AUTH_NAVIGATION_ITEMS: NavItem[] = [
-    { page: Page.Account, path: '/account', label: 'sidebar.account', icon: SettingsIcon },
-];
+export const AUTH_NAVIGATION_ITEMS: NavItem[] = [];
 
 
 // 主題強調色相關的 CSS class 常數

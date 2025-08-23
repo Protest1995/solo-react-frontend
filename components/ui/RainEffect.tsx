@@ -27,9 +27,11 @@ const RainEffect: React.FC = () => {
       canvas.height = window.innerHeight;
       
       const bodyStyles = window.getComputedStyle(document.body);
-      // 使用一致的強調色作為雨滴顏色和光暈
-      const rainColor = bodyStyles.getPropertyValue('--accent-cyan').trim();
-      const shadowColor = bodyStyles.getPropertyValue('--accent-shadow-color').trim();
+      const isLightTheme = document.body.classList.contains('theme-light');
+
+      // 根據主題設定雨滴顏色和光暈
+      const rainColor = isLightTheme ? '#31e3daff' : bodyStyles.getPropertyValue('--accent-cyan').trim();
+      const shadowColor = isLightTheme ? 'rgba(32, 178, 170, 0.4)' : bodyStyles.getPropertyValue('--accent-shadow-color').trim();
 
       // 為雨滴設置帶有光暈效果的樣式
       ctx.strokeStyle = rainColor;
@@ -93,11 +95,22 @@ const RainEffect: React.FC = () => {
 
     // 添加窗口大小變化的事件監聽器
     window.addEventListener('resize', handleResize);
+    
+    // 新增：監聽主題變化
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                handleResize(); // 主題變化時，重新設定並繪製雨滴
+            }
+        }
+    });
+    observer.observe(document.body, { attributes: true });
 
     // 組件卸載時的清理函數
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
+      observer.disconnect();
     };
   }, []); // 空依賴數組確保此 effect 只在組件掛載時運行一次
 
