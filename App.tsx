@@ -1,9 +1,10 @@
 
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
-import { Routes, Route, Outlet, useLocation, useNavigate, useParams, Navigate, matchPath } from 'react-router-dom';
+import { Routes, Route, Outlet, useLocation, useNavigate, useParams, Navigate, matchPath, Link } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import HomePage from './components/pages/HomePage';
 import AboutPage from './components/pages/AboutPage';
@@ -32,6 +33,14 @@ import { NAVIGATION_ITEMS, AUTH_NAVIGATION_ITEMS } from './constants';
 // 引入靜態數據
 import { ApiService } from './src/services/api';
 import { useAuth } from './src/contexts/AuthContext';
+
+// --- 新增 RightSidebar 所需的圖標 ---
+import SettingsIcon from './components/icons/SettingsIcon';
+import LoginIcon from './components/icons/LoginIcon';
+import LogoutIcon from './components/icons/LogoutIcon';
+import { SunIcon } from './components/icons/SunIcon';
+import { MoonIcon } from './components/icons/MoonIcon';
+import CloseIcon from './components/icons/CloseIcon';
 
 
 // 將 motionTyped 轉型為 any 以解決類型問題
@@ -261,6 +270,140 @@ const PostManagementPageWrapper: React.FC<{
 // 定義主題類型
 type Theme = 'light' | 'dark';
 
+// --- 新增：RightSidebar 組件 ---
+interface RightSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  navigateTo: (page: Page, data?: any) => void;
+  isAuthenticated: boolean;
+  handleLogout: () => void;
+  currentTheme: Theme;
+  toggleTheme: () => void;
+  authLogout: () => Promise<void>;
+  avatarUrl: string;
+  username: string;
+}
+
+const RightSidebar: React.FC<RightSidebarProps> = ({
+  isOpen,
+  onClose,
+  navigateTo,
+  isAuthenticated,
+  handleLogout,
+  currentTheme,
+  toggleTheme,
+  authLogout,
+  avatarUrl,
+  username
+}) => {
+  const { t, i18n } = useTranslation();
+
+  const handleNavigation = (page: Page) => {
+    navigateTo(page);
+    onClose();
+  };
+  
+  const handleLogoutClick = async () => {
+    try {
+      await authLogout();
+    } finally {
+      handleLogout();
+      onClose();
+    }
+  };
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'en' ? 'zh-Hant' : 'en');
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={onClose}
+            aria-hidden="true"
+          />
+          <motion.div
+            className="fixed top-0 right-0 bottom-0 w-64 bg-glass border-l border-theme-primary shadow-lg z-50 p-6 flex flex-col lg:hidden"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="flex justify-end items-center mb-8">
+              <div className="profile-image-wrapper w-10 h-10">
+                <div className="profile-image-inner flex items-center justify-center">
+                    <img 
+                        src={avatarUrl} 
+                        alt={username} 
+                        className="w-full h-full object-cover rounded-full"
+                    />
+                </div>
+              </div>
+            </div>
+            
+            <nav className="flex-grow flex flex-col space-y-2">
+              {isAuthenticated && (
+                <button
+                  onClick={() => handleNavigation(Page.Account)}
+                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                >
+                  <SettingsIcon className="w-5 h-5 mr-3" />
+                  <span>{t('sidebar.account')}</span>
+                </button>
+              )}
+              
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogoutClick}
+                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                >
+                  <LoginIcon className="w-5 h-5 mr-3" />
+                  <span>{t('sidebar.logout')}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleNavigation(Page.Login)}
+                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                >
+                  <LogoutIcon className="w-5 h-5 mr-3" />
+                  <span>{t('sidebar.login')}</span>
+                </button>
+              )}
+            </nav>
+
+            <div className="flex-shrink-0 border-t border-theme-primary pt-4 space-y-3">
+               <button
+                  onClick={toggleLanguage}
+                  className="w-full flex items-center justify-center text-sm button-theme-neutral font-semibold py-2 px-4 rounded-md transition-colors"
+                >
+                  {i18n.language === 'en' ? t('switchToChinese', '切换为中文') : t('switchToEnglish', 'Switch to English')}
+                </button>
+                <button
+                  onClick={toggleTheme}
+                  className="w-full flex items-center justify-center text-sm button-theme-toggle font-semibold py-2 px-4 rounded-md transition-colors"
+                >
+                  {currentTheme === 'light' ? 
+                    <><MoonIcon className="w-4 h-4 mr-2" /> {t('sidebar.darkMode')}</> : 
+                    <><SunIcon className="w-4 h-4 mr-2" /> {t('sidebar.lightMode')}</>
+                  }
+                </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const getFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
     if (typeof window === 'undefined') return defaultValue;
     try {
@@ -280,7 +423,6 @@ const getInitialSidebarCollapsed = (): boolean => getFromLocalStorage<boolean>('
 interface LayoutProps {
   isSidebarOpen: boolean;
   isMobileView: boolean;
-  isLandscape: boolean;
   isAuthenticated: boolean;
   isSuperUser: boolean;
   username: string;
@@ -297,13 +439,17 @@ interface LayoutProps {
   toggleTheme: () => void;
   toggleCollapse: () => void;
   navigateTo: (page: Page, data?: any) => void;
+  isLandscape: boolean;
+  toggleRightSidebar: () => void;
 }
 
 const Layout: React.FC<LayoutProps> = ({
-  isSidebarOpen, isMobileView, isLandscape, isAuthenticated, isSuperUser,
+  isSidebarOpen, isMobileView, isAuthenticated, isSuperUser,
   username, avatarUrl, currentTheme, isSidebarCollapsed, showBackToTop,
   mobileHeaderClasses, glassEffectClass, mainContentClasses,
   toggleSidebar, closeSidebar, handleLogout, toggleTheme, toggleCollapse, navigateTo,
+  isLandscape,
+  toggleRightSidebar,
 }) => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -311,6 +457,19 @@ const Layout: React.FC<LayoutProps> = ({
   
   return (
     <>
+      <AnimatePresence>
+        {isSidebarOpen && isMobileView && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={closeSidebar}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
       <Sidebar
         navigateTo={navigateTo}
         isOpen={isSidebarOpen && isMobileView}
@@ -327,14 +486,31 @@ const Layout: React.FC<LayoutProps> = ({
         isLandscape={isLandscape}
       />
       <header className={`${mobileHeaderClasses} ${glassEffectClass}`}>
-          <div className="container mx-auto px-6 h-full flex justify-end items-center">
+          <div className="container mx-auto px-6 h-full flex justify-between items-center">
             <button
               onClick={toggleSidebar}
-              className="p-2 -mr-2"
+              className="p-2 -ml-2"
               aria-label={t('sidebar.toggleNavigation')}
             >
-              <MenuIcon className="w-6 h-6" />
+              <MenuIcon className="w-6 h-6 text-custom-cyan" />
             </button>
+            {isLandscape && (
+                <button
+                    onClick={toggleRightSidebar}
+                    className="flex items-center"
+                    aria-label={t('sidebar.openUserMenu', 'Open user menu')}
+                >
+                    <div className="profile-image-wrapper w-10 h-10">
+                      <div className="profile-image-inner flex items-center justify-center">
+                          <img 
+                              src={avatarUrl} 
+                              alt={username} 
+                              className="w-full h-full object-cover rounded-full"
+                          />
+                      </div>
+                    </div>
+                </button>
+            )}
           </div>
       </header>
       <main className={mainContentClasses}>
@@ -356,9 +532,10 @@ const App: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout: authLogout } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(getInitialSidebarCollapsed);
@@ -378,7 +555,7 @@ const App: React.FC = () => {
     username: t('sidebar.profileName'),
     email: '',
     avatarUrl: '/images/profile.jpg',
-    gender: 'not_specified',
+    gender: 'NOT_SPECIFIED',
     birthday: '',
     address: '',
     phone: '',
@@ -578,7 +755,7 @@ const App: React.FC = () => {
         username: user.username ?? prev.username,
         email: user.email ?? '',
         avatarUrl: user.avatarUrl ?? '/images/profile.jpg',
-        gender: (user as any).gender ?? 'not_specified',
+        gender: (user as any).gender ?? 'NOT_SPECIFIED',
         birthday: (user as any).birthday ?? '',
         address: (user as any).address ?? '',
         phone: (user as any).phone ?? '',
@@ -591,7 +768,7 @@ const App: React.FC = () => {
       username: t('sidebar.profileName'),
       email: '',
       avatarUrl: '/images/profile.jpg',
-      gender: 'not_specified',
+      gender: 'NOT_SPECIFIED',
       birthday: '',
       address: '',
       phone: '',
@@ -611,6 +788,8 @@ const App: React.FC = () => {
     navigate(`/blog/${postData.id}`);
   }, [navigate, allPosts]);
   const toggleSidebar = useCallback(() => setIsSidebarOpen(p => !p), []);
+  const toggleRightSidebar = useCallback(() => setIsRightSidebarOpen(p => !p), []);
+  const closeRightSidebar = useCallback(() => setIsRightSidebarOpen(false), []);
 
   const handleDeletePosts = useCallback(async (ids: string[]) => {
     if (!isSuperUser) return;
@@ -679,12 +858,23 @@ const App: React.FC = () => {
 
   return (
       <div className="bg-theme-primary text-theme-primary">
+        <RightSidebar
+            isOpen={isRightSidebarOpen}
+            onClose={closeRightSidebar}
+            navigateTo={navigateTo}
+            isAuthenticated={isAuthenticated}
+            handleLogout={handleLogout}
+            currentTheme={theme}
+            toggleTheme={toggleTheme}
+            authLogout={authLogout}
+            avatarUrl={userProfile.avatarUrl}
+            username={userProfile.username}
+        />
         <Routes>
             <Route path="/" element={
                 <Layout
                     isSidebarOpen={isSidebarOpen}
                     isMobileView={isMobileView}
-                    isLandscape={isLandscape}
                     isAuthenticated={isAuthenticated}
                     isSuperUser={isSuperUser}
                     username={userProfile.username}
@@ -701,6 +891,8 @@ const App: React.FC = () => {
                     toggleTheme={toggleTheme}
                     toggleCollapse={toggleCollapse}
                     navigateTo={navigateTo}
+                    isLandscape={isLandscape}
+                    toggleRightSidebar={toggleRightSidebar}
                 />
             }>
                 <Route index element={<HomePage />} />
