@@ -31,7 +31,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
   const [initialProfile, setInitialProfile] = useState(userProfile); // 初始個人資料，用於比較是否有變更
   const [username, setUsername] = useState(userProfile.username);
   const [email, setEmail] = useState(userProfile.email);
-  const [gender, setGender] = useState(userProfile.gender || 'not_specified');
+  const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'NOT_SPECIFIED' | undefined>(userProfile.gender);
   const [birthday, setBirthday] = useState(userProfile.birthday || '');
   const [isBirthdayInputFocused, setIsBirthdayInputFocused] = useState<boolean>(false);
   // 上傳頭像時顯示遮罩與進度
@@ -64,8 +64,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
     setInitialProfile(userProfile);
     setUsername(userProfile.username);
     setEmail(userProfile.email);
-    // 只有當性別未設置時才使用 not_specified
-    setGender(userProfile.gender || userProfile.gender === '' ? userProfile.gender : 'not_specified');
+    setGender(userProfile.gender);
     // 確保從後端回來的 ISO 或 yyyy-MM-dd 會轉為 yyyy/MM/dd 顯示
     const s = userProfile.birthday as any;
     if (s) {
@@ -164,7 +163,9 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
   
   // 處理性別選擇變更
   const handleGenderChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setGender(e.target.value as 'male' | 'female' | 'other' | 'not_specified');
+    const value = e.target.value as 'MALE' | 'FEMALE' | 'NOT_SPECIFIED' | '';
+    setGender(value || undefined);
+    console.log('Selected gender:', value); // 加入日誌以追蹤值的變化
   };
 
   // 無
@@ -177,7 +178,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
   const handleReset = () => {
     setUsername(initialProfile.username);
     setEmail(initialProfile.email);
-    setGender(initialProfile.gender || 'not_specified');
+    setGender(initialProfile.gender);
     const s = initialProfile.birthday as any;
     if (s) {
       const str = String(s);
@@ -220,15 +221,17 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
     }
     
     try {
+      console.log('Current gender value:', gender); // 加入日誌
       const payload: UpdateUserRequest = {
         username,
         email,
-        gender: gender as 'male' | 'female' | 'other' | 'not_specified',
+        gender,
         birthday: birthday || undefined,
         address,
         phone,
         avatarUrl: previewAvatarUrl || initialProfile.avatarUrl,
       };
+      console.log('Submitting payload:', payload); // 加入日誌
       
       // 如果有新密碼，添加到 payload 中
       if (newPassword && newPassword.trim()) {
@@ -410,12 +413,16 @@ const AccountPage: React.FC<AccountPageProps> = ({ userProfile, onUpdateProfile,
                     <div>
                         <label htmlFor="gender" className="block text-sm font-medium text-theme-secondary mb-1">{t('accountPage.genderLabel')}</label>
                         <div className="relative">
-                            <select id="gender" value={gender} onChange={handleGenderChange}
-                                className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} ${ACCENT_FOCUS_RING_CLASS} custom-select-text appearance-none`}>
-                                <option value="not_specified">{t('accountPage.genderNotSpecified')}</option>
-                                <option value="male">{t('accountPage.genderMale')}</option>
-                                <option value="female">{t('accountPage.genderFemale')}</option>
-                                <option value="other">{t('accountPage.genderOther')}</option>
+                            <select 
+                                id="gender" 
+                                value={gender || ''} 
+                                onChange={handleGenderChange}
+                                className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} ${ACCENT_FOCUS_RING_CLASS} custom-select-text appearance-none`}
+                            >
+                                <option value="">{t('accountPage.selectGender')}</option>
+                                <option value="MALE">{t('accountPage.genderMale')}</option>
+                                <option value="FEMALE">{t('accountPage.genderFemale')}</option>
+                                <option value="NOT_SPECIFIED">{t('accountPage.genderNotSpecified')}</option>
                             </select>
                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-theme-primary">
                                 <ChevronDownIcon className="w-5 h-5" />

@@ -27,7 +27,7 @@ export interface UserProfile {
   username: string; // 用戶名
   email: string; // 電子郵件
   avatarUrl: string; // 頭像 URL
-  gender?: 'male' | 'female' | 'other' | 'not_specified'; // 性別
+  gender?: 'MALE' | 'FEMALE' | 'NOT_SPECIFIED'; // 性別
   birthday?: string; // 生日
   address?: string; // 地址
   phone?: string; // 電話

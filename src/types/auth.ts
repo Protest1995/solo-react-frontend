@@ -14,7 +14,7 @@ export interface User {
   email: string;            // 電子郵件地址
   avatarUrl: string;        // 頭像圖片的 URL
   role: UserRole;           // 使用者角色
-  gender?: 'male' | 'female' | 'other' | 'not_specified'; // 性別 (可選)
+  gender?: 1 | 2; // 性別 (1: 男性, 2: 女性)
   birthday?: string;        // 生日 (可選)
   address?: string;         // 地址 (可選)
   phone?: string;           // 電話號碼 (可選)
@@ -27,7 +27,7 @@ export interface UpdateUserRequest {
   username?: string;
   email?: string;
   avatarUrl?: string;
-  gender?: 'male' | 'female' | 'other' | 'not_specified';
+  gender?: 1 | 2; // 1: 男性, 2: 女性
   birthday?: string;
   address?: string;
   phone?: string;
