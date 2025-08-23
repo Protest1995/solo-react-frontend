@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -24,7 +23,8 @@ export const BlogPage: React.FC<{
   onDeletePosts: (postIds: string[]) => void; // 刪除文章的回調函數
   isSuperUser: boolean; // 用戶是否為超級管理員
   navigateToLogin: () => void; // 導航到登入頁的函數
-}> = ({ navigateTo, allPosts, onDeletePosts, isSuperUser, navigateToLogin }) => {
+  isMobileView: boolean;
+}> = ({ navigateTo, allPosts, onDeletePosts, isSuperUser, navigateToLogin, isMobileView }) => {
   // 使用 useTranslation 鉤子來獲取翻譯函數 t
   const { t } = useTranslation();
   
@@ -92,7 +92,7 @@ export const BlogPage: React.FC<{
           initial="initial" 
           animate="animate"
         >
-          <BlogHeroCard posts={heroPosts} navigateTo={navigateTo} />
+          <BlogHeroCard posts={heroPosts} navigateTo={navigateTo} isMobileView={isMobileView} />
         </motion.div>
       )}
 

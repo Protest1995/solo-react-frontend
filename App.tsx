@@ -90,9 +90,9 @@ const PortfolioPageWrapper: React.FC<{
     portfolioItems: PortfolioItemData[];
     onAddPortfolioItem: (item: PortfolioItemData) => void;
     onDeletePortfolioItems: (ids: string[]) => void;
-    isMobileView: boolean;
-}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems, isMobileView }) => {
-    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isMobileView={isMobileView} />;
+    isLandscape: boolean;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems, isLandscape }) => {
+    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isLandscape={isLandscape} />;
 };
 
 const BlogPageWrapper: React.FC<{ 
@@ -226,7 +226,7 @@ const BlogPostDetailWrapper: React.FC<{
 
     const originCategoryInfo = location.state?.fromCategory as CategoryInfo | null;
 
-    return <BlogPostDetailPage post={post} allPosts={allPosts} comments={comments} navigateTo={navigateTo} isAuthenticated={isAuthenticated} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} isSuperUser={isSuperUser} currentUserProfile={currentUserProfile} originCategoryInfo={originCategoryInfo} isMobileView={isMobileView}/>;
+    return <BlogPostDetailPage post={post} allPosts={allPosts} comments={comments} navigateTo={navigateTo} isAuthenticated={isAuthenticated} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} isSuperUser={isSuperUser} currentUserProfile={currentUserProfile} originCategoryInfo={originCategoryInfo} />;
 };
 
 
@@ -281,7 +281,7 @@ const PhotoManagementPageWrapper: React.FC<{
     onAdd: (item: PortfolioItemData) => void;
     onUpdate: (item: PortfolioItemData) => void;
     onDelete: (ids: string[]) => void;
-    isMobileView: boolean;
+    isLandscape: boolean;
 }> = (props) => {
     return <PhotoManagementPage {...props} />;
 };
@@ -604,6 +604,7 @@ const App: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(getInitialSidebarCollapsed);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -650,6 +651,7 @@ const App: React.FC = () => {
     const handleResize = () => {
       const isCurrentlyMobile = window.innerWidth < 1024;
       setIsMobileView(isCurrentlyMobile);
+      setIsLandscape(isCurrentlyMobile && window.innerHeight < window.innerWidth);
       if (!isCurrentlyMobile && isSidebarOpen) {
         setIsSidebarOpen(false); // Close mobile sidebar on resize to desktop
       }
@@ -1007,7 +1009,7 @@ const App: React.FC = () => {
                         portfolioItems={portfolioItems}
                         onAddPortfolioItem={handleAddPortfolioItem}
                         onDeletePortfolioItems={handleDeletePortfolioItems}
-                        isMobileView={isMobileView}
+                        isLandscape={isLandscape}
                     />
                 } />
                 <Route path="blog" element={
@@ -1088,7 +1090,7 @@ const App: React.FC = () => {
                                 onAdd={handleAddPortfolioItem}
                                 onUpdate={handleUpdatePortfolioItem}
                                 onDelete={handleDeletePortfolioItems}
-                                isMobileView={isMobileView}
+                                isLandscape={isLandscape}
                              />
                         </SuperUserRoute>
                     </ProtectedRoute>

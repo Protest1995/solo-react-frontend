@@ -544,17 +544,18 @@
         transition: color 0.3s ease-in-out, border-color 0.3s ease-in-out, text-shadow 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
         will-change: opacity, transform;
       }
-      .btn-hero-neon:hover {
+      .group:hover .btn-hero-neon,
+      .group.force-hover .btn-hero-neon {
         color: var(--accent-cyan) !important;
         border-color: var(--accent-cyan);
         text-shadow: 0 0 5px var(--accent-shadow-color);
         box-shadow: 0 0 10px var(--accent-shadow-color), 0 0 25px var(--accent-shadow-color), 0 0 50px var(--accent-shadow-color);
       }
-      /* 新增：懸停霓虹按鈕時，英雄標題發光 */
       .hero-title {
         transition: color 0.3s ease-in-out, text-shadow 0.3s ease-in-out;
       }
-      .hero-content-container:has(.btn-hero-neon:hover) .hero-title {
+      .group:hover .hero-title,
+      .group.force-hover .hero-title {
         color: var(--accent-cyan);
         text-shadow: 0 0 8px var(--accent-shadow-color), 0 0 20px var(--accent-shadow-color);
       }

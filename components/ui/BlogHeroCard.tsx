@@ -1,5 +1,5 @@
 // 引入 React 相關鉤子
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 // 引入翻譯鉤子
 import { useTranslation } from 'react-i18next';
 // 引入 Framer Motion 動畫庫
@@ -22,11 +22,30 @@ import { stripMarkdown, getOptimizedImageUrl } from '../../utils';
 interface BlogHeroCarouselProps {
   posts: BlogPostData[]; // 文章列表
   navigateTo: (page: Page, data?: BlogPostData) => void; // 導航函數
+  isMobileView: boolean;
 }
 
 // 單個輪播頁的內部組件
-const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: () => void; }> = ({ post, isActive, onClick }) => {
+const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: () => void; isMobileView: boolean; }> = ({ post, isActive, onClick, isMobileView }) => {
   const { t, i18n } = useTranslation();
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    // 僅在行動裝置視圖且當前投影片為活動狀態時應用此效果
+    if (isMobileView && isActive) {
+      // 延遲 1 秒後，激活懸停效果
+      timeoutId = setTimeout(() => {
+        setIsHovered(true);
+      }, 1000);
+    } else {
+      // 如果投影片變為非活動狀態或不是行動裝置視圖，則重置懸停效果
+      setIsHovered(false);
+    }
+
+    // 清理函數，用於清除計時器，防止在組件卸載或依賴項變化時觸發
+    return () => clearTimeout(timeoutId);
+  }, [isActive, isMobileView]);
 
   // 根據語言選擇顯示的標題和摘要
   const { displayTitle, displayExcerpt } = React.useMemo(() => {
@@ -60,7 +79,7 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
   };
 
   return (
-    <div className="w-full h-full relative overflow-hidden">
+    <div className={`w-full h-full relative overflow-hidden group ${isHovered ? 'force-hover' : ''}`}>
         {/* 背景圖片，帶有緩慢的縮放動畫（Ken Burns 效果）*/}
         <motion.img
           key={post.id + "-img"}
@@ -104,7 +123,7 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
  * 部落格英雄區塊輪播組件。
  * 使用 Swiper 庫來實現文章的淡入淡出輪播效果，並帶有自訂的導航按鈕。
  */
-const BlogHeroCard: React.FC<BlogHeroCarouselProps> = ({ posts, navigateTo }) => {
+const BlogHeroCard: React.FC<BlogHeroCarouselProps> = ({ posts, navigateTo, isMobileView }) => {
   // 狀態：追蹤當前活動的文章數據（當前實現中未使用，但保留供未來擴展）
   const [activePost, setActivePost] = useState<BlogPostData | null>(posts[0] || null);
 
@@ -146,7 +165,7 @@ const BlogHeroCard: React.FC<BlogHeroCarouselProps> = ({ posts, navigateTo }) =>
           <SwiperSlide key={post.id}>
             {({ isActive }) => (
               // 渲染單個 slide，並傳入 isActive 狀態以觸發動畫
-              <SingleSlide post={post} isActive={isActive} onClick={() => navigateTo(Page.BlogPostDetail, post)} />
+              <SingleSlide post={post} isActive={isActive} onClick={() => navigateTo(Page.BlogPostDetail, post)} isMobileView={isMobileView} />
             )}
           </SwiperSlide>
         ))}
