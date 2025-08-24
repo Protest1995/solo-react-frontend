@@ -560,7 +560,7 @@ const Layout: React.FC<LayoutProps> = ({
               className="p-2 -ml-2"
               aria-label={t('sidebar.toggleNavigation')}
             >
-              <MenuIcon className="w-6 h-6 text-theme-secondary" />
+              <MenuIcon className={`w-6 h-6 ${currentTheme === 'light' ? 'text-theme-primary' : 'text-theme-secondary'}`} />
             </button>
             {isMobileView && (
                 <button
