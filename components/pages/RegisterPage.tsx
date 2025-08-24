@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -13,9 +12,13 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { ApiError } from '../../src/services/http';
 import EyeIcon from '../icons/EyeIcon';
 import EyeSlashIcon from '../icons/EyeSlashIcon';
+import RainEffect from '../ui/RainEffect';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
+
+// 定義主題的類型
+type Theme = 'light' | 'dark';
 
 // 定義 RegisterPage 組件的屬性介面
 interface RegisterPageProps {}
@@ -48,9 +51,25 @@ const RegisterPage: React.FC<RegisterPageProps> = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); // 標記表單是否正在提交中
   const [usernameError, setUsernameError] = useState<string | null>(null); // 用戶名相關的特定錯誤
   const [emailError, setEmailError] = useState<string | null>(null); // Email 相關的特定錯誤
+  const [currentTheme, setCurrentTheme] = useState<Theme>('dark'); // 追蹤當前應用的主題（淺色或深色）
 
   // --- 副作用 (useEffect) ---
   
+  // 監聽 <body> 的 class 變化以同步 `currentTheme` 狀態。
+  useEffect(() => {
+    const updateThemeFromBody = () => {
+      const themeClass = document.body.classList.contains('theme-light') ? 'light' : 'dark';
+      setCurrentTheme(themeClass);
+    };
+    
+    updateThemeFromBody(); // 組件掛載時立即檢查一次
+
+    const observer = new MutationObserver(updateThemeFromBody);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
   // 組件掛載時，清空可能從其他頁面遺留的錯誤狀態
   useEffect(() => {
     setError(null);
@@ -151,70 +170,90 @@ const RegisterPage: React.FC<RegisterPageProps> = () => {
 
   // --- 渲染 (JSX) ---
   return (
-    <div className="max-w-md mx-auto space-y-8 py-12 md:py-16">
-      <motion.div {...sectionDelayShow(0)}>
-        <SectionTitle titleKey="registerPage.title" subtitleKey="registerPage.subtitle" />
-      </motion.div>
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden -m-6 md:-m-12">
+      <div 
+        className="absolute inset-0 bg-cover bg-center" 
+        style={{ 
+          backgroundImage: "url('/images/home-bg.jpg')", 
+          zIndex: 0,
+          filter: currentTheme === 'light' ? 'grayscale(100%) brightness(1.5)' : 'none',
+          opacity: currentTheme === 'light' ? 0.2 : 0.1,
+        }} 
+      />
+      <div 
+        className={`absolute inset-0 bg-theme-primary`} 
+        style={{ 
+          zIndex: 0, 
+          opacity: currentTheme === 'light' ? 0.3 : 0.7 
+        }} 
+      />
+      <RainEffect />
 
-      <motion.div className="bg-theme-secondary p-8 rounded-lg shadow-xl" {...sectionDelayShow(0.2)}>
-        <motion.form onSubmit={handleSubmit} className="space-y-6" variants={staggerContainerVariants(0.07)} initial="initial" animate="animate">
-          {/* 用戶名輸入 */}
-          <motion.div variants={fadeInUpItemVariants}>
-            <label htmlFor="reg-username" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.usernameLabel')}</label>
-            <input type="text" id="reg-username" value={username} onChange={(e) => { setUsername(e.target.value); if (usernameError) setUsernameError(null); }} required minLength={3} className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.usernamePlaceholder')} autoComplete="username" />
-            {usernameError && ( <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-sm mt-1 flex items-center" role="alert"> <span className="mr-1">⚠️</span> {usernameError} </motion.p> )}
-          </motion.div>
-
-          {/* Email 輸入 */}
-          <motion.div variants={fadeInUpItemVariants}>
-            <label htmlFor="reg-email" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.emailLabel')}</label>
-            <input type="email" id="reg-email" value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }} required className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.emailPlaceholder')} autoComplete="email" />
-            {emailError && ( <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-sm mt-1 flex items-center" role="alert"> <span className="mr-1">⚠️</span> {emailError} </motion.p> )}
-          </motion.div>
-
-          {/* 密碼輸入 */}
-          <motion.div variants={fadeInUpItemVariants}>
-            <label htmlFor="reg-password" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.passwordLabel')}</label>
-            <div className="relative">
-              <input type={showPassword ? 'text' : 'password'} id="reg-password" value={password} onChange={(e) => setPassword(e.target.value)} onFocus={() => setIsPasswordFocused(true)} onBlur={() => setIsPasswordFocused(false)} required minLength={6} className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 pr-10 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.passwordPlaceholder')} autoComplete="new-password" />
-              <AnimatePresence>
-                {(isPasswordFocused || password) && ( <motion.button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label={showPassword ? 'Hide password' : 'Show password'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}> {showPassword ? (<EyeSlashIcon className="h-5 w-5 text-custom-cyan" />) : (<EyeIcon className="h-5 w-5 text-custom-cyan" />)} </motion.button> )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          {/* 確認密碼輸入 */}
-          <motion.div variants={fadeInUpItemVariants}>
-            <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.confirmPasswordLabel')}</label>
-            <div className="relative">
-              <input type={showConfirmPassword ? 'text' : 'password'} id="reg-confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} onFocus={() => setIsConfirmPasswordFocused(true)} onBlur={() => setIsConfirmPasswordFocused(false)} required minLength={6} className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 pr-10 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.confirmPasswordPlaceholder')} autoComplete="new-password" />
-              <AnimatePresence>
-                {(isConfirmPasswordFocused || confirmPassword) && ( <motion.button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}> {showConfirmPassword ? (<EyeSlashIcon className="h-5 w-5 text-custom-cyan" />) : (<EyeIcon className="h-5 w-5 text-custom-cyan" />)} </motion.button> )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          {/* 通用錯誤訊息顯示 */}
-          {(!usernameError && !emailError && (error || authError)) && ( <motion.p variants={fadeInUpItemVariants} className="text-red-400 text-sm text-center flex items-center justify-center" role="alert"> <span className="mr-1">⚠️</span> {error ?? authError} </motion.p> )}
-          {/* 成功訊息顯示 */}
-          {successMessage && ( <motion.p variants={fadeInUpItemVariants} className="text-green-400 text-sm text-center" role="alert"> {successMessage} </motion.p> )}
-
-          {/* 提交按鈕 */}
-          <motion.div variants={fadeInUpItemVariants}>
-            <button type="submit" disabled={isSubmitting} className={`${ACCENT_BG_COLOR} w-full text-zinc-900 font-semibold py-3 px-6 rounded-md ${ACCENT_BG_HOVER_COLOR} transition-all duration-300 shadow-md flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed`}>
-              <UserPlusIcon className="w-5 h-5 mr-2" />
-              {isSubmitting ? t('registerPage.registeringButton') : t('registerPage.registerButton')}
-            </button>
-          </motion.div>
-        </motion.form>
-
-        {/* 導航到登入頁面的連結 */}
-        <motion.div className="mt-6 text-center" variants={fadeInUpItemVariants} initial="initial" animate="animate">
-          <Link to="/login" className={`text-sm ${ACCENT_COLOR} hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-secondary focus:ring-custom-cyan rounded`}>
-            {t('registerPage.alreadyHaveAccountLink')}
-          </Link>
+      <div className="relative z-10 w-full max-w-md mx-auto space-y-8 p-4">
+        <motion.div {...sectionDelayShow(0)}>
+          <SectionTitle titleKey="registerPage.title" subtitleKey="registerPage.subtitle" />
         </motion.div>
-      </motion.div>
+
+        <motion.div className="bg-glass border border-theme-primary p-8 rounded-lg shadow-xl" {...sectionDelayShow(0.2)}>
+          <motion.form onSubmit={handleSubmit} className="space-y-6" variants={staggerContainerVariants(0.07)} initial="initial" animate="animate">
+            {/* 用戶名輸入 */}
+            <motion.div variants={fadeInUpItemVariants}>
+              <label htmlFor="reg-username" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.usernameLabel')}</label>
+              <input type="text" id="reg-username" value={username} onChange={(e) => { setUsername(e.target.value); if (usernameError) setUsernameError(null); }} required minLength={3} className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.usernamePlaceholder')} autoComplete="username" />
+              {usernameError && ( <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-sm mt-1 flex items-center" role="alert"> <span className="mr-1">⚠️</span> {usernameError} </motion.p> )}
+            </motion.div>
+
+            {/* Email 輸入 */}
+            <motion.div variants={fadeInUpItemVariants}>
+              <label htmlFor="reg-email" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.emailLabel')}</label>
+              <input type="email" id="reg-email" value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }} required className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.emailPlaceholder')} autoComplete="email" />
+              {emailError && ( <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-sm mt-1 flex items-center" role="alert"> <span className="mr-1">⚠️</span> {emailError} </motion.p> )}
+            </motion.div>
+
+            {/* 密碼輸入 */}
+            <motion.div variants={fadeInUpItemVariants}>
+              <label htmlFor="reg-password" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.passwordLabel')}</label>
+              <div className="relative">
+                <input type={showPassword ? 'text' : 'password'} id="reg-password" value={password} onChange={(e) => setPassword(e.target.value)} onFocus={() => setIsPasswordFocused(true)} onBlur={() => setIsPasswordFocused(false)} required minLength={6} className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 pr-10 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.passwordPlaceholder')} autoComplete="new-password" />
+                <AnimatePresence>
+                  {(isPasswordFocused || password) && ( <motion.button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label={showPassword ? 'Hide password' : 'Show password'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}> {showPassword ? (<EyeSlashIcon className="h-5 w-5 text-custom-cyan" />) : (<EyeIcon className="h-5 w-5 text-custom-cyan" />)} </motion.button> )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            {/* 確認密碼輸入 */}
+            <motion.div variants={fadeInUpItemVariants}>
+              <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-theme-secondary mb-1">{t('registerPage.confirmPasswordLabel')}</label>
+              <div className="relative">
+                <input type={showConfirmPassword ? 'text' : 'password'} id="reg-confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} onFocus={() => setIsConfirmPasswordFocused(true)} onBlur={() => setIsConfirmPasswordFocused(false)} required minLength={6} className={`w-full bg-theme-tertiary border border-theme-secondary text-theme-primary rounded-md p-3 pr-10 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`} placeholder={t('registerPage.confirmPasswordPlaceholder')} autoComplete="new-password" />
+                <AnimatePresence>
+                  {(isConfirmPasswordFocused || confirmPassword) && ( <motion.button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}> {showConfirmPassword ? (<EyeSlashIcon className="h-5 w-5 text-custom-cyan" />) : (<EyeIcon className="h-5 w-5 text-custom-cyan" />)} </motion.button> )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            {/* 通用錯誤訊息顯示 */}
+            {(!usernameError && !emailError && (error || authError)) && ( <motion.p variants={fadeInUpItemVariants} className="text-red-400 text-sm text-center flex items-center justify-center" role="alert"> <span className="mr-1">⚠️</span> {error ?? authError} </motion.p> )}
+            {/* 成功訊息顯示 */}
+            {successMessage && ( <motion.p variants={fadeInUpItemVariants} className="text-green-400 text-sm text-center" role="alert"> {successMessage} </motion.p> )}
+
+            {/* 提交按鈕 */}
+            <motion.div variants={fadeInUpItemVariants}>
+              <button type="submit" disabled={isSubmitting} className={`w-full btn-login-neon font-semibold py-3 px-6 rounded-full flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed`}>
+                <UserPlusIcon className="w-5 h-5 mr-2" />
+                {isSubmitting ? t('registerPage.registeringButton') : t('registerPage.registerButton')}
+              </button>
+            </motion.div>
+          </motion.form>
+
+          {/* 導航到登入頁面的連結 */}
+          <motion.div className="mt-6 text-center" variants={fadeInUpItemVariants} initial="initial" animate="animate">
+            <Link to="/login" className={`text-sm text-custom-cyan hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-secondary focus:ring-custom-cyan rounded`}>
+              {t('registerPage.alreadyHaveAccountLink')}
+            </Link>
+          </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

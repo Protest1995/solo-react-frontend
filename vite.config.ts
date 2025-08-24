@@ -3,20 +3,25 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(({ mode }) => {
   // 根據模式選擇後端 API 目標
-  const target =
-    mode === 'development'
-      ? 'http://localhost:8080' // 本地開發
-      : 'https://solo-springboot-backend-production.up.railway.app'; // 部署後
+  const target = 'https://solo-springboot-backend-production.up.railway.app'; // 統一使用部署版本的後端
 
   return {
     base: '/',
     server: {
-      port: 5173, 
+      port: 5173,
+      host: true, // 允許通過IP訪問
+      cors: true, // 啟用 CORS
       proxy: {
         '/api': {
           target,
-          changeOrigin: true, // 對於常規 API 呼叫，這有助於處理 CORS
+          changeOrigin: true,
           secure: false,
+          rewrite: (path) => path.replace(/^\/api/, '/api'),
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+          }
         },
         // 對於 OAuth 流程，changeOrigin 必須為 false。
         // 這會保留原始的 Host header (localhost:5173)，

@@ -87,7 +87,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   
   // --- 狀態管理 (useState) ---
   const [avatarImageError, setAvatarImageError] = useState(false);
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isBlogSubMenuOpen, setIsBlogSubMenuOpen] = useState(false); // 部落格子菜單是否展開
   const [isSuperUserMenuOpen, setIsSuperUserMenuOpen] = useState(false); // 超級管理員菜單是否展開
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); // 新增：個人資料下拉菜單狀態
@@ -98,7 +97,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   // 當頭像 URL 改變時，重置圖片加載狀態以顯示加載動畫
   useEffect(() => {
     setAvatarImageError(false);
-    setIsImageLoaded(false);
   }, [avatarUrl]);
 
 
@@ -130,7 +128,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, []);
 
   // --- 處理函數 ---
-  const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setAvatarImageError(true);
   
   const handleAccountClick = () => {
@@ -221,40 +218,29 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {isDesktopCollapsed ? (
                   <div className="relative flex flex-col items-center space-y-2">
                     {isAuthenticated ? (
-                      <button onClick={() => setIsProfileMenuOpen(p => !p)} className={`w-12 h-12 rounded-full transition-all duration-300 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`} aria-label={username} title={username}>
-                        <div className="w-full h-full bg-theme-tertiary rounded-full flex items-center justify-center relative overflow-hidden">
-                            {avatarUrl && !avatarImageError ? (
-                                <motion.img
-                                    key={`avatar-collapsed-${avatarUrl}`}
-                                    src={avatarUrl}
-                                    alt={username}
-                                    className="w-full h-full object-cover rounded-full absolute inset-0"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: isImageLoaded ? 1 : 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    onLoad={handleImageLoad}
-                                    onError={handleImageError}
-                                />
-                            ) : null}
-                            <AnimatePresence>
-                                {(!isImageLoaded || avatarImageError) && (
-                                    <motion.div
-                                        key="avatar-fallback-collapsed"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="absolute"
-                                    >
-                                        <UserIcon className="w-6 h-6 text-theme-secondary" />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                      </button>
+                       <button onClick={() => setIsProfileMenuOpen(p => !p)} className={`transition-all duration-300 focus:outline-none rounded-full ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`} aria-label={username} title={username}>
+                          <div className="profile-image-wrapper w-12 h-12">
+                              <div className="profile-image-inner flex items-center justify-center">
+                                  {avatarUrl && !avatarImageError ? (
+                                      <img
+                                          src={avatarUrl}
+                                          alt={username}
+                                          className="w-full h-full object-cover rounded-full"
+                                          onError={handleImageError}
+                                      />
+                                  ) : (
+                                      <UserIcon className="w-7 h-7 text-theme-secondary" />
+                                  )}
+                              </div>
+                          </div>
+                       </button>
                     ) : (
-                      <button onClick={handleLoginClick} className={`flex items-center justify-center rounded-full transition-all duration-200 ease-in-out text-sm button-theme-accent font-semibold shadow-md focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} w-10 h-10`} aria-label={t('sidebar.login')} title={t('sidebar.login')}>
-                        <LoginIcon className="w-5 h-5" />
+                      <button onClick={handleLoginClick} className={`focus:outline-none rounded-full ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`} aria-label={t('sidebar.login')} title={t('sidebar.login')}>
+                        <div className="profile-image-wrapper w-12 h-12">
+                            <div className="profile-image-inner flex items-center justify-center">
+                                <UserIcon className="w-7 h-7 text-theme-secondary" />
+                            </div>
+                        </div>
                       </button>
                     )}
                     <AnimatePresence>
@@ -289,44 +275,29 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {isAuthenticated ? (
                       <div>
                         <button onClick={() => setIsProfileMenuOpen(p => !p)} className="w-full group flex items-center p-2 text-left hover:bg-theme-hover rounded-lg transition-colors" aria-expanded={isProfileMenuOpen}>
-                          <div className="w-10 h-10 bg-theme-tertiary rounded-full flex items-center justify-center mr-3 flex-shrink-0 relative overflow-hidden">
-                            {avatarUrl && !avatarImageError ? (
-                                <motion.img
-                                    key={`avatar-expanded-${avatarUrl}`}
-                                    src={avatarUrl}
-                                    alt={username}
-                                    className="w-full h-full object-cover rounded-full absolute inset-0"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: isImageLoaded ? 1 : 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    onLoad={handleImageLoad}
-                                    onError={handleImageError}
-                                />
-                            ) : null}
-                            <AnimatePresence>
-                                {(!isImageLoaded || avatarImageError) && (
-                                    <motion.div
-                                        key="avatar-fallback-expanded"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="absolute"
-                                    >
+                           <div className="profile-image-wrapper w-10 h-10 mr-3 flex-shrink-0">
+                                <div className="profile-image-inner flex items-center justify-center">
+                                    {avatarUrl && !avatarImageError ? (
+                                        <img
+                                            src={avatarUrl}
+                                            alt={username}
+                                            className="w-full h-full object-cover rounded-full"
+                                            onError={handleImageError}
+                                        />
+                                    ) : (
                                         <UserIcon className="w-6 h-6 text-theme-secondary" />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                          </div>
+                                    )}
+                                </div>
+                            </div>
                           <div className="flex-grow min-w-0">
                             <p className="font-semibold text-theme-primary leading-tight truncate">{username}</p>
                             <p className="text-sm text-theme-secondary leading-tight truncate">{email}</p>
                           </div>
                           <motion.div 
-                            animate={{ rotate: isProfileMenuOpen ? 0 : 180 }} 
-                            className="text-theme-secondary group-hover:text-custom-cyan transition-colors"
+                            animate={{ rotate: isProfileMenuOpen ? 180 : 0 }} 
+                            className="ml-2 flex-shrink-0 text-theme-secondary group-hover:text-custom-cyan transition-colors"
                           >
-                            <ChevronUpIcon className="w-5 h-5 flex-shrink-0 ml-2" />
+                            <ChevronDownIcon className="w-5 h-5" />
                           </motion.div>
                         </button>
                         <AnimatePresence>
@@ -360,8 +331,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       </div>
                     ) : (
                       <button onClick={handleLoginClick} className="w-full flex items-center p-2 text-left hover:bg-theme-hover rounded-lg transition-colors">
-                        <div className="w-10 h-10 bg-theme-tertiary rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                          <LoginIcon className="w-5 h-5 text-theme-secondary" />
+                        <div className="profile-image-wrapper w-10 h-10 mr-3 flex-shrink-0">
+                            <div className="profile-image-inner flex items-center justify-center">
+                                <UserIcon className="w-7 h-7 text-theme-secondary" />
+                            </div>
                         </div>
                         <div className="flex-grow min-w-0">
                           <p className="font-semibold text-theme-primary leading-tight">{t('sidebar.login')}</p>
@@ -500,6 +473,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <div>
                     <div className="flex justify-between items-center space-x-2">
                       <button onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'zh-Hant' : 'en')} className={`flex-1 flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} button-theme-neutral px-4 py-1.5`}>
+                         <LanguageIcon className="w-4 h-4 mr-2" />
                          <span>{i18n.language === 'en' ? t('switchToChinese') : 'English'}</span>
                       </button>
                       <button onClick={toggleTheme} className={`flex-1 flex items-center justify-center text-xs font-semibold rounded-full transition-all duration-300 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} button-theme-toggle px-4 py-1.5`}>
@@ -523,9 +497,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 className={`pt-6 mt-6 border-t border-theme-primary text-center`}
               >
                   <div className={`flex justify-center space-x-4 mb-4`}>
-                      <a href="https://www.linkedin.com/in/solo-huang-203774214/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " LinkedIn"} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <LinkedInIcon className="w-5 h-5 mx-auto" /> </a>
-                      <a href="https://github.com/solohuang" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " GitHub"} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <GithubIcon className="w-5 h-5 mx-auto" /> </a>
-                      <a href="https://www.instagram.com/solo_snapshots/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.instagramAriaLabel')} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <InstagramIcon className="w-5 h-5 mx-auto" /> </a>
+                      <a href="https://www.linkedin.com/in/jason-huang-831802164/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " LinkedIn"} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <LinkedInIcon className="w-5 h-5 mx-auto" /> </a>
+                      <a href="https://github.com/Protest1995" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " GitHub"} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <GithubIcon className="w-5 h-5 mx-auto" /> </a>
+                      <a href="https://www.instagram.com/tatw800722519/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.instagramAriaLabel')} className="text-theme-secondary transition-colors hover:text-custom-cyan inline-block p-1"> <InstagramIcon className="w-5 h-5 mx-auto" /> </a>
                   </div>
                   <p className="text-xs text-theme-muted mt-4">
                       {(() => {

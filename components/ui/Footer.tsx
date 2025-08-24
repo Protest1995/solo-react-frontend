@@ -41,13 +41,13 @@ const Footer: React.FC<FooterProps> = () => {
             {t('footer.description')}
           </p>
           <div className="flex justify-center space-x-6">
-            <a href="https://www.linkedin.com/in/solo-huang-203774214/" target="_blank" rel="noopener noreferrer" className={`text-theme-secondary hover:${ACCENT_COLOR} transition-colors`} aria-label="LinkedIn">
+            <a href="https://www.linkedin.com/in/jason-huang-831802164/" target="_blank" rel="noopener noreferrer" className={`text-theme-secondary hover:${ACCENT_COLOR} transition-colors`} aria-label="LinkedIn">
               <LinkedInIcon className="w-6 h-6" />
             </a>
-            <a href="https://github.com/solohuang" target="_blank" rel="noopener noreferrer" className={`text-theme-secondary hover:${ACCENT_COLOR} transition-colors`} aria-label="GitHub">
+            <a href="https://github.com/Protest1995" target="_blank" rel="noopener noreferrer" className={`text-theme-secondary hover:${ACCENT_COLOR} transition-colors`} aria-label="GitHub">
               <GithubIcon className="w-6 h-6" />
             </a>
-            <a href="https://www.instagram.com/solo_snapshots/" target="_blank" rel="noopener noreferrer" className={`text-theme-secondary hover:${ACCENT_COLOR} transition-colors`} aria-label="Instagram">
+            <a href="https://www.instagram.com/tatw800722519/" target="_blank" rel="noopener noreferrer" className={`text-theme-secondary hover:${ACCENT_COLOR} transition-colors`} aria-label="Instagram">
               <InstagramIcon className="w-6 h-6" />
             </a>
           </div>
