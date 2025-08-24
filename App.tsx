@@ -100,8 +100,9 @@ const BlogPageWrapper: React.FC<{
     isSuperUser: boolean; 
     allPosts: BlogPostData[];
     onDeletePosts: (ids: string[]) => void;
-}> = ({ navigateTo, isSuperUser, allPosts, onDeletePosts }) => {
-    return <BlogPage navigateTo={navigateTo} allPosts={allPosts} onDeletePosts={onDeletePosts} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} />;
+    isMobileView: boolean;
+}> = ({ navigateTo, isSuperUser, allPosts, onDeletePosts, isMobileView }) => {
+    return <BlogPage navigateTo={navigateTo} allPosts={allPosts} onDeletePosts={onDeletePosts} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isMobileView={isMobileView} />;
 };
 
 const BlogPostDetailWrapper: React.FC<{ 
@@ -487,6 +488,7 @@ interface LayoutProps {
   isAuthenticated: boolean;
   isSuperUser: boolean;
   username: string;
+  email: string;
   avatarUrl: string;
   currentTheme: Theme;
   isSidebarCollapsed: boolean;
@@ -505,7 +507,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({
   isSidebarOpen, isMobileView, isAuthenticated, isSuperUser,
-  username, avatarUrl, currentTheme, isSidebarCollapsed, showBackToTop,
+  username, email, avatarUrl, currentTheme, isSidebarCollapsed, showBackToTop,
   mobileHeaderClasses, glassEffectClass, mainContentClasses,
   toggleSidebar, closeSidebar, handleLogout, toggleTheme, toggleCollapse, navigateTo,
   toggleRightSidebar,
@@ -513,6 +515,11 @@ const Layout: React.FC<LayoutProps> = ({
   const { t } = useTranslation();
   const location = useLocation();
   const isBlogPage = location.pathname === '/blog';
+  const [avatarImageError, setAvatarImageError] = useState(false);
+
+  useEffect(() => {
+    setAvatarImageError(false);
+  }, [avatarUrl]);
   
   return (
     <>
@@ -537,6 +544,7 @@ const Layout: React.FC<LayoutProps> = ({
         handleLogout={handleLogout}
         avatarUrl={avatarUrl}
         username={username}
+        email={email}
         currentTheme={currentTheme}
         toggleTheme={toggleTheme}
         isCollapsed={isSidebarCollapsed}
@@ -561,11 +569,12 @@ const Layout: React.FC<LayoutProps> = ({
                 >
                     <div className="profile-image-wrapper w-10 h-10">
                       <div className="profile-image-inner flex items-center justify-center">
-                          {isAuthenticated ? (
+                          {isAuthenticated && avatarUrl && !avatarImageError ? (
                               <img 
                                   src={avatarUrl} 
                                   alt={username} 
                                   className="w-full h-full object-cover rounded-full"
+                                  onError={() => setAvatarImageError(true)}
                               />
                           ) : (
                               <UserIcon className="w-7 h-7 text-theme-secondary" />
@@ -811,7 +820,7 @@ const App: React.FC = () => {
       setIsSidebarOpen(false);
   }, [navigate]);
 
-  useEffect(() => { if (!isAuthenticated) setUserProfile(p => ({...p, username: t('sidebar.profileName')})); }, [t, i18n.language, isAuthenticated]);
+  useEffect(() => { if (!isAuthenticated) setUserProfile(p => ({...p, username: t('sidebar.profileName'), email: ''})); }, [t, i18n.language, isAuthenticated]);
   useEffect(() => {
     if (user) {
       setUserProfile(prev => ({
@@ -982,6 +991,7 @@ const App: React.FC = () => {
                     isAuthenticated={isAuthenticated}
                     isSuperUser={isSuperUser}
                     username={userProfile.username}
+                    email={userProfile.email}
                     avatarUrl={userProfile.avatarUrl}
                     currentTheme={theme}
                     isSidebarCollapsed={isSidebarCollapsed}
@@ -1018,6 +1028,7 @@ const App: React.FC = () => {
                         isSuperUser={isSuperUser}
                         allPosts={allPosts}
                         onDeletePosts={handleDeletePosts}
+                        isMobileView={isMobileView}
                     />
                 } />
                 <Route path="blog/:postId" element={
