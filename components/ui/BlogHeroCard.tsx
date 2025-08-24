@@ -29,6 +29,7 @@ interface BlogHeroCarouselProps {
 const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: () => void; isMobileView: boolean; }> = ({ post, isActive, onClick, isMobileView }) => {
   const { t, i18n } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
@@ -79,7 +80,7 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
   };
 
   return (
-    <div className={`w-full h-full relative overflow-hidden group ${isHovered ? 'force-hover' : ''}`}>
+    <div className={`w-full h-full relative overflow-hidden group ${(isHovered || isButtonHovered) ? 'force-hover' : ''}`}>
         {/* 背景圖片，帶有緩慢的縮放動畫（Ken Burns 效果）*/}
         <motion.img
           key={post.id + "-img"}
@@ -110,6 +111,8 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
                     onClick={onClick}
                     className="btn-hero-neon px-8 py-3 text-lg font-semibold transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 focus-visible:ring-custom-cyan transform-gpu"
                     variants={buttonVariants}
+                    onMouseEnter={() => setIsButtonHovered(true)}
+                    onMouseLeave={() => setIsButtonHovered(false)}
                 >
                   {t('blogPage.startReading')}
                 </motion.button>

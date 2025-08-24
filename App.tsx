@@ -329,6 +329,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   username
 }) => {
   const { t, i18n } = useTranslation();
+  const navItemTextColor = currentTheme === 'light' ? 'text-zinc-800' : 'text-theme-secondary';
 
   const handleNavigation = (page: Page) => {
     navigateTo(page);
@@ -376,14 +377,14 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
                 <>
                   <button
                     onClick={() => handleNavigation(Page.PhotoManagement)}
-                    className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                    className={`w-full flex items-center py-2 px-3 rounded-md ${navItemTextColor} hover:bg-theme-hover hover:text-custom-cyan transition-colors`}
                   >
                     <PhotoIcon className="w-5 h-5 mr-3" />
                     <span>{t('sidebar.photoManagement')}</span>
                   </button>
                   <button
                     onClick={() => handleNavigation(Page.PostManagement)}
-                    className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                    className={`w-full flex items-center py-2 px-3 rounded-md ${navItemTextColor} hover:bg-theme-hover hover:text-custom-cyan transition-colors`}
                   >
                     <DocumentTextIcon className="w-5 h-5 mr-3" />
                     <span>{t('sidebar.postManagement')}</span>
@@ -394,7 +395,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
               {isAuthenticated && (
                 <button
                   onClick={() => handleNavigation(Page.Account)}
-                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                  className={`w-full flex items-center py-2 px-3 rounded-md ${navItemTextColor} hover:bg-theme-hover hover:text-custom-cyan transition-colors`}
                 >
                   <SettingsIcon className="w-5 h-5 mr-3" />
                   <span>{t('sidebar.account')}</span>
@@ -423,14 +424,14 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
 
               <button
                   onClick={toggleLanguage}
-                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                  className={`w-full flex items-center py-2 px-3 rounded-md ${navItemTextColor} hover:bg-theme-hover hover:text-custom-cyan transition-colors`}
               >
                   <LanguageIcon className="w-5 h-5 mr-3" />
                   <span>{i18n.language === 'en' ? '繁體中文' : 'English'}</span>
               </button>
               <button
                   onClick={toggleTheme}
-                  className="w-full flex items-center py-2 px-3 rounded-md text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan transition-colors"
+                  className={`w-full flex items-center py-2 px-3 rounded-md ${navItemTextColor} hover:bg-theme-hover hover:text-custom-cyan transition-colors`}
               >
                   {currentTheme === 'light' ? 
                     <MoonIcon className="w-5 h-5 mr-3" /> : 
@@ -445,7 +446,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
                     <a href="https://github.com/Protest1995" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.profileName') + " GitHub"} className="text-theme-primary transition-colors hover:text-custom-cyan"> <GithubIcon className="w-5 h-5" /> </a>
                     <a href="https://www.instagram.com/tatw800722519/" target="_blank" rel="noopener noreferrer" aria-label={t('sidebar.instagramAriaLabel')} className="text-theme-primary transition-colors hover:text-custom-cyan"> <InstagramIcon className="w-5 h-5" /> </a>
                 </div>
-                <p className="text-xs text-theme-muted whitespace-nowrap">
+                <p className={`text-xs whitespace-nowrap ${currentTheme === 'light' ? 'text-zinc-800' : 'text-theme-muted'}`}>
                     {(() => {
                         const copyrightText = t('sidebar.copyright');
                         const parts = copyrightText.split('Solo');
@@ -559,7 +560,7 @@ const Layout: React.FC<LayoutProps> = ({
               className="p-2 -ml-2"
               aria-label={t('sidebar.toggleNavigation')}
             >
-              <MenuIcon className="w-6 h-6 text-custom-cyan" />
+              <MenuIcon className="w-6 h-6 text-theme-secondary" />
             </button>
             {isMobileView && (
                 <button
@@ -823,12 +824,18 @@ const App: React.FC = () => {
   useEffect(() => { if (!isAuthenticated) setUserProfile(p => ({...p, username: t('sidebar.profileName'), email: ''})); }, [t, i18n.language, isAuthenticated]);
   useEffect(() => {
     if (user) {
+      const mapGenderFromApi = (g?: 1 | 2): UserProfile['gender'] => {
+        if (g === 1) return 'MALE';
+        if (g === 2) return 'FEMALE';
+        return 'NOT_SPECIFIED';
+      };
+
       setUserProfile(prev => ({
         ...prev,
         username: user.username ?? prev.username,
         email: user.email ?? '',
         avatarUrl: user.avatarUrl ?? '/images/profile.jpg',
-        gender: (user as any).gender ?? 'NOT_SPECIFIED',
+        gender: mapGenderFromApi(user.gender),
         birthday: (user as any).birthday ?? '',
         address: (user as any).address ?? '',
         phone: (user as any).phone ?? '',

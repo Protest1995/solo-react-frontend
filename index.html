@@ -555,17 +555,27 @@
         transition: color 0.3s ease-in-out, border-color 0.3s ease-in-out, text-shadow 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
         will-change: opacity, transform;
       }
-      .group:hover .btn-hero-neon,
-      .group.force-hover .btn-hero-neon {
+      
+      @keyframes flow-glow {
+        0%, 100% {
+          box-shadow: 0 0 10px var(--accent-shadow-color), 0 0 25px var(--accent-shadow-color), 0 0 50px var(--accent-shadow-color);
+        }
+        50% {
+          box-shadow: 0 0 20px var(--accent-shadow-color), 0 0 45px var(--accent-shadow-color), 0 0 80px var(--accent-shadow-color);
+        }
+      }
+
+      .group.force-hover .btn-hero-neon,
+      .btn-hero-neon:hover {
         color: var(--accent-cyan) !important;
         border-color: var(--accent-cyan);
         text-shadow: 0 0 5px var(--accent-shadow-color);
         box-shadow: 0 0 10px var(--accent-shadow-color), 0 0 25px var(--accent-shadow-color), 0 0 50px var(--accent-shadow-color);
+        animation: flow-glow 2.5s ease-in-out infinite;
       }
       .hero-title {
         transition: color 0.3s ease-in-out, text-shadow 0.3s ease-in-out;
       }
-      .group:hover .hero-title,
       .group.force-hover .hero-title {
         color: var(--accent-cyan);
         text-shadow: 0 0 8px var(--accent-shadow-color), 0 0 20px var(--accent-shadow-color);

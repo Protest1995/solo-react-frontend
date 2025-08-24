@@ -91,6 +91,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [isSuperUserMenuOpen, setIsSuperUserMenuOpen] = useState(false); // 超級管理員菜單是否展開
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); // 新增：個人資料下拉菜單狀態
   const profileMenuRef = useRef<HTMLDivElement>(null); // 新增：用於偵測點擊外部以關閉菜單的 ref
+  
+  const navItemTextColor = isMobileView && currentTheme === 'light' ? 'text-zinc-800' : 'text-theme-secondary';
 
   // --- 副作用 (useEffect) ---
 
@@ -370,7 +372,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             if (item.page === Page.Blog && !isDesktopCollapsed) {
               return (
                 <li key="blog-expandable" className="mb-1">
-                  <button onClick={() => setIsBlogSubMenuOpen(p => !p)} className={`flex items-center rounded-full transition-all duration-200 ease-in-out relative w-full py-3 px-4 justify-between bg-transparent ${isBlogSectionActive ? `text-custom-cyan font-semibold` : `text-theme-secondary hover:text-custom-cyan`}`} aria-expanded={isBlogSubMenuOpen}>
+                  <button onClick={() => setIsBlogSubMenuOpen(p => !p)} className={`flex items-center rounded-full transition-all duration-200 ease-in-out relative w-full py-3 px-4 justify-between bg-transparent ${isBlogSectionActive ? `text-custom-cyan font-semibold` : `${navItemTextColor} hover:text-custom-cyan`}`} aria-expanded={isBlogSubMenuOpen}>
                     <div className="flex items-center">
                       <item.icon className={`w-5 h-5 transition-colors duration-200 ease-in-out mr-3`} />
                       <AnimatePresence>
@@ -385,8 +387,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </button>
                   {/* 子菜單的進入和退出動畫 */}
                   <AnimatePresence> {isBlogSubMenuOpen && (<motion.ul className="pl-8 pr-2 pt-1 space-y-1 overflow-hidden" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }}>
-                      <li> <Link to="/blog" onClick={closeSidebar} className={`block w-full text-left py-1.5 px-3 text-sm rounded-md transition-colors ${location.pathname === '/blog' ? 'text-custom-cyan font-semibold' : 'text-theme-secondary hover:text-custom-cyan'}`}> {t('blogPage.viewAll')} </Link> </li>
-                      {blogCategoryDefinitions.map(cat => (<li key={cat.titleKey}> <Link to={`/blog/category/${cat.titleKey.split('.').pop()}`} onClick={closeSidebar} className={`block w-full text-left py-1.5 px-3 text-sm rounded-md transition-colors ${location.pathname.includes(`/blog/category/${cat.titleKey.split('.').pop()}`) ? 'text-custom-cyan font-semibold' : 'text-theme-secondary hover:text-custom-cyan'}`}> {t(cat.titleKey)} </Link> </li>))}
+                      <li> <Link to="/blog" onClick={closeSidebar} className={`block w-full text-left py-1.5 px-3 text-sm rounded-md transition-colors ${location.pathname === '/blog' ? 'text-custom-cyan font-semibold' : `${navItemTextColor} hover:text-custom-cyan`}`}> {t('blogPage.viewAll')} </Link> </li>
+                      {blogCategoryDefinitions.map(cat => (<li key={cat.titleKey}> <Link to={`/blog/category/${cat.titleKey.split('.').pop()}`} onClick={closeSidebar} className={`block w-full text-left py-1.5 px-3 text-sm rounded-md transition-colors ${location.pathname.includes(`/blog/category/${cat.titleKey.split('.').pop()}`) ? 'text-custom-cyan font-semibold' : `${navItemTextColor} hover:text-custom-cyan`}`}> {t(cat.titleKey)} </Link> </li>))}
                   </motion.ul> )} </AnimatePresence>
                 </li>
               );
@@ -395,7 +397,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             const isActive = item.page === Page.Blog ? isBlogSectionActive : location.pathname === item.path;
             return (
               <li key={item.path} className="mb-1">
-                <Link to={item.path} onClick={closeSidebar} className={`flex items-center rounded-full transition-all duration-200 ease-in-out relative ${isDesktopCollapsed ? 'w-12 h-12 justify-center mx-auto' : 'w-full py-3 px-4'} bg-transparent ${isActive ? `text-custom-cyan font-semibold` : `text-theme-secondary hover:text-custom-cyan`}`} aria-current={isActive ? 'page' : undefined} title={isDesktopCollapsed ? t(item.label) : undefined}>
+                <Link to={item.path} onClick={closeSidebar} className={`flex items-center rounded-full transition-all duration-200 ease-in-out relative ${isDesktopCollapsed ? 'w-12 h-12 justify-center mx-auto' : 'w-full py-3 px-4'} bg-transparent ${isActive ? `text-custom-cyan font-semibold` : `${navItemTextColor} hover:text-custom-cyan`}`} aria-current={isActive ? 'page' : undefined} title={isDesktopCollapsed ? t(item.label) : undefined}>
                   <item.icon className={`w-5 h-5 transition-colors duration-200 ease-in-out ${isDesktopCollapsed ? '' : 'mr-3'}`} />
                   <AnimatePresence>
                     {!isDesktopCollapsed && (
