@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
 import { BlogPostData, Page } from '../../types';
@@ -67,6 +67,58 @@ export const BlogPage: React.FC<{
       image: '/images/tools.jpg',
     },   
   ];
+  
+  const topicsContainerRef = useRef<HTMLDivElement>(null);
+  const [centeredTopicKey, setCenteredTopicKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const container = topicsContainerRef.current;
+    if (!isMobileView || !container) {
+      setCenteredTopicKey(null);
+      return;
+    }
+
+    let timeoutId: number;
+
+    const findCenterCard = () => {
+      const viewportCenter = window.innerWidth / 2;
+      let closestChild: { element: HTMLElement, distance: number } | null = null;
+
+      for (const child of container.children) {
+        const childEl = child as HTMLElement;
+        const childRect = childEl.getBoundingClientRect();
+        if (childRect.right < 0 || childRect.left > window.innerWidth) continue;
+        
+        const childCenter = childRect.left + (childRect.width / 2);
+        const distance = Math.abs(viewportCenter - childCenter);
+
+        if (!closestChild || distance < closestChild.distance) {
+          closestChild = { element: childEl, distance };
+        }
+      }
+
+      if (closestChild) {
+        const key = closestChild.element.dataset.key;
+        if (key && key !== centeredTopicKey) {
+          setCenteredTopicKey(key);
+        }
+      }
+    };
+
+    const handleScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(findCenterCard, 100);
+    };
+
+    findCenterCard();
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [isMobileView, centeredTopicKey]);
+
 
   // `postsForActiveTab` 根據當前活動的標籤 (`activeTabKey`) 過濾出對應分類的文章。
   // 它會查找當前標籤的分類定義，然後從所有已排序的文章中篩選出屬於該分類的文章，並只取前 4 篇。
@@ -108,19 +160,26 @@ export const BlogPage: React.FC<{
       <motion.section {...sectionDelayShow(0.2)}>
         <SectionDivider title={t('blogPage.relatedTopics')} />
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          // 使用交錯容器動畫，使每個話題卡片依序出現
+          ref={topicsContainerRef}
+          className="flex flex-nowrap overflow-x-auto space-x-6 py-4 -mx-6 px-6 snap-x snap-mandatory hide-scrollbar lg:grid lg:grid-cols-3 lg:gap-6 lg:space-x-0 lg:p-0 lg:m-0"
           variants={staggerContainerVariants(0.1, 0.3)}
           initial="initial"
-          whileInView="animate" // 當此區塊進入視圖時觸發動畫
+          whileInView="animate"
           viewport={{ once: true, amount: 0.2 }}
         >
           {topicsData.map((topic) => (
-            <motion.div key={topic.titleKey} variants={fadeInUpItemVariants}>
+            <motion.div 
+              key={topic.titleKey} 
+              variants={fadeInUpItemVariants}
+              data-key={topic.titleKey}
+              className="w-4/5 flex-shrink-0 snap-center sm:w-2/3 md:w-1/2 lg:w-auto"
+            >
               <TopicCard
                 titleKey={topic.titleKey}
                 image={topic.image}
                 onClick={() => navigateTo(Page.CategoryPage, topic)}
+                isCentered={isMobileView && centeredTopicKey === topic.titleKey}
+                isMobileView={isMobileView}
               />
             </motion.div>
           ))}

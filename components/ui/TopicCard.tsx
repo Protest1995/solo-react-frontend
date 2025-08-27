@@ -1,5 +1,5 @@
 // 引入 React
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 // 引入翻譯鉤子
 import { useTranslation } from 'react-i18next';
 // 引入 Framer Motion 動畫庫
@@ -13,6 +13,8 @@ interface TopicCardProps {
   titleKey: string; // 標題的翻譯鍵
   image: string; // 背景圖片 URL
   onClick: () => void; // 點擊事件的回調
+  isCentered?: boolean;
+  isMobileView: boolean;
 }
 
 // 圖片懸停動畫變體
@@ -45,19 +47,9 @@ const titleHoverVariants = {
  * 主題卡片組件。
  * 用於在部落格主頁展示不同的主題或分類，帶有豐富的懸停動畫效果。
  */
-const TopicCard: React.FC<TopicCardProps> = ({ titleKey, image, onClick }) => {
+const TopicCard: React.FC<TopicCardProps> = ({ titleKey, image, onClick, isCentered = false, isMobileView }) => {
   const { t } = useTranslation();
   const title = t(titleKey);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
 
   return (
     <motion.div
@@ -68,10 +60,8 @@ const TopicCard: React.FC<TopicCardProps> = ({ titleKey, image, onClick }) => {
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
       aria-label={title}
       initial="rest" // 設置初始動畫狀態
-      animate={!isMobile ? "rest" : undefined} // 桌面端：除非懸停，否則保持 rest 狀態。行動端：讓 whileInView 控制狀態。
-      whileHover={!isMobile ? "hover" : undefined} // 桌面端：懸停時觸發 "hover" 狀態。
-      whileInView={isMobile ? "hover" : undefined} // 行動端：進入視圖時觸發 "hover" 狀態。
-      viewport={{ once: true, amount: 0.8 }}
+      animate={isCentered ? "hover" : "rest"}
+      whileHover={!isMobileView ? "hover" : undefined}
     >
         <motion.img
           src={image}

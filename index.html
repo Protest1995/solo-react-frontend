@@ -423,6 +423,15 @@
       .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
       .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .line-clamp-4 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
+      
+      /* --- Scrollbar Hiding Utility --- */
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
 
       /* --- 性能優化工具類 --- */
       .will-change-transform { will-change: transform; } /* 提示瀏覽器該元素將會有 transform 動畫 */
@@ -525,42 +534,67 @@
       }
       
       /* --- 明信片 (Postcard) 樣式 --- */
+      .postcard-carousel {
+        overflow: hidden;
+        margin-left: -1.5rem; /* Compensates for p-6 on <main> */
+        margin-right: -1.5rem;
+      }
+      
       .postcard-carousel .swiper {
         height: 420px;
-        /* 在移動端需要看到部分相鄰的卡片，因此 overflow 必須為 visible */
+        /* overflow must be visible on mobile to see parts of adjacent cards */
         overflow: visible; 
-        padding-top: 20px; /* 為放大效果提供垂直空間 */
+        padding-top: 20px; /* Provides vertical space for the scale effect */
         padding-bottom: 20px;
+        /* Horizontal padding to align slides with page content after applying negative margins */
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
       }
       
       .postcard-carousel .swiper-slide {
-        width: 75%; /* 設置每個 slide 的寬度 */
+        width: 75%; /* Set a relative width for each slide */
         max-width: 320px;
-        height: auto; /* 高度自動，以適應縮放 */
+        height: auto; /* Auto height to accommodate scaling */
         transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
-        transform: scale(0.85); /* 非活動的 slide 縮小 */
-        opacity: 0.7; /* 非活動的 slide 半透明 */
+        transform: scale(0.85); /* Non-active slides are smaller */
+        opacity: 0.7; /* Non-active slides are semi-transparent */
       }
 
       .postcard-carousel .swiper-slide-active,
       .postcard-carousel .swiper-slide-duplicate-active {
-        transform: scale(1); /* 活動的 slide 正常大小 */
-        opacity: 1; /* 活動的 slide 不透明 */
+        transform: scale(1); /* Active slide is normal size */
+        opacity: 1; /* Active slide is fully opaque */
       }
       
-      /* 媒體查詢：當螢幕寬度大於等於 1024px (桌面) 時，恢復原來的樣式 */
+      /* Adjust margins and padding for medium screens (tablets) to match md:p-12 */
+      @media (min-width: 768px) {
+        .postcard-carousel {
+            margin-left: -3rem;
+            margin-right: -3rem;
+        }
+        .postcard-carousel .swiper {
+            padding-left: 3rem;
+            padding-right: 3rem;
+        }
+      }
+      
+      /* For screens 1024px and wider (desktop), revert to the multi-column layout. */
       @media (min-width: 1024px) {
+          /* Reset container margins for desktop layout */
+          .postcard-carousel {
+              margin-left: 0;
+              margin-right: 0;
+          }
           .postcard-carousel .swiper {
               height: 480px;
-              overflow: hidden; /* 在桌面端隱藏溢出的部分 */
-              padding-top: 0;
-              padding-bottom: 0;
+              overflow: hidden; /* Hide overflow on desktop */
+              padding: 0; /* Reset all padding */
           }
           .postcard-carousel .swiper-slide {
-              width: auto; /* 讓 Swiper 根據 slidesPerView 自動計算寬度 */
+              width: auto; /* Let Swiper calculate width based on slidesPerView */
               max-width: none;
-              transform: none; /* 移除縮放效果 */
-              opacity: 1; /* 移除透明度效果 */
+              transform: none; /* Remove scaling effect */
+              opacity: 1; /* Remove transparency effect */
           }
       }
 
