@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
@@ -109,9 +108,9 @@ const AboutPage: React.FC = () => {
         </div>
         
         {/* 主要內容網格佈局 */}
-        <div className="flex flex-col lg:grid lg:grid-cols-7 gap-x-12 gap-y-8 items-center">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 lg:gap-x-6 gap-y-8 items-center">
             {/* 個人照片 - 在手機和中尺寸時在上方，大尺寸時在左側 */}
-            <motion.div className="w-full max-w-sm mx-auto lg:col-span-3" variants={fadeInUpItemVariants}>
+            <motion.div className="w-full max-w-sm mx-auto lg:ml-0 lg:col-span-5" variants={fadeInUpItemVariants}>
                 {/* service-card-wrapper 用於實現動畫邊框效果 */}
                 <div className="service-card-wrapper shadow-xl">
                     <div className="service-card-inner">
@@ -122,7 +121,7 @@ const AboutPage: React.FC = () => {
 
             {/* 個人資訊 - 在手機和中尺寸時在下方，大尺寸時在右側 */}
             <motion.div 
-                className="w-full lg:col-span-4 text-theme-secondary space-y-6 text-lg"
+                className="w-full lg:col-span-7 text-theme-secondary space-y-6 text-lg"
                 variants={fadeInUpItemVariants}
             >
                 {/* 問候語和姓名 */}
