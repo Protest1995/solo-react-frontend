@@ -367,7 +367,8 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            // Use a smooth tween to avoid spring bounce/shake when opening
+            transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }}
             role="dialog"
             aria-modal="true"
           >
@@ -726,7 +727,8 @@ const App: React.FC = () => {
   }, [isMobileView]); // Re-run this effect only when mobile view changes
 
   useEffect(() => {
-    if (isMobileView && isSidebarOpen) {
+    // Lock body scroll when either left or right sidebar is open on mobile
+    if (isMobileView && (isSidebarOpen || isRightSidebarOpen)) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -734,7 +736,7 @@ const App: React.FC = () => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isSidebarOpen, isMobileView]);
+  }, [isSidebarOpen, isRightSidebarOpen, isMobileView]);
 
   // Effect to update document title based on the current route
   useEffect(() => {
