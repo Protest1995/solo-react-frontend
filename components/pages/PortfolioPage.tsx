@@ -434,19 +434,23 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
                     className="masonry-grid"
                     columnClassName="masonry-grid_column"
                     >
-                    {itemsToDisplay.map((item) => (
+                    {itemsToDisplay.map((item) => {
+                      const displayTitle = (i18n.language === 'zh-Hant' && item.titleZh) ? item.titleZh : (item.title || '');
+                      return (
                         <motion.div key={item.id} variants={fadeInUpItemVariants}>
-                        <PortfolioCard
-                            {...item}
-                            imageUrl={getOptimizedImageUrl(item.imageUrl)}
-                            onClick={() => openLightbox(item, filteredItems)}
-                            isDeleteModeActive={isDeleteModeActive}
-                            isSelectedForDeletion={selectedIdsForDeletion.includes(item.id)}
-                            onToggleSelectionForDeletion={handleToggleSelectionForDeletion}
-                            isCardDisabled={isDeleteModeActive && !!item.isStatic}
-                        />
+                          <PortfolioCard
+                              {...item}
+                              imageUrl={getOptimizedImageUrl(item.imageUrl)}
+                              onClick={() => openLightbox(item, filteredItems)}
+                              isDeleteModeActive={isDeleteModeActive}
+                              isSelectedForDeletion={selectedIdsForDeletion.includes(item.id)}
+                              onToggleSelectionForDeletion={handleToggleSelectionForDeletion}
+                              isCardDisabled={isDeleteModeActive && !!item.isStatic}
+                          />
+                          <p className="md:hidden text-center text-custom-cyan mt-2 text-sm font-semibold truncate">{displayTitle}</p>
                         </motion.div>
-                    ))}
+                      );
+                    })}
                     </Masonry>
                 ) : (
                     <div className="text-center text-theme-secondary py-10">
