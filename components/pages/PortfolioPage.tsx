@@ -355,7 +355,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   };
 
   // Masonry 佈局的斷點設定
-  const breakpointColumnsObj = { default: 4, 1199: 3, 767: 2, 500: 1 };
+  const breakpointColumnsObj = { default: 4, 1199: 3, 767: 2, 500: 2 };
 
   // 使用 useCallback 創建一個穩定的點擊處理函數，防止輪播組件不必要的重新渲染
   const handleCarouselClick = useCallback((item: PortfolioItemData) => {
