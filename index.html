@@ -678,6 +678,14 @@
         transform: translateY(-2px);
         background-color: rgba(var(--bg-secondary-rgb), 0.3);
       }
+      
+      /* --- 留言區遮罩霓虹效果 --- */
+      .comment-mask-glow {
+        border: 1px solid var(--accent-cyan);
+        box-shadow: 0 0 15px var(--accent-shadow-color), 0 0 30px var(--accent-shadow-color);
+        animation: flow-glow 3s ease-in-out infinite;
+      }
+      
       /* --- 視圖模式切換按鈕 --- */
       .view-toggle-button {
         color: var(--text-secondary);
