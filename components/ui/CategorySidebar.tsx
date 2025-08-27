@@ -87,11 +87,11 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo,
     if (currentCategoryInfo) {
       // 如果用戶正在瀏覽一個特定分類，則顯示“其他分類文章”
       const currentKeys = new Set(currentCategoryInfo.categoryKeys);
-      // 過濾掉當前分類的文章，對其餘文章按日期排序，取前5篇
+      // 過濾掉當前分類的文章，對其餘文章按日期排序，取前3篇
       const latestPostsFromOthers = allPosts
         .filter(p => !p.categoryKey || !currentKeys.has(p.categoryKey))
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5);
+        .slice(0, 3);
       return { titleKey: 'blogSidebar.otherCategoryPosts', postsToList: latestPostsFromOthers };
     } else {
       // 預設行為（例如在部落格主頁的側邊欄），顯示最受歡迎的文章

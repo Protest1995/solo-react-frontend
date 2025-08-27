@@ -463,7 +463,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {isDesktopCollapsed ? (
                   // 收合模式
                   <div className="flex flex-col items-center space-y-2">
-                    <button onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'zh-Hant' : 'en')} className={`flex items-center justify-center rounded-full transition-all duration-300 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} button-theme-neutral w-10 h-10 text-lg font-semibold`} aria-label={t(i18n.language === 'en' ? 'switchToChinese' : 'switchToEnglish')} title={t(i18n.language === 'en' ? 'switchToChinese' : 'switchToEnglish')}>
+                    <button onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'zh-Hant' : 'en')} className={`flex items-center justify-center rounded-full transition-all duration-300 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} button-theme-neutral w-10 h-10 text-lg`} aria-label={t(i18n.language === 'en' ? 'switchToChinese' : 'switchToEnglish')} title={t(i18n.language === 'en' ? 'switchToChinese' : 'switchToEnglish')}>
                       <span>{i18n.language === 'en' ? '中' : 'E'}</span>
                     </button>
                     <button onClick={toggleTheme} className={`flex items-center justify-center rounded-full transition-all duration-300 focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} button-theme-toggle w-10 h-10`} aria-label={currentTheme === 'light' ? t('sidebar.switchToDarkMode') : t('sidebar.switchToLightMode')} title={currentTheme === 'light' ? t('sidebar.darkMode') : t('sidebar.lightMode')}>
