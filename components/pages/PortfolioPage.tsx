@@ -86,6 +86,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const { t, i18n } = useTranslation();
   // Ref 用於引用無限滾動的加載觸發器元素
   const loaderRef = useRef<HTMLDivElement>(null);
+  // Ref to the main page container to lock height during filtering to avoid layout jumps
+  const containerRef = useRef<HTMLDivElement>(null);
 
 
   // --- 狀態管理 (useState) ---
@@ -209,9 +211,21 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const openLightbox = useCallback((itemToOpen: PortfolioItemData, sourceItems: PortfolioItemData[]) => { if (isDeleteModeActive) return; setSelectedItem(itemToOpen); setLightboxItemsSource(sourceItems); }, [isDeleteModeActive]);
   const closeLightbox = useCallback(() => { setSelectedItem(null); setLightboxItemsSource(null); }, []);
 
-  // 處理篩選器變更
+  // 處理篩選器變更 - 鎖定容器高度以避免在 Masonry 重新排列時頁面閃跳
   const handleFilterChange = (newCategoryValue: string) => { 
     if (activeFilter === newCategoryValue) return;
+
+    const currentScrollY = (typeof window !== 'undefined') ? window.scrollY : 0;
+
+    // Lock container height and overflow to prevent layout jumps
+    const containerEl = containerRef.current;
+    let previousHeight: string | null = null;
+    if (containerEl) {
+      previousHeight = containerEl.style.height || null;
+      const rect = containerEl.getBoundingClientRect();
+      containerEl.style.height = `${rect.height}px`;
+      containerEl.style.overflow = 'hidden';
+    }
 
     setIsFiltering(true);
     setTimeout(() => {
@@ -219,6 +233,19 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
         setSelectedItem(null);
         setDisplayCount(ITEMS_PER_PAGE);
         setIsFiltering(false);
+
+        // restore previous scroll position and unlock container height after layout settles
+        if (typeof window !== 'undefined') {
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+              if (containerEl) {
+                if (previousHeight !== null) containerEl.style.height = previousHeight; else containerEl.style.height = '';
+                containerEl.style.overflow = '';
+              }
+              window.scrollTo(0, currentScrollY);
+            });
+          });
+        }
     }, 500);
   };
   
@@ -365,7 +392,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
 
   // --- 渲染 (JSX) ---
   return (
-    <div>
+    <div ref={containerRef}>
       {/* 頁面標題 */}
       <motion.div {...sectionDelayShow(0)}> <SectionTitle titleKey="portfolioPage.title" subtitleKey="portfolioPage.subtitle" /> </motion.div>
       
