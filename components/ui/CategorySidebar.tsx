@@ -1,9 +1,9 @@
 // 引入 React 相關鉤子和組件
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 // 引入翻譯鉤子
 import { useTranslation } from 'react-i18next';
 // 引入 Framer Motion 動畫庫
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 // 引入類型定義和數據
 import { BlogPostData, Page, CategoryInfo } from '../../types';
 import { blogCategoryDefinitions } from '../data/blogData';
@@ -11,9 +11,13 @@ import { blogCategoryDefinitions } from '../data/blogData';
 import { staggerContainerVariants, fadeInUpItemVariants } from '../../animationVariants';
 // 引入圖標和樣式常數
 import SearchIcon from '../icons/SearchIcon';
+import FilterIcon from '../icons/FilterIcon';
 import { ACCENT_BORDER_COLOR, ACCENT_FOCUS_RING_CLASS } from '../../constants';
 // 引入工具函數
 import { stripMarkdown } from '../../utils';
+
+// 定義排序順序的類型
+type SortOrder = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc' | 'views-desc' | 'views-asc';
 
 // 側邊欄區塊標題的內部組件
 const SidebarSectionTitle: React.FC<{ titleKey: string }> = ({ titleKey }) => {
@@ -41,14 +45,30 @@ interface CategorySidebarProps {
   currentCategoryInfo?: CategoryInfo; // 當前分類資訊，可選
   searchTerm: string; // 當前搜尋關鍵字
   onSearchChange: (term: string) => void; // 搜尋關鍵字改變時的回調
+  sortOrder: SortOrder;
+  onSortChange: (order: SortOrder) => void;
 }
 
 /**
  * 分類頁面的側邊欄組件。
  * 顯示一個搜尋框、所有分類及其文章數量，以及一個上下文相關的文章列表（熱門文章或最新文章）。
  */
-const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo, currentCategoryInfo, searchTerm, onSearchChange }) => {
+const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo, currentCategoryInfo, searchTerm, onSearchChange, sortOrder, onSortChange }) => {
   const { t, i18n } = useTranslation();
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setIsSortMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // 使用 useMemo 計算每個大分類下的文章數量，以優化性能
   const categoryCounts = useMemo(() => {
@@ -83,6 +103,15 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo,
     }
   }, [allPosts, currentCategoryInfo]);
 
+  const sortOptions: { value: SortOrder; labelKey: string }[] = [
+    { value: 'date-desc', labelKey: 'blogPage.sortDateDesc' },
+    { value: 'date-asc', labelKey: 'blogPage.sortDateAsc' },
+    { value: 'title-asc', labelKey: 'blogPage.sortTitleAsc' },
+    { value: 'title-desc', labelKey: 'blogPage.sortTitleDesc' },
+    { value: 'views-desc', labelKey: 'postManagementPage.sortByViewsDesc' },
+    { value: 'views-asc', labelKey: 'postManagementPage.sortByViewsAsc' },
+  ];
+
   return (
     <motion.aside
       className="space-y-12 bg-theme-secondary p-6 rounded-lg shadow-xl sticky top-24"
@@ -90,19 +119,57 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo,
       initial="initial"
       animate="animate"
     >
-      {/* 搜尋框區塊 */}
+      {/* 搜尋框與排序按鈕區塊 */}
       <motion.section variants={fadeInUpItemVariants}>
-        <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <SearchIcon className="w-5 h-5 text-theme-secondary" />
-            </span>
-            <input
-                type="search"
-                placeholder={t('categoryPage.searchPlaceholder', '在此分類中搜尋...')}
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className={`w-full bg-theme-tertiary border border-theme-primary text-theme-primary rounded-md py-2.5 pl-10 pr-4 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`}
-            />
+        <div className="flex items-center space-x-2">
+            <div className="relative flex-grow">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <SearchIcon className="w-5 h-5 text-theme-secondary" />
+                </span>
+                <input
+                    type="search"
+                    placeholder={t('categoryPage.searchPlaceholder', '在此分類中搜尋...')}
+                    value={searchTerm}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    className={`w-full bg-theme-tertiary border border-theme-primary text-theme-primary rounded-md py-2.5 pl-10 pr-4 focus:${ACCENT_BORDER_COLOR} placeholder-theme ${ACCENT_FOCUS_RING_CLASS}`}
+                />
+            </div>
+            <div ref={sortMenuRef} className="relative flex-shrink-0">
+              <button
+                onClick={() => setIsSortMenuOpen(prev => !prev)}
+                className={`p-2.5 rounded-md transition-colors duration-200 ${isSortMenuOpen ? 'bg-theme-hover text-custom-cyan' : 'bg-theme-tertiary text-theme-secondary hover:bg-theme-hover hover:text-custom-cyan'}`}
+                aria-label={t('blogPage.sortByLabel')}
+              >
+                <FilterIcon className="w-5 h-5" />
+              </button>
+              <AnimatePresence>
+                {isSortMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="absolute right-0 mt-2 w-48 bg-theme-secondary border border-theme-primary rounded-md shadow-lg z-20"
+                  >
+                    <ul className="p-1">
+                      {sortOptions.map(option => (
+                        <li key={option.value}>
+                          <button
+                            onClick={() => {
+                              onSortChange(option.value);
+                              setIsSortMenuOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${sortOrder === option.value ? 'font-semibold text-custom-cyan bg-theme-hover' : 'text-theme-primary hover:bg-theme-hover'}`}
+                          >
+                            {t(option.labelKey)}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+          </div>
         </div>
       </motion.section>
       

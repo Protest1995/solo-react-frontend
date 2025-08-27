@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, ChangeEvent, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, ChangeEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
@@ -6,14 +6,8 @@ import { BlogPostData, Page, CategoryInfo } from '../../types';
 import SectionTitle from '../ui/SectionTitle';
 import Pagination from '../ui/Pagination';
 import { staggerContainerVariants, fadeInUpItemVariants, sectionDelayShow } from '../../animationVariants';
-import ArrowLeftIcon from '../icons/ArrowLeftIcon';
-import PlusIcon from '../icons/PlusIcon';
-import TrashIcon from '../icons/TrashIcon';
 import BlogCard from '../ui/BlogCardMasonry';
-import { ACCENT_BORDER_COLOR, ACCENT_FOCUS_RING_CLASS } from '../../constants';
-import ChevronDownIcon from '../icons/ChevronDownIcon';
 import CategorySidebar from '../ui/CategorySidebar';
-import SearchIcon from '../icons/SearchIcon';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -61,7 +55,7 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
   // --- UI 狀態 ---
   const [isDeleteModeActive, setIsDeleteModeActive] = useState(false); // 是否處於刪除模式
   const [selectedIdsForDeletion, setSelectedIdsForDeletion] = useState<string[]>([]); // 存儲被選中待刪除的文章 ID
-
+  
   // --- 回調函數 (useCallback & Handlers) ---
 
   // 處理排序變更的回調。使用 useCallback 以避免不必要的重新創建。
@@ -152,52 +146,7 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return sortedPosts.slice(startIndex, endIndex);
   }, [sortedPosts, currentPage]);
-
-  // --- 權限與管理功能 ---
   
-  // 判斷用戶是否具有管理此分類內容的權限
-  const canManageContent = categoryInfo.isEditable && isSuperUser;
-
-  // 處理新增文章按鈕點擊事件
-  const handleShowAddForm = () => {
-    if (!canManageContent) { navigateToLogin(); return; }
-    navigateTo(Page.AddBlogPost);
-  };
-  
-  // 切換刪除模式
-  const handleToggleDeleteMode = () => {
-    if (!canManageContent) { navigateToLogin(); return; }
-    setIsDeleteModeActive(prev => !prev);
-    setSelectedIdsForDeletion([]); // 進入或退出刪除模式時清空已選項
-  };
-  
-  // 確認刪除所選文章
-  const handleDeleteConfirmed = () => {
-    onDeletePosts(selectedIdsForDeletion);
-    setSelectedIdsForDeletion([]);
-    setIsDeleteModeActive(false);
-  };
-
-  // 切換單個文章的選中狀態
-  const handleToggleSelectionForDeletion = (id: string) => {
-    setSelectedIdsForDeletion(prev =>
-      prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
-    );
-  };
-
-  // 全選/取消全選
-  const handleSelectAllForDeletion = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      const allDeletableIds = paginatedPosts.map(item => item.id);
-      setSelectedIdsForDeletion(allDeletableIds);
-    } else {
-      setSelectedIdsForDeletion([]);
-    }
-  };
-
-  // 計算當前頁可刪除項目的數量
-  const deletableItemsCount = useMemo(() => paginatedPosts.length, [paginatedPosts]);
-
   // --- 渲染 (JSX) ---
   return (
     <div className="space-y-12">
@@ -205,24 +154,6 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
           <SectionTitle titleKey={categoryInfo.titleKey} subtitle={subtitle} />
       </motion.div>
       
-      <motion.div {...sectionDelayShow(0.2)} className="flex justify-end items-center">
-          {/* 排序下拉選單 */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-              <label htmlFor="sortOrder" className="text-sm font-medium text-theme-primary whitespace-nowrap">{t('blogPage.sortByLabel')}:</label>
-              <div className="relative">
-                  <select id="sortOrder" value={sortOrder} onChange={(e) => handleSortChange(e.target.value as SortOrder)} className={`bg-theme-tertiary border border-theme-primary text-theme-primary text-sm font-medium rounded-md p-2.5 focus:${ACCENT_BORDER_COLOR} ${ACCENT_FOCUS_RING_CLASS} custom-select-text appearance-none pr-8 cursor-pointer`} aria-label={t('blogPage.sortByLabel')}>
-                      <option value="date-desc">{t('blogPage.sortDateDesc')}</option>
-                      <option value="date-asc">{t('blogPage.sortDateAsc')}</option>
-                      <option value="title-asc">{t('blogPage.sortTitleAsc')}</option>
-                      <option value="title-desc">{t('blogPage.sortTitleDesc')}</option>
-                      <option value="views-desc">{t('postManagementPage.sortByViewsDesc')}</option>
-                      <option value="views-asc">{t('postManagementPage.sortByViewsAsc')}</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-theme-primary"><ChevronDownIcon className="w-5 h-5" /></div>
-              </div>
-          </div>
-      </motion.div>
-
       {/* 主要內容網格 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         <div className="lg:col-span-2">
@@ -238,7 +169,7 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
                     >
                         {paginatedPosts.map(post => (
                             <motion.div key={post.id} variants={fadeInUpItemVariants}>
-                                <BlogCard post={post} onClick={() => navigateTo(Page.BlogPostDetail, post)} isDeleteModeActive={isDeleteModeActive} isSelectedForDeletion={selectedIdsForDeletion.includes(post.id)} onToggleSelectionForDeletion={handleToggleSelectionForDeletion} isCardDisabled={isDeleteModeActive && !!post.isStatic} />
+                                <BlogCard post={post} onClick={() => navigateTo(Page.BlogPostDetail, post)} isDeleteModeActive={isDeleteModeActive} isSelectedForDeletion={selectedIdsForDeletion.includes(post.id)} onToggleSelectionForDeletion={(id) => setSelectedIdsForDeletion(p => p.includes(id) ? p.filter(i => i !== id) : [...p, id])} isCardDisabled={isDeleteModeActive && !!post.isStatic} />
                             </motion.div>
                         ))}
                     </motion.div>
@@ -250,7 +181,15 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
         
         {/* 側邊欄 */}
         <div className="lg:col-span-1">
-          <CategorySidebar allPosts={allPosts} navigateTo={navigateTo} currentCategoryInfo={categoryInfo} searchTerm={searchTerm} onSearchChange={(term) => { setSearchTerm(term); handlePageChange(1); }} />
+          <CategorySidebar
+             allPosts={allPosts}
+             navigateTo={navigateTo}
+             currentCategoryInfo={categoryInfo}
+             searchTerm={searchTerm}
+             onSearchChange={(term) => { setSearchTerm(term); handlePageChange(1); }}
+             sortOrder={sortOrder}
+             onSortChange={handleSortChange}
+          />
         </div>
       </div>
       
