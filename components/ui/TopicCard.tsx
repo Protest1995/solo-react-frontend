@@ -68,12 +68,12 @@ const TopicCard: React.FC<TopicCardProps> = ({ titleKey, image, onClick, isCente
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
           variants={imageHoverVariants}
-          transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+          transition={{ duration: 0.9, ease: [0.25, 1, 0.6, 1] }}
         />
         <motion.div
           className="absolute inset-0"
           variants={overlayVariants}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.9 }}
         />
         <div className="relative flex-grow flex items-center justify-center p-4 text-center">
             <motion.h3

@@ -227,7 +227,7 @@ const BlogPostDetailWrapper: React.FC<{
 
     const originCategoryInfo = location.state?.fromCategory as CategoryInfo | null;
 
-    return <BlogPostDetailPage post={post} allPosts={allPosts} comments={comments} navigateTo={navigateTo} isAuthenticated={isAuthenticated} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} isSuperUser={isSuperUser} currentUserProfile={currentUserProfile} originCategoryInfo={originCategoryInfo} />;
+    return <BlogPostDetailPage post={post} allPosts={allPosts} comments={comments} navigateTo={navigateTo} isAuthenticated={isAuthenticated} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} isSuperUser={isSuperUser} currentUserProfile={currentUserProfile} originCategoryInfo={originCategoryInfo} isMobileView={isMobileView} />;
 };
 
 
@@ -959,10 +959,25 @@ const App: React.FC = () => {
       setPortfolioItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
   }, [isSuperUser]);
 
-  const mainContentClasses = useMemo(() => `
-    transition-all duration-300 ease-in-out
-    ${isMobileView ? 'pt-16' : (isSidebarCollapsed ? 'pl-20' : 'pl-80')}
-  `, [isMobileView, isSidebarCollapsed]);
+  const mainContentClasses = useMemo(() => {
+    const isBlogHomepage = location.pathname === '/blog';
+    const isBlogPostDetailPage = !!matchPath('/blog/:postId', location.pathname);
+
+    let mobileTopPadding = 'pt-16'; // 手機視圖的預設值
+
+    if (isMobileView) {
+      // 決定是否啟用 Navbar 覆蓋效果 (即移除頂部內距)
+      // 在部落格首頁：僅在直向模式下覆蓋
+      // 在文章詳情頁：在所有方向下都覆蓋
+      const hasOverlay = (isBlogHomepage && !isLandscape) || isBlogPostDetailPage;
+      mobileTopPadding = hasOverlay ? '' : 'pt-16';
+    }
+    
+    return `
+      transition-all duration-300 ease-in-out
+      ${isMobileView ? mobileTopPadding : (isSidebarCollapsed ? 'pl-20' : 'pl-80')}
+    `;
+  }, [isMobileView, isSidebarCollapsed, location.pathname, isLandscape]);
   
   const mobileHeaderClasses = `
     lg:hidden fixed top-0 left-0 right-0 z-50 h-16

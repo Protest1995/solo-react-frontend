@@ -48,6 +48,7 @@ interface BlogPostDetailPageProps {
   isSuperUser: boolean; // 是否為超級管理員
   currentUserProfile: UserProfile; // 當前登入用戶的資料
   originCategoryInfo: CategoryInfo | null; // 用戶是從哪個分類頁面導航過來的，若無則為 null
+  isMobileView: boolean;
 }
 
 /**
@@ -69,7 +70,8 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
   onDeleteComment,
   isSuperUser,
   currentUserProfile,
-  originCategoryInfo // 雖然接收了此 prop，但在當前實現中未使用，保留供未來擴展
+  originCategoryInfo, // 雖然接收了此 prop，但在當前實現中未使用，保留供未來擴展
+  isMobileView
 }) => {
   // 使用翻譯和導航鉤子
   const { t, i18n } = useTranslation();
@@ -202,7 +204,7 @@ const BlogPostDetailPage: React.FC<BlogPostDetailPageProps> = ({
         </div>
 
         {/* 固定的導航/操作欄 */}
-        <div className={`py-3 sticky top-0 z-30 transition-all duration-300 ${isScrolled ? 'bg-glass border-b border-theme-primary' : 'bg-transparent'}`}>
+        <div className={`py-3 z-30 transition-all duration-300 ${!isMobileView ? 'sticky top-0' : ''} ${isScrolled ? 'bg-glass border-b border-theme-primary' : 'bg-transparent'}`}>
              <div className="max-w-7xl mx-auto px-6 flex justify-between items-center gap-4">
                 {/* 左側：麵包屑導航 */}
                 <div className="min-w-0">

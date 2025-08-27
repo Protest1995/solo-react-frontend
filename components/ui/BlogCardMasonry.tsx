@@ -57,7 +57,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
 
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 1024);
     };
     checkIsMobile();
     window.addEventListener('resize', checkIsMobile);
