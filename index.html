@@ -525,7 +525,45 @@
       }
       
       /* --- 明信片 (Postcard) 樣式 --- */
-      .postcard-carousel .swiper { height: 480px; }
+      .postcard-carousel .swiper {
+        height: 420px;
+        /* 在移動端需要看到部分相鄰的卡片，因此 overflow 必須為 visible */
+        overflow: visible; 
+        padding-top: 20px; /* 為放大效果提供垂直空間 */
+        padding-bottom: 20px;
+      }
+      
+      .postcard-carousel .swiper-slide {
+        width: 75%; /* 設置每個 slide 的寬度 */
+        max-width: 320px;
+        height: auto; /* 高度自動，以適應縮放 */
+        transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+        transform: scale(0.85); /* 非活動的 slide 縮小 */
+        opacity: 0.7; /* 非活動的 slide 半透明 */
+      }
+
+      .postcard-carousel .swiper-slide-active,
+      .postcard-carousel .swiper-slide-duplicate-active {
+        transform: scale(1); /* 活動的 slide 正常大小 */
+        opacity: 1; /* 活動的 slide 不透明 */
+      }
+      
+      /* 媒體查詢：當螢幕寬度大於等於 1024px (桌面) 時，恢復原來的樣式 */
+      @media (min-width: 1024px) {
+          .postcard-carousel .swiper {
+              height: 480px;
+              overflow: hidden; /* 在桌面端隱藏溢出的部分 */
+              padding-top: 0;
+              padding-bottom: 0;
+          }
+          .postcard-carousel .swiper-slide {
+              width: auto; /* 讓 Swiper 根據 slidesPerView 自動計算寬度 */
+              max-width: none;
+              transform: none; /* 移除縮放效果 */
+              opacity: 1; /* 移除透明度效果 */
+          }
+      }
+
       .postcard { position: relative; border-radius: 1rem; overflow: hidden; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; color: white; }
       .postcard-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
       .postcard-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0) 60%); z-index: 2; }
