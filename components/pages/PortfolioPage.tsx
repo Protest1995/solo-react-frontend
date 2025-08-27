@@ -1,5 +1,5 @@
 // 引入 React 相關鉤子和組件
-import React, { useState, useMemo, useCallback, ChangeEvent, FormEvent, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useCallback, ChangeEvent, FormEvent, useEffect, useRef, useLayoutEffect } from 'react';
 // 引入翻譯鉤子
 import { useTranslation } from 'react-i18next';
 // 引入 Framer Motion 動畫庫
@@ -88,6 +88,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const { t, i18n } = useTranslation();
   // Ref 用於引用無限滾動的加載觸發器元素
   const loaderRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0); // 用於儲存滑動前的滾動位置
 
 
   // --- 狀態管理 (useState) ---
@@ -227,10 +228,24 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   
   const handleSwipeFilterChange = useCallback((newCategoryValue: string) => {
     if (activeFilter === newCategoryValue) return;
+    // 在狀態改變前儲存當前的滾動位置
+    scrollPositionRef.current = window.scrollY;
     setActiveFilter(newCategoryValue);
     setSelectedItem(null);
     setDisplayCount(ITEMS_PER_PAGE);
   }, [activeFilter]);
+
+  // 在 DOM 更新後、瀏覽器繪製前同步執行，以避免畫面閃爍
+  useLayoutEffect(() => {
+    // 只有在 scrollPositionRef.current 有值時才執行滾動
+    if (scrollPositionRef.current > 0) {
+      window.scrollTo(0, scrollPositionRef.current);
+      // 恢復後立即重置，以避免影響後續的正常滾動行為
+      scrollPositionRef.current = 0;
+    }
+    // 這個 effect 的依賴項是 itemsToDisplay，
+    // 這確保了它只在新項目列表渲染完成後執行。
+  }, [itemsToDisplay]);
 
   const handleDragEnd = useCallback((event: any, { offset, velocity }: any) => {
     if (!isMobileView) return;
