@@ -677,7 +677,7 @@ const App: React.FC = () => {
   // Purpose: hide mobile header on scroll down, show on scroll up or when near top.
   useEffect(() => {
     let ticking = false;
-    const THRESHOLD = 10; // minimum px change to consider as meaningful scroll
+  const THRESHOLD = 3; // minimum px change to consider as meaningful scroll (reduced for better sensitivity)
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
