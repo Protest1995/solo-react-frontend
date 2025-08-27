@@ -1,5 +1,5 @@
 // 引入 React 相關鉤子和組件
-import React, { useState, useMemo, useCallback, ChangeEvent, FormEvent, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useMemo, useCallback, ChangeEvent, FormEvent, useEffect, useRef } from 'react';
 // 引入翻譯鉤子
 import { useTranslation } from 'react-i18next';
 // 引入 Framer Motion 動畫庫
@@ -53,7 +53,6 @@ interface PortfolioPageProps {
   isSuperUser: boolean; // 用戶是否為超級管理員
   navigateToLogin: () => void; // 導航到登入頁的函數
   isLandscape: boolean;
-  isMobileView: boolean;
 }
 
 // 分類篩選器的選項
@@ -82,13 +81,11 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   isSuperUser,
   navigateToLogin,
   isLandscape,
-  isMobileView,
 }) => {
   // --- 鉤子 (Hooks) ---
   const { t, i18n } = useTranslation();
   // Ref 用於引用無限滾動的加載觸發器元素
   const loaderRef = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef<number>(0); // 用於儲存滑動前的滾動位置
 
 
   // --- 狀態管理 (useState) ---
@@ -98,7 +95,6 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE); // 當前已顯示的項目數量（用於無限滾動）
   const [isLoading, setIsLoading] = useState(true); // 是否正在加載（用於顯示骨架屏）
   const [isFiltering, setIsFiltering] = useState(false); // 新增：是否正在篩選，用於顯示骨架屏
-  const [swipeDirection, setSwipeDirection] = useState(0);
 
   // 管理員功能相關狀態
   const [isAdding, setIsAdding] = useState(false); // 是否顯示新增表單
@@ -214,7 +210,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const closeLightbox = useCallback(() => { setSelectedItem(null); setLightboxItemsSource(null); }, []);
 
   // 處理篩選器變更
-  const handleFilterChange = useCallback((newCategoryValue: string) => { 
+  const handleFilterChange = (newCategoryValue: string) => { 
     if (activeFilter === newCategoryValue) return;
 
     setIsFiltering(true);
@@ -224,47 +220,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
         setDisplayCount(ITEMS_PER_PAGE);
         setIsFiltering(false);
     }, 500);
-  }, [activeFilter]);
+  };
   
-  const handleSwipeFilterChange = useCallback((newCategoryValue: string) => {
-    if (activeFilter === newCategoryValue) return;
-    // 在狀態改變前儲存當前的滾動位置
-    scrollPositionRef.current = window.scrollY;
-    setActiveFilter(newCategoryValue);
-    setSelectedItem(null);
-    setDisplayCount(ITEMS_PER_PAGE);
-  }, [activeFilter]);
-
-  // 在 DOM 更新後、瀏覽器繪製前同步執行，以避免畫面閃爍
-  useLayoutEffect(() => {
-    // 只有在 scrollPositionRef.current 有值時才執行滾動
-    if (scrollPositionRef.current > 0) {
-      window.scrollTo(0, scrollPositionRef.current);
-      // 恢復後立即重置，以避免影響後續的正常滾動行為
-      scrollPositionRef.current = 0;
-    }
-    // 這個 effect 的依賴項是 itemsToDisplay，
-    // 這確保了它只在新項目列表渲染完成後執行。
-  }, [itemsToDisplay]);
-
-  const handleDragEnd = useCallback((event: any, { offset, velocity }: any) => {
-    if (!isMobileView) return;
-
-    const swipeThreshold = 50;
-    if (offset.x < -swipeThreshold) { // Swiped left
-        const currentIndex = filterCategories.indexOf(activeFilter);
-        const nextIndex = (currentIndex + 1) % filterCategories.length;
-        setSwipeDirection(1);
-        handleSwipeFilterChange(filterCategories[nextIndex]);
-    } else if (offset.x > swipeThreshold) { // Swiped right
-        const currentIndex = filterCategories.indexOf(activeFilter);
-        const nextIndex = (currentIndex - 1 + filterCategories.length) % filterCategories.length;
-        setSwipeDirection(-1);
-        handleSwipeFilterChange(filterCategories[nextIndex]);
-    }
-  }, [isMobileView, activeFilter, handleSwipeFilterChange]);
-
-
   // 處理文件上傳
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -405,11 +362,6 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     openLightbox(item, carouselItems);
   }, [openLightbox, carouselItems]);
 
-  const masonryVariants = {
-    enter: (direction: number) => ({ x: direction > 0 ? '100%' : '-100%', opacity: 0 }),
-    center: { zIndex: 1, x: 0, opacity: 1, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } },
-    exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? '100%' : '-100%', opacity: 0, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }),
-  };
 
   // --- 渲染 (JSX) ---
   return (
@@ -460,12 +412,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
           {Array.from({ length: 12 }).map((_, index) => <PortfolioSkeletonCard key={index} index={index} />)}
         </Masonry>
       ) : (
-        <motion.div
-            drag={isMobileView ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.5}
-            onDragEnd={handleDragEnd}
-        >
+        <>
           <AnimatePresence mode="wait">
             {isFiltering ? (
                 <motion.div key="filtering-skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -476,11 +423,10 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
             ) : (
                 <motion.div
                 key={activeFilter}
-                custom={swipeDirection}
-                variants={masonryVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
+                variants={staggerContainerVariants(0.05, 0)}
+                initial="initial"
+                animate="animate"
+                exit={{ opacity: 0, transition: { duration: 0.3 } }}
                 >
                 {itemsToDisplay.length > 0 ? (
                     <Masonry
@@ -515,7 +461,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
           <div ref={loaderRef} className="h-10 text-center text-theme-secondary">
              {!isFiltering && displayCount < filteredItems.length && !isLoading && t('loading')}
           </div>
-        </motion.div>
+        </>
       )}
 
       {/* 燈箱 */}
