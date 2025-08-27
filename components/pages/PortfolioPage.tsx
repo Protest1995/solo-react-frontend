@@ -447,7 +447,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
                               onToggleSelectionForDeletion={handleToggleSelectionForDeletion}
                               isCardDisabled={isDeleteModeActive && !!item.isStatic}
                           />
-                          <p className="md:hidden text-center text-custom-cyan mt-2 text-sm font-semibold truncate">{displayTitle}</p>
+                          <p className="xl:hidden text-center text-custom-cyan mt-2 text-sm font-semibold truncate">{displayTitle}</p>
                         </motion.div>
                       );
                     })}

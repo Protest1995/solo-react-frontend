@@ -117,7 +117,7 @@ const PortfolioCard: React.FC<PortfolioItemData & { onClick: () => void; isDelet
         
         {!isDeleteModeActive && (
             // Desktop hover overlay
-            <motion.div className="absolute inset-0 bg-black bg-opacity-60 hidden md:flex flex-col items-center justify-center p-4" variants={overlayHoverVariants}>
+            <motion.div className="absolute inset-0 bg-black bg-opacity-60 hidden xl:flex flex-col items-center justify-center p-4" variants={overlayHoverVariants}>
               <motion.div variants={overlayContentVariants} className="flex flex-col items-center justify-center text-center">
                   <motion.div variants={overlayItemVariants}>
                       <EyeIcon className={`w-10 h-10 ${ACCENT_COLOR} mb-2`} />
