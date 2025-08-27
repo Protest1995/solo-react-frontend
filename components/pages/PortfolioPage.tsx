@@ -279,6 +279,9 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     const onTouchStart = (ev: TouchEvent) => {
       if (isLoading || isFiltering) return;
       const t = ev.touches[0];
+  // If touch starts inside the top carousel, ignore so carousel handles it
+  const startTargetEl = (t.target as HTMLElement) || null;
+  if (startTargetEl && startTargetEl.closest && startTargetEl.closest('.portfolio-swiper-container')) return;
       touchStartXRef.current = t.clientX;
       touchStartYRef.current = t.clientY;
       touchHandledRef.current = false;
@@ -299,9 +302,12 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
       // Ignore if vertical swipe or too small
       if (Math.abs(dx) < HORIZONTAL_THRESHOLD || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
 
-      // Don't trigger when starting inside horizontally scrollable filter row
-      const startTarget = ev.target as HTMLElement | null;
-      if (startTarget && startTarget.closest && startTarget.closest('.overflow-x-auto')) return;
+  // Don't trigger when starting inside horizontally scrollable filter row
+  const startTarget = ev.target as HTMLElement | null;
+  if (startTarget && startTarget.closest && startTarget.closest('.overflow-x-auto')) return;
+  // Also ignore if the touch started inside the carousel area so the
+  // carousel swipe isn't shadowed by the category-swipe handler.
+  if (startTarget && startTarget.closest && startTarget.closest('.portfolio-swiper-container')) return;
 
       // Determine direction
       const currentIndex = filterCategories.indexOf(activeFilter);
@@ -495,14 +501,14 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
             </div>
             {/* 分類篩選按鈕 */}
             <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'spring', stiffness: 350, damping: 30 }} /> )} </motion.button> ))}
+                {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
             </motion.div>
         </div>
         {/* 行動裝置版 */}
         <div className="md:hidden space-y-4">
             <div className="overflow-x-auto flex justify-center">
                 <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                    {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" /> )} </motion.button> ))}
+                    {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
                 </motion.div>
             </div>
             <div className="flex items-center justify-between">

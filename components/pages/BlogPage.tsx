@@ -70,6 +70,11 @@ export const BlogPage: React.FC<{
   
   const topicsContainerRef = useRef<HTMLDivElement>(null);
   const [centeredTopicKey, setCenteredTopicKey] = useState<string | null>(null);
+  // Refs for mobile swipe in Latest Posts area
+  const latestPostsRef = useRef<HTMLDivElement | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchHandledRef = useRef(false);
 
   useEffect(() => {
     const container = topicsContainerRef.current;
@@ -131,6 +136,57 @@ export const BlogPage: React.FC<{
       .slice(0, 4); // 只取前4篇
   }, [activeTabKey, sortedPosts]);
 
+  // Add mobile-only swipe support for the Latest Posts section (three tabs)
+  useEffect(() => {
+    const el = latestPostsRef.current;
+    if (!el || !isMobileView) return;
+
+    const HORIZONTAL_THRESHOLD = 60;
+
+    const onTouchStart = (ev: TouchEvent) => {
+      const t = ev.touches[0];
+      touchStartXRef.current = t.clientX;
+      touchStartYRef.current = t.clientY;
+      touchHandledRef.current = false;
+    };
+
+    const onTouchEnd = (ev: TouchEvent) => {
+      if (touchHandledRef.current) return;
+      const startX = touchStartXRef.current;
+      const startY = touchStartYRef.current;
+      if (startX === null || startY === null) return;
+
+      const t = ev.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (Math.abs(dx) < HORIZONTAL_THRESHOLD || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
+
+      const currentIndex = tabs.findIndex(t => t.key === activeTabKey);
+      if (dx < 0) {
+        // swipe left -> next
+        const nextIndex = Math.min(tabs.length - 1, currentIndex + 1);
+        if (nextIndex !== currentIndex) setActiveTabKey(tabs[nextIndex].key);
+      } else {
+        // swipe right -> prev
+        const prevIndex = Math.max(0, currentIndex - 1);
+        if (prevIndex !== currentIndex) setActiveTabKey(tabs[prevIndex].key);
+      }
+
+      touchHandledRef.current = true;
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart as any);
+      el.removeEventListener('touchend', onTouchEnd as any);
+    };
+  }, [isMobileView, activeTabKey, tabs]);
+
   // --- 渲染 (JSX) ---
   return (
     <div className="space-y-8">
@@ -190,6 +246,7 @@ export const BlogPage: React.FC<{
       <section className="max-w-7xl mx-auto">
         <SectionDivider title={t('blogPage.latestPosts')} />
         <motion.div
+          ref={latestPostsRef}
           variants={staggerContainerVariants(0.1, 0.2)}
           initial="initial"
           whileInView="animate"

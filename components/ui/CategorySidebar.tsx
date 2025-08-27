@@ -57,6 +57,11 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo,
   const { t, i18n } = useTranslation();
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
+  // Refs for swipe on category list (mobile only)
+  const categoriesListRef = useRef<HTMLUListElement | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchHandledRef = useRef(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -102,6 +107,62 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo,
       return { titleKey: 'blogSidebar.popularPosts', postsToList: popularPosts };
     }
   }, [allPosts, currentCategoryInfo]);
+
+  // Mobile-only swipe on the category list to navigate between categories
+  useEffect(() => {
+    const el = categoriesListRef.current;
+    if (!el) return;
+
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+    if (!isMobile) return;
+
+    const HORIZONTAL_THRESHOLD = 50;
+
+    const onTouchStart = (ev: TouchEvent) => {
+      const t = ev.touches[0];
+      touchStartXRef.current = t.clientX;
+      touchStartYRef.current = t.clientY;
+      touchHandledRef.current = false;
+    };
+
+    const onTouchEnd = (ev: TouchEvent) => {
+      if (touchHandledRef.current) return;
+      const startX = touchStartXRef.current;
+      const startY = touchStartYRef.current;
+      if (startX === null || startY === null) return;
+
+      const t = ev.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (Math.abs(dx) < HORIZONTAL_THRESHOLD || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
+
+      // Determine current index from currentCategoryInfo (if present) or default to 0
+      const currentKey = currentCategoryInfo?.titleKey || blogCategoryDefinitions[0].titleKey;
+      const currentIndex = blogCategoryDefinitions.findIndex(b => b.titleKey === currentKey);
+      if (currentIndex === -1) return;
+
+      if (dx < 0) {
+        const nextIndex = Math.min(blogCategoryDefinitions.length - 1, currentIndex + 1);
+        if (nextIndex !== currentIndex) navigateTo(Page.CategoryPage, blogCategoryDefinitions[nextIndex]);
+      } else {
+        const prevIndex = Math.max(0, currentIndex - 1);
+        if (prevIndex !== currentIndex) navigateTo(Page.CategoryPage, blogCategoryDefinitions[prevIndex]);
+      }
+
+      touchHandledRef.current = true;
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart as any);
+      el.removeEventListener('touchend', onTouchEnd as any);
+    };
+  }, [currentCategoryInfo]);
 
   const sortOptions: { value: SortOrder; labelKey: string }[] = [
     { value: 'date-desc', labelKey: 'blogPage.sortDateDesc' },
@@ -176,7 +237,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ allPosts, navigateTo,
       {/* 分類列表區塊 */}
       <motion.section variants={fadeInUpItemVariants}>
         <SidebarSectionTitle titleKey="blogPage.categoryLabel" />
-        <ul className="space-y-1">
+  <ul ref={categoriesListRef} className="space-y-1">
           {/* "所有文章" 選項 */}
           <li>
             <button

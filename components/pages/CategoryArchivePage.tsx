@@ -7,6 +7,7 @@ import SectionTitle from '../ui/SectionTitle';
 import Pagination from '../ui/Pagination';
 import { staggerContainerVariants, fadeInUpItemVariants, sectionDelayShow } from '../../animationVariants';
 import BlogCard from '../ui/BlogCardMasonry';
+import { blogCategoryDefinitions } from '../data/blogData';
 import CategorySidebar from '../ui/CategorySidebar';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
@@ -55,6 +56,11 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
   // --- UI 狀態 ---
   const [isDeleteModeActive, setIsDeleteModeActive] = useState(false); // 是否處於刪除模式
   const [selectedIdsForDeletion, setSelectedIdsForDeletion] = useState<string[]>([]); // 存儲被選中待刪除的文章 ID
+  // Refs for mobile swipe on the cards area
+  const cardsContainerRef = useRef<HTMLDivElement | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchHandledRef = useRef(false);
   
   // --- 回調函數 (useCallback & Handlers) ---
 
@@ -146,6 +152,62 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return sortedPosts.slice(startIndex, endIndex);
   }, [sortedPosts, currentPage]);
+
+  // Mobile-only swipe on the cards container to navigate categories
+  useEffect(() => {
+    const el = cardsContainerRef.current;
+    if (!el) return;
+
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+    if (!isMobile) return;
+
+    const HORIZONTAL_THRESHOLD = 60;
+
+    const onTouchStart = (ev: TouchEvent) => {
+      const t = ev.touches[0];
+      touchStartXRef.current = t.clientX;
+      touchStartYRef.current = t.clientY;
+      touchHandledRef.current = false;
+    };
+
+    const onTouchEnd = (ev: TouchEvent) => {
+      if (touchHandledRef.current) return;
+      const startX = touchStartXRef.current;
+      const startY = touchStartYRef.current;
+      if (startX === null || startY === null) return;
+
+      const t = ev.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (Math.abs(dx) < HORIZONTAL_THRESHOLD || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
+
+      // Find current index based on categoryInfo
+      const currentKey = categoryInfo?.titleKey || blogCategoryDefinitions[0].titleKey;
+      const currentIndex = blogCategoryDefinitions.findIndex(b => b.titleKey === currentKey);
+      if (currentIndex === -1) return;
+
+      if (dx < 0) {
+        const nextIndex = Math.min(blogCategoryDefinitions.length - 1, currentIndex + 1);
+        if (nextIndex !== currentIndex) navigateTo(Page.CategoryPage, blogCategoryDefinitions[nextIndex]);
+      } else {
+        const prevIndex = Math.max(0, currentIndex - 1);
+        if (prevIndex !== currentIndex) navigateTo(Page.CategoryPage, blogCategoryDefinitions[prevIndex]);
+      }
+
+      touchHandledRef.current = true;
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart as any);
+      el.removeEventListener('touchend', onTouchEnd as any);
+    };
+  }, [categoryInfo]);
   
   // --- 渲染 (JSX) ---
   return (
@@ -159,14 +221,15 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
         <div className="lg:col-span-2">
             {paginatedPosts.length > 0 ? (
                 <AnimatePresence mode="wait">
-                    <motion.div
-                        key={`${sortOrder}-${currentPage}-${searchTerm}`}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-8"
-                        variants={staggerContainerVariants(0.1)}
-                        initial="initial"
-                        animate="animate"
-                        exit="initial"
-                    >
+            <motion.div
+                ref={cardsContainerRef}
+                key={`${sortOrder}-${currentPage}-${searchTerm}`}
+                className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                variants={staggerContainerVariants(0.1)}
+                initial="initial"
+                animate="animate"
+                exit="initial"
+              >
                         {paginatedPosts.map(post => (
                             <motion.div key={post.id} variants={fadeInUpItemVariants}>
                                 <BlogCard post={post} onClick={() => navigateTo(Page.BlogPostDetail, post)} isDeleteModeActive={isDeleteModeActive} isSelectedForDeletion={selectedIdsForDeletion.includes(post.id)} onToggleSelectionForDeletion={(id) => setSelectedIdsForDeletion(p => p.includes(id) ? p.filter(i => i !== id) : [...p, id])} isCardDisabled={isDeleteModeActive && !!post.isStatic} />
@@ -204,3 +267,11 @@ const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
 };
 
 export default CategoryArchivePage;
+
+// --- Mobile swipe effect for CategoryArchivePage ---
+// (placed after export to avoid hoisting issues in this patch session)
+try {
+  // noop: keep file-level patch stable; actual effect is inserted above inside component via refs
+} catch (e) {
+  // ignore
+}
