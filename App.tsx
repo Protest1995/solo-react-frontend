@@ -673,24 +673,31 @@ const App: React.FC = () => {
   }, [isSidebarOpen]);
 
   // Effect for handling scroll events, throttled for performance.
+  // Purpose: hide mobile header on scroll down, show on scroll up or when near top.
   useEffect(() => {
     let ticking = false;
+    const THRESHOLD = 10; // minimum px change to consider as meaningful scroll
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Update header visibility based on scroll direction on mobile
-      if (isMobileView) {
+      if (!isMobileView) {
+        // Desktop: always keep header visible
+        setIsMobileHeaderVisible(true);
+      } else {
+        // Mobile: determine direction with a small threshold to avoid jitter
         const scrollDelta = currentScrollY - lastScrollY.current;
+
         if (currentScrollY < 50) {
+          // Near top: always show
           setIsMobileHeaderVisible(true);
-        } else if (scrollDelta > 5) {
+        } else if (scrollDelta > THRESHOLD) {
+          // Scrolling down: hide
           setIsMobileHeaderVisible(false);
-        } else if (scrollDelta < -5) {
+        } else if (scrollDelta < -THRESHOLD) {
+          // Scrolling up: show
           setIsMobileHeaderVisible(true);
         }
-      } else {
-        setIsMobileHeaderVisible(true); // Always visible on desktop
       }
 
       // Update other scroll-dependent states
@@ -700,21 +707,21 @@ const App: React.FC = () => {
       lastScrollY.current = currentScrollY <= 0 ? 0 : currentScrollY;
       ticking = false;
     };
-    
-    const throttledScrollHandler = () => {
+
+    const onScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(handleScroll);
         ticking = true;
       }
     };
 
-    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
-    
+    window.addEventListener('scroll', onScroll, { passive: true });
+
     // Initial call to set states correctly on mount
-    throttledScrollHandler();
+    onScroll();
 
     return () => {
-      window.removeEventListener('scroll', throttledScrollHandler);
+      window.removeEventListener('scroll', onScroll);
     };
   }, [isMobileView]); // Re-run this effect only when mobile view changes
 
@@ -981,7 +988,7 @@ const App: React.FC = () => {
   
   const mobileHeaderClasses = `
     lg:hidden fixed top-0 left-0 right-0 z-50 h-16
-    transition-transform duration-300 ease-in-out
+  transform transition-transform duration-300 ease-in-out
     ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}
   `;
   const glassEffectClass = (isScrolled || isMobileView) ? 'bg-glass border-b border-theme-primary' : '';
