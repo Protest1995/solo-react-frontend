@@ -109,7 +109,7 @@ const SingleSlide: React.FC<{ post: BlogPostData; isActive: boolean; onClick: ()
                 </motion.p>
                 <motion.button
                     onClick={onClick}
-                    className="btn-hero-neon px-8 py-3 text-lg font-semibold transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 focus-visible:ring-custom-cyan transform-gpu"
+                    className="btn-hero-neon px-8 py-3 text-lg font-semibold rounded-full transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 focus-visible:ring-custom-cyan transform-gpu"
                     variants={buttonVariants}
                     onMouseEnter={() => setIsButtonHovered(true)}
                     onMouseLeave={() => setIsButtonHovered(false)}

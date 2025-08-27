@@ -565,6 +565,15 @@
         }
       }
 
+      @keyframes flow-text-glow {
+        0%, 100% {
+          text-shadow: 0 0 8px var(--accent-shadow-color), 0 0 20px var(--accent-shadow-color);
+        }
+        50% {
+          text-shadow: 0 0 16px var(--accent-shadow-color), 0 0 40px var(--accent-shadow-color);
+        }
+      }
+
       .group.force-hover .btn-hero-neon,
       .btn-hero-neon:hover {
         color: var(--accent-cyan) !important;
@@ -578,7 +587,7 @@
       }
       .group.force-hover .hero-title {
         color: var(--accent-cyan);
-        text-shadow: 0 0 8px var(--accent-shadow-color), 0 0 20px var(--accent-shadow-color);
+        animation: flow-text-glow 2.5s ease-in-out infinite;
       }
       /* --- 登入頁霓虹按鈕 --- */
       .btn-login-neon {
