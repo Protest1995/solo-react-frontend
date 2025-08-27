@@ -88,6 +88,10 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const loaderRef = useRef<HTMLDivElement>(null);
   // Ref to the main page container to lock height during filtering to avoid layout jumps
   const containerRef = useRef<HTMLDivElement>(null);
+  // Touch refs for swipe detection on mobile
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchHandledRef = useRef(false);
 
 
   // --- 狀態管理 (useState) ---
@@ -211,9 +215,22 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const openLightbox = useCallback((itemToOpen: PortfolioItemData, sourceItems: PortfolioItemData[]) => { if (isDeleteModeActive) return; setSelectedItem(itemToOpen); setLightboxItemsSource(sourceItems); }, [isDeleteModeActive]);
   const closeLightbox = useCallback(() => { setSelectedItem(null); setLightboxItemsSource(null); }, []);
 
-  // 處理篩選器變更 - 鎖定容器高度以避免在 Masonry 重新排列時頁面閃跳
+  // 處理篩選器變更 - 立即更新 activeFilter（UI 顏色），同時鎖定容器高度避免 Masonry 重新排列時頁面閃跳
   const handleFilterChange = (newCategoryValue: string) => { 
     if (activeFilter === newCategoryValue) return;
+
+    // Update active filter immediately so button color/underline updates right away
+    setActiveFilter(newCategoryValue);
+    // remove focus from any button to avoid lingering focus styles that can keep previous category colored
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+  // No direct DOM manipulation here — rely on React to update classes.
+  // To make the visible text color update reliably across Framer Motion
+  // transitions, we'll force React to remount the span by using a key
+  // derived from `category` + active state. The JSX spans below were
+  // updated to include that key.
 
     const currentScrollY = (typeof window !== 'undefined') ? window.scrollY : 0;
 
@@ -229,7 +246,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
 
     setIsFiltering(true);
     setTimeout(() => {
-        setActiveFilter(newCategoryValue); 
+        // activeFilter already set above for immediate UI feedback
         setSelectedItem(null);
         setDisplayCount(ITEMS_PER_PAGE);
         setIsFiltering(false);
@@ -248,6 +265,69 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
         }
     }, 500);
   };
+
+  // Enable left/right swipe to change categories on mobile
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+    if (!isMobile) return;
+
+    const HORIZONTAL_THRESHOLD = 60; // px to consider a swipe
+
+    const onTouchStart = (ev: TouchEvent) => {
+      if (isLoading || isFiltering) return;
+      const t = ev.touches[0];
+      touchStartXRef.current = t.clientX;
+      touchStartYRef.current = t.clientY;
+      touchHandledRef.current = false;
+    };
+
+    const onTouchEnd = (ev: TouchEvent) => {
+      if (isLoading || isFiltering) return;
+      if (touchHandledRef.current) return;
+      const startX = touchStartXRef.current;
+      const startY = touchStartYRef.current;
+      if (startX === null || startY === null) return;
+
+      // use changedTouches to get end point
+      const t = ev.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      // Ignore if vertical swipe or too small
+      if (Math.abs(dx) < HORIZONTAL_THRESHOLD || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
+
+      // Don't trigger when starting inside horizontally scrollable filter row
+      const startTarget = ev.target as HTMLElement | null;
+      if (startTarget && startTarget.closest && startTarget.closest('.overflow-x-auto')) return;
+
+      // Determine direction
+      const currentIndex = filterCategories.indexOf(activeFilter);
+      if (dx < 0) {
+        // swipe left -> next
+        const nextIndex = Math.min(filterCategories.length - 1, currentIndex + 1);
+        if (nextIndex !== currentIndex) handleFilterChange(filterCategories[nextIndex]);
+      } else {
+        // swipe right -> prev
+        const prevIndex = Math.max(0, currentIndex - 1);
+        if (prevIndex !== currentIndex) handleFilterChange(filterCategories[prevIndex]);
+      }
+
+      touchHandledRef.current = true;
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart as any);
+      el.removeEventListener('touchend', onTouchEnd as any);
+    };
+  }, [activeFilter, isLoading, isFiltering]);
   
   // 處理文件上傳
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -415,14 +495,14 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
             </div>
             {/* 分類篩選按鈕 */}
             <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                {filterCategories.map((category) => ( <motion.button key={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'spring', stiffness: 350, damping: 30 }} /> )} </motion.button> ))}
+                {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'spring', stiffness: 350, damping: 30 }} /> )} </motion.button> ))}
             </motion.div>
         </div>
         {/* 行動裝置版 */}
         <div className="md:hidden space-y-4">
             <div className="overflow-x-auto flex justify-center">
                 <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                    {filterCategories.map((category) => ( <motion.button key={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" /> )} </motion.button> ))}
+                    {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" /> )} </motion.button> ))}
                 </motion.div>
             </div>
             <div className="flex items-center justify-between">
