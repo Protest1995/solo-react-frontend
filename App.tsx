@@ -91,8 +91,9 @@ const PortfolioPageWrapper: React.FC<{
     onAddPortfolioItem: (item: PortfolioItemData) => void;
     onDeletePortfolioItems: (ids: string[]) => void;
     isLandscape: boolean;
-}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems, isLandscape }) => {
-    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isLandscape={isLandscape} />;
+    isMobileView: boolean;
+}> = ({ navigateTo, isAuthenticated, isSuperUser, portfolioItems, onAddPortfolioItem, onDeletePortfolioItems, isLandscape, isMobileView }) => {
+    return <PortfolioPage userAddedPortfolioItems={portfolioItems} onAddPortfolioItem={onAddPortfolioItem} onDeletePortfolioItems={onDeletePortfolioItems} isAuthenticated={isAuthenticated} isSuperUser={isSuperUser} navigateToLogin={() => navigateTo(Page.Login)} isLandscape={isLandscape} isMobileView={isMobileView} />;
 };
 
 const BlogPageWrapper: React.FC<{ 
@@ -1042,6 +1043,7 @@ const App: React.FC = () => {
                         onAddPortfolioItem={handleAddPortfolioItem}
                         onDeletePortfolioItems={handleDeletePortfolioItems}
                         isLandscape={isLandscape}
+                        isMobileView={isMobileView}
                     />
                 } />
                 <Route path="blog" element={
