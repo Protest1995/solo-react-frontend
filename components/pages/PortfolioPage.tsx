@@ -14,7 +14,6 @@ import Masonry from 'react-masonry-css';
 import PortfolioCard from '../ui/PortfolioCard';
 import Lightbox from '../ui/Lightbox';
 import PortfolioSkeletonCard from '../ui/PortfolioSkeletonCard';
-import SectionTitle from '../ui/SectionTitle';
 import PortfolioCarousel from '../ui/PortfolioCarousel';
 import PlusIcon from '../icons/PlusIcon';
 import TrashIcon from '../icons/TrashIcon';
@@ -28,6 +27,7 @@ import { ACCENT_BORDER_COLOR, ACCENT_FOCUS_RING_CLASS } from '../../constants';
 // 引入 API 服務，用於與後端進行通信
 import { ApiService } from '../../src/services/api';
 import { getOptimizedImageUrl } from '../../utils';
+import SectionDivider from '../ui/SectionDivider';
 
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
@@ -101,6 +101,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE); // 當前已顯示的項目數量（用於無限滾動）
   const [isLoading, setIsLoading] = useState(true); // 是否正在加載（用於顯示骨架屏）
   const [isFiltering, setIsFiltering] = useState(false); // 新增：是否正在篩選，用於顯示骨架屏
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // 管理員功能相關狀態
   const [isAdding, setIsAdding] = useState(false); // 是否顯示新增表單
@@ -132,6 +133,10 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     });
     return sortedForCarousel.slice(0, 8);
   }, [allPortfolioItems]);
+  
+  const activeCarouselItem = useMemo(() => (
+    carouselItems.length > 0 ? carouselItems[activeIndex] : null
+  ), [carouselItems, activeIndex]);
 
   const filteredItems = useMemo(() => {
     // 1. 根據 `activeFilter` 篩選項目
@@ -479,20 +484,63 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   // --- 渲染 (JSX) ---
   return (
     <div ref={containerRef}>
-      {/* 頁面標題 */}
-      <motion.div {...sectionDelayShow(0)}> <SectionTitle titleKey="portfolioPage.title" subtitleKey="portfolioPage.subtitle" /> </motion.div>
-      
-      {/* 作品輪播 */}
-      <motion.div className="my-12 relative overflow-hidden" variants={fadeInUpItemVariants} initial="initial" animate="animate">
-        {isLoading ? (
-          <div className="portfolio-swiper-container shimmer-bg rounded-lg"></div>
-        ) : (
-          <MemoizedPortfolioCarousel items={carouselItems} onItemClick={handleCarouselClick} />
+      {/* Hero Section */}
+      <motion.div
+        className="relative -m-6 md:-m-12 px-6 md:px-12 flex flex-col md:min-h-[calc(100vh-4rem)]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, transition: { duration: 0.5 } }}
+      >
+        {/* Animated Background */}
+        {activeCarouselItem && (
+          <AnimatePresence>
+            <motion.div
+              key={activeCarouselItem.id}
+              className="absolute left-0 right-0 top-0 bg-cover bg-center filter blur-lg brightness-50 transform scale-110"
+              style={{ 
+                backgroundImage: `url(${getOptimizedImageUrl(activeCarouselItem.imageUrl, 1920)})`, 
+                bottom: '35%' // Make background 65% height from top
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.75, ease: 'easeInOut' }}
+            />
+          </AnimatePresence>
         )}
+
+        {/* Foreground Content */}
+        <div className="relative z-10 w-full flex-grow flex flex-col pt-24 md:pt-16 pb-12">
+            <motion.div className="flex-shrink-0 text-center" {...sectionDelayShow(0)}>
+                <h2 className="text-3xl md:text-4xl font-bold relative inline-block text-gray-100">
+                    {t('portfolioPage.title')}
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 w-16 h-1 bg-custom-cyan" />
+                </h2>
+                <p className="mt-3 text-lg text-gray-300">{t('portfolioPage.subtitle')}</p>
+            </motion.div>
+            
+            <motion.div 
+                className="mt-16 flex-grow flex items-center justify-center" 
+                variants={fadeInUpItemVariants} 
+                initial="initial" 
+                animate="animate"
+            >
+                {isLoading ? (
+                <div className="portfolio-swiper-container shimmer-bg rounded-lg"></div>
+                ) : (
+                <MemoizedPortfolioCarousel 
+                    items={carouselItems} 
+                    onItemClick={handleCarouselClick}
+                    onSlideChange={setActiveIndex} 
+                />
+                )}
+            </motion.div>
+        </div>
       </motion.div>
       
+      <SectionDivider title={t('portfolioPage.myWorks', 'My Works')} />
+
       {/* 篩選與排序控制欄 */}
-      <div className="my-8">
+      <div className="mb-8">
         {/* 桌面版 */}
         <div className="hidden md:relative md:flex md:items-center md:justify-center h-10">
             {/* 全選框（僅在刪除模式下顯示） */}
@@ -501,14 +549,14 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
             </div>
             {/* 分類篩選按鈕 */}
             <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
+                {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
             </motion.div>
         </div>
         {/* 行動裝置版 */}
         <div className="md:hidden space-y-4">
             <div className="overflow-x-auto flex justify-center">
                 <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                    {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
+                    {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
                 </motion.div>
             </div>
             <div className="flex items-center justify-between">

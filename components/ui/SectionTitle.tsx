@@ -10,6 +10,8 @@ interface SectionTitleProps {
   titleKey: string; // 標題的翻譯鍵
   subtitleKey?: string; // 副標題的翻譯鍵 (可選), 用於靜態文字
   subtitle?: string; // 直接傳入副標題文字 (可選), 用於動態文字
+  titleColorClass?: string;
+  subtitleColorClass?: string;
 }
 
 /**
@@ -18,7 +20,7 @@ interface SectionTitleProps {
  * 這有助於保持整個應用程式視覺風格的一致性。
  * 現在支持通過 `subtitleKey` (用於翻譯) 或 `subtitle` (直接傳入字符串) 兩種方式提供副標題。
  */
-const SectionTitle: React.FC<SectionTitleProps> = ({ titleKey, subtitleKey, subtitle }) => {
+const SectionTitle: React.FC<SectionTitleProps> = ({ titleKey, subtitleKey, subtitle, titleColorClass, subtitleColorClass }) => {
   const { t } = useTranslation();
   
   // 決定最終要顯示的副標題。優先使用直接傳入的 `subtitle` 字符串。
@@ -26,13 +28,13 @@ const SectionTitle: React.FC<SectionTitleProps> = ({ titleKey, subtitleKey, subt
 
   return (
     <div className="text-center md:text-left">
-      <h2 className="text-3xl md:text-4xl font-bold text-theme-primary relative inline-block">
+      <h2 className={`text-3xl md:text-4xl font-bold relative inline-block ${titleColorClass || 'text-theme-primary'}`}>
         {t(titleKey)}
         {/* 裝飾性下劃線 */}
         <span className={`absolute -bottom-2 left-0 w-16 h-1 ${ACCENT_SOLID_BG_COLOR}`}></span>
       </h2>
       {/* 如果提供了副標題，則渲染副標題 */}
-      {finalSubtitle && <p className="mt-3 text-theme-secondary text-lg">{finalSubtitle}</p>}
+      {finalSubtitle && <p className={`mt-3 text-lg ${subtitleColorClass || 'text-theme-secondary'}`}>{finalSubtitle}</p>}
     </div>
   );
 };

@@ -50,7 +50,7 @@ const SectionDivider: React.FC<SectionDividerProps> = ({ title }) => {
   return (
     <motion.div
       ref={ref}
-      className="max-w-4xl mx-auto pt-8 pb-8 flex items-center"
+      className="max-w-4xl mx-auto pt-0 md:pt-8 pb-8 flex items-center"
       variants={containerVariants}
       initial="hidden"
       whileInView="visible" // 當組件進入視圖時觸發動畫

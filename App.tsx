@@ -992,6 +992,7 @@ const App: React.FC = () => {
   const mainContentClasses = useMemo(() => {
     const isBlogHomepage = location.pathname === '/blog';
     const isBlogPostDetailPage = !!matchPath('/blog/:postId', location.pathname);
+    const isPortfolioPage = location.pathname === '/portfolio';
 
     let mobileTopPadding = 'pt-16'; // 手機視圖的預設值
 
@@ -999,7 +1000,7 @@ const App: React.FC = () => {
       // 決定是否啟用 Navbar 覆蓋效果 (即移除頂部內距)
       // 在部落格首頁：僅在直向模式下覆蓋
       // 在文章詳情頁：在所有方向下都覆蓋
-      const hasOverlay = (isBlogHomepage && !isLandscape) || isBlogPostDetailPage;
+      const hasOverlay = (isBlogHomepage && !isLandscape) || isBlogPostDetailPage || isPortfolioPage;
       mobileTopPadding = hasOverlay ? '' : 'pt-16';
     }
     
