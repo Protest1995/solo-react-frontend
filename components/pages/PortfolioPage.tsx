@@ -510,10 +510,10 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
 
         {/* Foreground Content */}
         <div className="relative z-10 w-full flex-grow flex flex-col pt-24 md:pt-16 pb-12">
-            <motion.div className="flex-shrink-0 text-center" {...sectionDelayShow(0)}>
+            <motion.div className="flex-shrink-0 text-center md:text-left" {...sectionDelayShow(0)}>
                 <h2 className="text-3xl md:text-4xl font-bold relative inline-block text-gray-100">
                     {t('portfolioPage.title')}
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 w-16 h-1 bg-custom-cyan" />
+                    <span className="absolute -bottom-2 left-0 w-16 h-1 bg-custom-cyan" />
                 </h2>
                 <p className="mt-3 text-lg text-gray-300">{t('portfolioPage.subtitle')}</p>
             </motion.div>
