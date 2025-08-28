@@ -105,6 +105,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isCarouselVisible, setIsCarouselVisible] = useState(false); // 水平預覽面板預設為收合
   const [isVerticalCarouselVisible, setIsVerticalCarouselVisible] = useState(false); // 垂直預覽面板在橫向模式下預設為收合
+  const lightboxRef = useRef<HTMLDivElement>(null);
 
   const { id, imageUrl, title, titleZh } = currentItem;
   
@@ -181,9 +182,47 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     document.addEventListener('keydown', handleKeyDown);
+    
+    const node = lightboxRef.current;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    let startY = 0;
+    let startX = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+        if (e.touches.length === 1) {
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+        }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+        if (e.touches.length > 1) { // Pinch zoom
+            e.preventDefault();
+            return;
+        }
+        
+        const touch = e.touches[0];
+        const deltaY = touch.clientY - startY;
+        const deltaX = touch.clientX - startX;
+
+        // If vertical scroll is larger than horizontal, prevent default.
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            e.preventDefault();
+        }
+    };
+
+    if (node && isMobile) {
+        node.addEventListener('touchstart', onTouchStart, { passive: true });
+        node.addEventListener('touchmove', onTouchMove, { passive: false });
+    }
+
     return () => {
       document.body.style.overflow = originalOverflow;
       document.removeEventListener('keydown', handleKeyDown);
+      if (node && isMobile) {
+        node.removeEventListener('touchstart', onTouchStart);
+        node.removeEventListener('touchmove', onTouchMove);
+      }
     };
   }, [handleKeyDown]);
   
@@ -225,7 +264,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const mainImagePaddingRight = isLandscape && isVerticalCarouselVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
 
   const lightboxContent = (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+    <div ref={lightboxRef} className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
         <div className="relative flex w-full h-full max-w-screen-2xl">
             {/* Vertical Film Strip for Landscape Mobile */}
             {isLandscape && filteredItems.length > 1 && (

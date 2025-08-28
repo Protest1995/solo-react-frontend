@@ -1007,6 +1007,7 @@ const App: React.FC = () => {
     return `
       transition-all duration-300 ease-in-out
       ${isMobileView ? mobileTopPadding : (isSidebarCollapsed ? 'pl-20' : 'pl-80')}
+      ${isPortfolioPage ? 'overflow-x-hidden' : ''}
     `;
   }, [isMobileView, isSidebarCollapsed, location.pathname, isLandscape]);
   
