@@ -57,7 +57,7 @@ export class ApiService {
       if (typeof window !== 'undefined' && window.location && window.location.origin) {
         const hostname = window.location.hostname;
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          const devBackend = this.BACKEND_BASE_FROM_ENV || 'http://localhost:8080' || '/api';
+          const devBackend = this.BACKEND_BASE_FROM_ENV || 'http://localhost:8080';
           return this.stripTrailingSlash(devBackend);
         }
         // For LAN IPs / remote devices, use the frontend origin so redirects
@@ -69,8 +69,11 @@ export class ApiService {
       return this.stripTrailingSlash(devBackend);
     }
     const fromEnv =
-      this.BACKEND_BASE_FROM_ENV ||
-      (typeof window !== 'undefined' ? window.location.origin : '');
+  // Prefer explicit env var; otherwise fall back to the canonical
+  // production API host so clients don't attempt to use an undefined origin.
+  // This ensures production social/OAuth redirects use the correct backend
+  // when VITE_BACKEND_BASE_URL was not configured in the environment.
+  this.BACKEND_BASE_FROM_ENV || 'https://api.soloproject.site';
     return this.stripTrailingSlash(fromEnv);
   }
 
