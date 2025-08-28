@@ -206,7 +206,7 @@ export const BlogPage: React.FC<{
 
       {/* 明信片風格的輪播區塊 */}
       {postcardPosts.length > 0 && (
-        <motion.section {...sectionDelayShow(0.1)}>
+        <motion.section className="pt-8 md:pt-0" {...sectionDelayShow(0.1)}>
           <SectionDivider title={t('blogPage.trendingNow')} />
           <PostcardCarousel posts={postcardPosts} navigateTo={navigateTo} />
         </motion.section>

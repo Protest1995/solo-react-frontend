@@ -173,6 +173,45 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   
   // 計算可刪除項目的數量
   const deletableItemsCount = useMemo(() => filteredItems.filter(item => !item.isStatic).length, [filteredItems]);
+  
+  const handleFilterChange = useCallback((newCategoryValue: string) => { 
+    if (activeFilter === newCategoryValue) return;
+
+    setActiveFilter(newCategoryValue);
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    const currentScrollY = (typeof window !== 'undefined') ? window.scrollY : 0;
+
+    const containerEl = containerRef.current;
+    let previousHeight: string | null = null;
+    if (containerEl) {
+      previousHeight = containerEl.style.height || null;
+      const rect = containerEl.getBoundingClientRect();
+      containerEl.style.height = `${rect.height}px`;
+      containerEl.style.overflow = 'hidden';
+    }
+
+    setIsFiltering(true);
+    setTimeout(() => {
+        setSelectedItem(null);
+        setDisplayCount(ITEMS_PER_PAGE);
+        setIsFiltering(false);
+
+        if (typeof window !== 'undefined') {
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+              if (containerEl) {
+                if (previousHeight !== null) containerEl.style.height = previousHeight; else containerEl.style.height = '';
+                containerEl.style.overflow = '';
+              }
+              window.scrollTo(0, currentScrollY);
+            });
+          });
+        }
+    }, 500);
+  }, [activeFilter]);
 
   // --- 副作用 (useEffect) ---
 
@@ -220,57 +259,6 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const openLightbox = useCallback((itemToOpen: PortfolioItemData, sourceItems: PortfolioItemData[]) => { if (isDeleteModeActive) return; setSelectedItem(itemToOpen); setLightboxItemsSource(sourceItems); }, [isDeleteModeActive]);
   const closeLightbox = useCallback(() => { setSelectedItem(null); setLightboxItemsSource(null); }, []);
 
-  // 處理篩選器變更 - 立即更新 activeFilter（UI 顏色），同時鎖定容器高度避免 Masonry 重新排列時頁面閃跳
-  const handleFilterChange = (newCategoryValue: string) => { 
-    if (activeFilter === newCategoryValue) return;
-
-    // Update active filter immediately so button color/underline updates right away
-    setActiveFilter(newCategoryValue);
-    // remove focus from any button to avoid lingering focus styles that can keep previous category colored
-    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-
-  // No direct DOM manipulation here — rely on React to update classes.
-  // To make the visible text color update reliably across Framer Motion
-  // transitions, we'll force React to remount the span by using a key
-  // derived from `category` + active state. The JSX spans below were
-  // updated to include that key.
-
-    const currentScrollY = (typeof window !== 'undefined') ? window.scrollY : 0;
-
-    // Lock container height and overflow to prevent layout jumps
-    const containerEl = containerRef.current;
-    let previousHeight: string | null = null;
-    if (containerEl) {
-      previousHeight = containerEl.style.height || null;
-      const rect = containerEl.getBoundingClientRect();
-      containerEl.style.height = `${rect.height}px`;
-      containerEl.style.overflow = 'hidden';
-    }
-
-    setIsFiltering(true);
-    setTimeout(() => {
-        // activeFilter already set above for immediate UI feedback
-        setSelectedItem(null);
-        setDisplayCount(ITEMS_PER_PAGE);
-        setIsFiltering(false);
-
-        // restore previous scroll position and unlock container height after layout settles
-        if (typeof window !== 'undefined') {
-          window.requestAnimationFrame(() => {
-            window.requestAnimationFrame(() => {
-              if (containerEl) {
-                if (previousHeight !== null) containerEl.style.height = previousHeight; else containerEl.style.height = '';
-                containerEl.style.overflow = '';
-              }
-              window.scrollTo(0, currentScrollY);
-            });
-          });
-        }
-    }, 500);
-  };
-
   // Enable left/right swipe to change categories on mobile
   useEffect(() => {
     const el = containerRef.current;
@@ -280,50 +268,76 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     if (!isMobile) return;
 
     const HORIZONTAL_THRESHOLD = 60; // px to consider a swipe
+    let isHorizontalSwipe = false; // Flag to track swipe direction
 
     const onTouchStart = (ev: TouchEvent) => {
       if (isLoading || isFiltering) return;
       const t = ev.touches[0];
-  // If touch starts inside the top carousel, ignore so carousel handles it
-  const startTargetEl = (t.target as HTMLElement) || null;
-  if (startTargetEl && startTargetEl.closest && startTargetEl.closest('.portfolio-swiper-container')) return;
+      // If touch starts inside the top carousel, ignore so carousel handles it
+      const startTargetEl = (t.target as HTMLElement) || null;
+      if (startTargetEl?.closest?.('.portfolio-swiper-container')) return;
+
       touchStartXRef.current = t.clientX;
       touchStartYRef.current = t.clientY;
       touchHandledRef.current = false;
+      isHorizontalSwipe = false; // Reset direction flag on new touch
+    };
+    
+    const onTouchMove = (ev: TouchEvent) => {
+      const startX = touchStartXRef.current;
+      const startY = touchStartYRef.current;
+      // Exit if touch has not started, has already been handled, or is a multi-touch gesture
+      if (startX === null || startY === null || touchHandledRef.current || ev.touches.length > 1) return;
+
+      // Only determine swipe direction once per touch gesture
+      if (!isHorizontalSwipe && touchStartXRef.current !== null) {
+          const t = ev.touches[0];
+          const dx = t.clientX - startX;
+          const dy = t.clientY - startY;
+
+          // If horizontal movement is dominant, flag as a horizontal swipe
+          if (Math.abs(dx) > Math.abs(dy)) {
+              isHorizontalSwipe = true;
+          } else {
+              // It's a vertical scroll, so we stop tracking this touch for swiping
+              touchStartXRef.current = null;
+              touchStartYRef.current = null;
+              return;
+          }
+      }
+      
+      // If it's a horizontal swipe, prevent the default browser action (scrolling, zooming)
+      if (isHorizontalSwipe) {
+          ev.preventDefault();
+      }
     };
 
     const onTouchEnd = (ev: TouchEvent) => {
-      if (isLoading || isFiltering) return;
-      if (touchHandledRef.current) return;
-      const startX = touchStartXRef.current;
-      const startY = touchStartYRef.current;
-      if (startX === null || startY === null) return;
+      // Only proceed if a horizontal swipe was detected and not already handled
+      if (isLoading || isFiltering || touchHandledRef.current || !isHorizontalSwipe) return;
 
-      // use changedTouches to get end point
+      const startX = touchStartXRef.current;
+      if (startX === null) return;
+      
       const t = ev.changedTouches[0];
       const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
 
-      // Ignore if vertical swipe or too small
-      if (Math.abs(dx) < HORIZONTAL_THRESHOLD || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
+      // Ensure the swipe meets the minimum distance threshold
+      if (Math.abs(dx) < HORIZONTAL_THRESHOLD) return;
 
-  // Don't trigger when starting inside horizontally scrollable filter row
-  const startTarget = ev.target as HTMLElement | null;
-  if (startTarget && startTarget.closest && startTarget.closest('.overflow-x-auto')) return;
-  // Also ignore if the touch started inside the carousel area so the
-  // carousel swipe isn't shadowed by the category-swipe handler.
-  if (startTarget && startTarget.closest && startTarget.closest('.portfolio-swiper-container')) return;
+      const startTarget = ev.target as HTMLElement | null;
+      // Do not interfere with carousel or horizontal filter bar swipes
+      if (startTarget?.closest?.('.overflow-x-auto') || startTarget?.closest?.('.portfolio-swiper-container')) {
+        return;
+      }
 
-      // Determine direction
       const currentIndex = filterCategories.indexOf(activeFilter);
-      if (dx < 0) {
-        // swipe left -> next
-        const nextIndex = Math.min(filterCategories.length - 1, currentIndex + 1);
-        if (nextIndex !== currentIndex) handleFilterChange(filterCategories[nextIndex]);
-      } else {
-        // swipe right -> prev
-        const prevIndex = Math.max(0, currentIndex - 1);
-        if (prevIndex !== currentIndex) handleFilterChange(filterCategories[prevIndex]);
+      if (dx < 0) { // Swipe left -> next category
+          const nextIndex = Math.min(filterCategories.length - 1, currentIndex + 1);
+          if (nextIndex !== currentIndex) handleFilterChange(filterCategories[nextIndex]);
+      } else { // Swipe right -> previous category
+          const prevIndex = Math.max(0, currentIndex - 1);
+          if (prevIndex !== currentIndex) handleFilterChange(filterCategories[prevIndex]);
       }
 
       touchHandledRef.current = true;
@@ -331,14 +345,25 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
       touchStartYRef.current = null;
     };
 
+    const resetTouch = () => {
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+      touchHandledRef.current = true; // Mark as handled to prevent touchend firing
+    };
+
+    // Attach listeners
     el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false }); // Must be non-passive to prevent default
     el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('touchcancel', resetTouch, { passive: true });
 
     return () => {
       el.removeEventListener('touchstart', onTouchStart as any);
+      el.removeEventListener('touchmove', onTouchMove as any);
       el.removeEventListener('touchend', onTouchEnd as any);
+      el.removeEventListener('touchcancel', resetTouch as any);
     };
-  }, [activeFilter, isLoading, isFiltering]);
+  }, [activeFilter, isLoading, isFiltering, handleFilterChange]);
   
   // 處理文件上傳
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -510,7 +535,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
 
         {/* Foreground Content */}
         <div className="relative z-10 w-full flex-grow flex flex-col pt-24 md:pt-16 pb-12">
-            <motion.div className="flex-shrink-0 text-center md:text-left" {...sectionDelayShow(0)}>
+            <motion.div className="flex-shrink-0 text-center" {...sectionDelayShow(0)}>
                 <h2 className="text-3xl md:text-4xl font-bold relative inline-block text-gray-100">
                     {t('portfolioPage.title')}
                     <span className="absolute -bottom-2 left-0 w-16 h-1 bg-custom-cyan" />
@@ -537,7 +562,9 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
         </div>
       </motion.div>
       
-      <SectionDivider title={t('portfolioPage.myWorks', 'My Works')} />
+      <div className="md:mt-6">
+        <SectionDivider title={t('portfolioPage.myWorks', 'My Works')} />
+      </div>
 
       {/* 篩選與排序控制欄 */}
       <div className="mb-8">
