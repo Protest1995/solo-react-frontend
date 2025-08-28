@@ -8,6 +8,7 @@ import { ACCENT_BG_COLOR, ACCENT_BG_HOVER_COLOR, ACCENT_BORDER_COLOR, ACCENT_FOC
 import { sectionDelayShow, staggerContainerVariants, fadeInItemVariants } from '../../animationVariants';
 import LoginIcon from '../icons/LoginIcon';
 import SocialLoginButton from '../ui/SocialLoginButton';
+import { ApiService } from '../../src/services/api';
 import EyeIcon from '../icons/EyeIcon';
 import EyeSlashIcon from '../icons/EyeSlashIcon';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -206,13 +207,37 @@ const LoginPage: React.FC = () => {
                 {/* 社交登入按鈕 */}
                 <motion.div className="space-y-3" variants={staggerContainerVariants(0.1, 0.3)} initial="initial" animate="animate">
                 <motion.div variants={fadeInItemVariants}>
-                    <SocialLoginButton provider="google" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGoogle()); }} textKey="loginPage.signInWithGoogle" />
+                    <SocialLoginButton provider="google" onClick={() => {
+                      try {
+                        const base = ApiService.getAuthBaseUrl();
+                        try { console.debug('Prod social redirect base:', base); } catch (e) {}
+                        window.location.href = `${base}/oauth2/authorization/google`;
+                      } catch (e) {
+                        console.error('Failed to start social login (google):', e);
+                      }
+                    }} textKey="loginPage.signInWithGoogle" />
                 </motion.div>
                 <motion.div variants={fadeInItemVariants}>
-                    <SocialLoginButton provider="facebook" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithFacebook()); }} textKey="loginPage.signInWithFacebook" />
+                    <SocialLoginButton provider="facebook" onClick={() => {
+                      try {
+                        const base = ApiService.getAuthBaseUrl();
+                        try { console.debug('Prod social redirect base:', base); } catch (e) {}
+                        window.location.href = `${base}/oauth2/authorization/facebook`;
+                      } catch (e) {
+                        console.error('Failed to start social login (facebook):', e);
+                      }
+                    }} textKey="loginPage.signInWithFacebook" />
                 </motion.div>
                 <motion.div variants={fadeInItemVariants}>
-                    <SocialLoginButton provider="github" onClick={() => { import('../../src/services/authService').then(mod => mod.AuthService.loginWithGithub()); }} textKey="loginPage.signInWithGithub" />
+                    <SocialLoginButton provider="github" onClick={() => {
+                      try {
+                        const base = ApiService.getAuthBaseUrl();
+                        try { console.debug('Prod social redirect base:', base); } catch (e) {}
+                        window.location.href = `${base}/oauth2/authorization/github`;
+                      } catch (e) {
+                        console.error('Failed to start social login (github):', e);
+                      }
+                    }} textKey="loginPage.signInWithGithub" />
                 </motion.div>
                 </motion.div>
 
