@@ -88,6 +88,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const loaderRef = useRef<HTMLDivElement>(null);
   // Ref to the main page container to lock height during filtering to avoid layout jumps
   const containerRef = useRef<HTMLDivElement>(null);
+  // Ref for the swipeable area (filters + grid)
+  const swipeableAreaRef = useRef<HTMLDivElement>(null);
   // Touch refs for swipe detection on mobile
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
@@ -261,7 +263,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
 
   // Enable left/right swipe to change categories on mobile
   useEffect(() => {
-    const el = containerRef.current;
+    const el = swipeableAreaRef.current;
     if (!el) return;
 
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
@@ -562,99 +564,101 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
         </div>
       </motion.div>
       
-      <div className="md:mt-6">
-        <SectionDivider title={t('portfolioPage.myWorks', 'My Works')} />
-      </div>
-
-      {/* 篩選與排序控制欄 */}
-      <div className="mb-8">
-        {/* 桌面版 */}
-        <div className="hidden md:relative md:flex md:items-center md:justify-center h-10">
-            {/* 全選框（僅在刪除模式下顯示） */}
-            <div className="absolute left-0 top-1/2 -translate-y-1/2">
-              <AnimatePresence> {isDeleteModeActive && deletableItemsCount > 0 && ( <motion.div className="flex items-center" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}> <input type="checkbox" id="select-all-deletable" className="form-checkbox h-5 w-5 rounded text-custom-cyan bg-theme-tertiary border-theme-secondary focus:ring-custom-cyan focus:ring-offset-0 cursor-pointer" checked={selectedIdsForDeletion.length === deletableItemsCount && deletableItemsCount > 0} onChange={handleSelectAllForDeletion} aria-label={t('portfolioPage.selectAllDeletableAriaLabel')} /> <label htmlFor="select-all-deletable" className="ml-2 text-sm text-theme-primary cursor-pointer">{t('portfolioPage.selectAllLabel')}</label> </motion.div> )} </AnimatePresence>
-            </div>
-            {/* 分類篩選按鈕 */}
-            <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
-            </motion.div>
+      <div ref={swipeableAreaRef}>
+        <div className="md:mt-6">
+          <SectionDivider title={t('portfolioPage.myWorks', 'My Works')} />
         </div>
-        {/* 行動裝置版 */}
-        <div className="md:hidden space-y-4">
-            <div className="overflow-x-auto flex justify-center">
-                <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
-                    {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
-                </motion.div>
-            </div>
-            <div className="flex items-center justify-between">
-                <div>
-                    <AnimatePresence> {isDeleteModeActive && deletableItemsCount > 0 && ( <motion.div className="flex items-center" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}> <input type="checkbox" id="select-all-deletable-mobile" className="form-checkbox h-5 w-5 rounded text-custom-cyan bg-theme-tertiary border-theme-secondary focus:ring-custom-cyan focus:ring-offset-0 cursor-pointer" checked={selectedIdsForDeletion.length === deletableItemsCount && deletableItemsCount > 0} onChange={handleSelectAllForDeletion} aria-label={t('portfolioPage.selectAllDeletableAriaLabel')} /> <label htmlFor="select-all-deletable-mobile" className="ml-2 text-sm text-theme-primary cursor-pointer">{t('portfolioPage.selectAllLabel')}</label> </motion.div> )} </AnimatePresence>
-                </div>
-            </div>
-        </div>
-      </div>
-      
-      {/* 內容網格 */}
-      {isLoading ? (
-        <Masonry breakpointCols={breakpointColumnsObj} className="masonry-grid" columnClassName="masonry-grid_column">
-          {Array.from({ length: 12 }).map((_, index) => <PortfolioSkeletonCard key={index} index={index} />)}
-        </Masonry>
-      ) : (
-        <>
-          <AnimatePresence mode="wait">
-            {isFiltering ? (
-                <motion.div key="filtering-skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <Masonry breakpointCols={breakpointColumnsObj} className="masonry-grid" columnClassName="masonry-grid_column">
-                        {Array.from({ length: 12 }).map((_, index) => <PortfolioSkeletonCard key={index} index={index} />)}
-                    </Masonry>
-                </motion.div>
-            ) : (
-                <motion.div
-                key={activeFilter}
-                variants={staggerContainerVariants(0.05, 0)}
-                initial="initial"
-                animate="animate"
-                exit={{ opacity: 0, transition: { duration: 0.3 } }}
-                >
-                {itemsToDisplay.length > 0 ? (
-                    <Masonry
-                    breakpointCols={breakpointColumnsObj}
-                    className="masonry-grid"
-                    columnClassName="masonry-grid_column"
-                    >
-                    {itemsToDisplay.map((item) => {
-                      const displayTitle = (i18n.language === 'zh-Hant' && item.titleZh) ? item.titleZh : (item.title || '');
-                      return (
-                        <motion.div key={item.id} variants={fadeInUpItemVariants}>
-                          <PortfolioCard
-                              {...item}
-                              imageUrl={getOptimizedImageUrl(item.imageUrl)}
-                              onClick={() => openLightbox(item, filteredItems)}
-                              isDeleteModeActive={isDeleteModeActive}
-                              isSelectedForDeletion={selectedIdsForDeletion.includes(item.id)}
-                              onToggleSelectionForDeletion={handleToggleSelectionForDeletion}
-                              isCardDisabled={isDeleteModeActive && !!item.isStatic}
-                          />
-                          <p className="xl:hidden text-center text-custom-cyan mt-2 text-sm font-semibold truncate">{displayTitle}</p>
-                        </motion.div>
-                      );
-                    })}
-                    </Masonry>
-                ) : (
-                    <div className="text-center text-theme-secondary py-10">
-                    <p>{t(allPortfolioItems.length > 0 ? 'portfolioPage.noItemsFound' : 'portfolioPage.noItemsOnView')}</p>
-                    </div>
-                )}
-                </motion.div>
-            )}
-          </AnimatePresence>
 
-           {/* 用於無限滾動的加載觸發器 */}
-          <div ref={loaderRef} className="h-10 text-center text-theme-secondary">
-             {!isFiltering && displayCount < filteredItems.length && !isLoading && t('loading')}
+        {/* 篩選與排序控制欄 */}
+        <div className="mb-8">
+          {/* 桌面版 */}
+          <div className="hidden md:relative md:flex md:items-center md:justify-center h-10">
+              {/* 全選框（僅在刪除模式下顯示） */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2">
+                <AnimatePresence> {isDeleteModeActive && deletableItemsCount > 0 && ( <motion.div className="flex items-center" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}> <input type="checkbox" id="select-all-deletable" className="form-checkbox h-5 w-5 rounded text-custom-cyan bg-theme-tertiary border-theme-secondary focus:ring-custom-cyan focus:ring-offset-0 cursor-pointer" checked={selectedIdsForDeletion.length === deletableItemsCount && deletableItemsCount > 0} onChange={handleSelectAllForDeletion} aria-label={t('portfolioPage.selectAllDeletableAriaLabel')} /> <label htmlFor="select-all-deletable" className="ml-2 text-sm text-theme-primary cursor-pointer">{t('portfolioPage.selectAllLabel')}</label> </motion.div> )} </AnimatePresence>
+              </div>
+              {/* 分類篩選按鈕 */}
+              <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
+                  {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
+              </motion.div>
           </div>
-        </>
-      )}
+          {/* 行動裝置版 */}
+          <div className="md:hidden space-y-4">
+              <div className="overflow-x-auto flex justify-center">
+                  <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
+                      {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
+                  </motion.div>
+              </div>
+              <div className="flex items-center justify-between">
+                  <div>
+                      <AnimatePresence> {isDeleteModeActive && deletableItemsCount > 0 && ( <motion.div className="flex items-center" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}> <input type="checkbox" id="select-all-deletable-mobile" className="form-checkbox h-5 w-5 rounded text-custom-cyan bg-theme-tertiary border-theme-secondary focus:ring-custom-cyan focus:ring-offset-0 cursor-pointer" checked={selectedIdsForDeletion.length === deletableItemsCount && deletableItemsCount > 0} onChange={handleSelectAllForDeletion} aria-label={t('portfolioPage.selectAllDeletableAriaLabel')} /> <label htmlFor="select-all-deletable-mobile" className="ml-2 text-sm text-theme-primary cursor-pointer">{t('portfolioPage.selectAllLabel')}</label> </motion.div> )} </AnimatePresence>
+                  </div>
+              </div>
+          </div>
+        </div>
+        
+        {/* 內容網格 */}
+        {isLoading ? (
+          <Masonry breakpointCols={breakpointColumnsObj} className="masonry-grid" columnClassName="masonry-grid_column">
+            {Array.from({ length: 12 }).map((_, index) => <PortfolioSkeletonCard key={index} index={index} />)}
+          </Masonry>
+        ) : (
+          <>
+            <AnimatePresence mode="wait">
+              {isFiltering ? (
+                  <motion.div key="filtering-skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <Masonry breakpointCols={breakpointColumnsObj} className="masonry-grid" columnClassName="masonry-grid_column">
+                          {Array.from({ length: 12 }).map((_, index) => <PortfolioSkeletonCard key={index} index={index} />)}
+                      </Masonry>
+                  </motion.div>
+              ) : (
+                  <motion.div
+                  key={activeFilter}
+                  variants={staggerContainerVariants(0.05, 0)}
+                  initial="initial"
+                  animate="animate"
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  >
+                  {itemsToDisplay.length > 0 ? (
+                      <Masonry
+                      breakpointCols={breakpointColumnsObj}
+                      className="masonry-grid"
+                      columnClassName="masonry-grid_column"
+                      >
+                      {itemsToDisplay.map((item) => {
+                        const displayTitle = (i18n.language === 'zh-Hant' && item.titleZh) ? item.titleZh : (item.title || '');
+                        return (
+                          <motion.div key={item.id} variants={fadeInUpItemVariants}>
+                            <PortfolioCard
+                                {...item}
+                                imageUrl={getOptimizedImageUrl(item.imageUrl)}
+                                onClick={() => openLightbox(item, filteredItems)}
+                                isDeleteModeActive={isDeleteModeActive}
+                                isSelectedForDeletion={selectedIdsForDeletion.includes(item.id)}
+                                onToggleSelectionForDeletion={handleToggleSelectionForDeletion}
+                                isCardDisabled={isDeleteModeActive && !!item.isStatic}
+                            />
+                            <p className="xl:hidden text-center text-custom-cyan mt-2 text-sm font-semibold truncate">{displayTitle}</p>
+                          </motion.div>
+                        );
+                      })}
+                      </Masonry>
+                  ) : (
+                      <div className="text-center text-theme-secondary py-10">
+                      <p>{t(allPortfolioItems.length > 0 ? 'portfolioPage.noItemsFound' : 'portfolioPage.noItemsOnView')}</p>
+                      </div>
+                  )}
+                  </motion.div>
+              )}
+            </AnimatePresence>
+
+             {/* 用於無限滾動的加載觸發器 */}
+            <div ref={loaderRef} className="h-10 text-center text-theme-secondary">
+               {!isFiltering && displayCount < filteredItems.length && !isLoading && t('loading')}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* 燈箱 */}
       {selectedItem && lightboxItemsSource && (
