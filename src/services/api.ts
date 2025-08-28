@@ -57,7 +57,7 @@ export class ApiService {
       if (typeof window !== 'undefined' && window.location && window.location.origin) {
         const hostname = window.location.hostname;
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          const devBackend = this.BACKEND_BASE_FROM_ENV || 'http://localhost:8080';
+          const devBackend = this.BACKEND_BASE_FROM_ENV || 'http://localhost:8080' || '/api';
           return this.stripTrailingSlash(devBackend);
         }
         // For LAN IPs / remote devices, use the frontend origin so redirects
