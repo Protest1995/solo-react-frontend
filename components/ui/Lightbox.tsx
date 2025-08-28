@@ -176,55 +176,66 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') handleNext();
     else if (event.key === 'ArrowLeft') handlePrevious();
-  }, [handleNext, handlePrevious]);
+    else if (event.key === 'Escape') onClose();
+  }, [handleNext, handlePrevious, onClose]);
 
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleKeyDown);
-    
-    const node = lightboxRef.current;
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-    let startY = 0;
-    let startX = 0;
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleKeyDown);
 
-    const onTouchStart = (e: TouchEvent) => {
-        if (e.touches.length === 1) {
-            startY = e.touches[0].clientY;
-            startX = e.touches[0].clientX;
-        }
-    };
+      const node = lightboxRef.current;
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+      let startY = 0;
+      let startX = 0;
 
-    const onTouchMove = (e: TouchEvent) => {
-        if (e.touches.length > 1) { // Pinch zoom
-            e.preventDefault();
-            return;
-        }
-        
-        const touch = e.touches[0];
-        const deltaY = touch.clientY - startY;
-        const deltaX = touch.clientX - startX;
+      const onTouchStart = (e: TouchEvent) => {
+          if (e.touches.length === 1) {
+              startY = e.touches[0].clientY;
+              startX = e.touches[0].clientX;
+          }
+      };
 
-        // If vertical scroll is larger than horizontal, prevent default.
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
-            e.preventDefault();
-        }
-    };
+      const onTouchMove = (e: TouchEvent) => {
+          if (e.touches.length > 1) {
+              e.preventDefault();
+              return;
+          }
 
-    if (node && isMobile) {
-        node.addEventListener('touchstart', onTouchStart, { passive: true });
-        node.addEventListener('touchmove', onTouchMove, { passive: false });
-    }
+          const touch = e.touches[0];
+          const deltaY = touch.clientY - startY;
+          const deltaX = touch.clientX - startX;
+          const target = e.target as HTMLElement;
 
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
+          // 在橫向模式下，如果觸控發生在縮圖預覽區，則不阻止預設行為
+          if (isLandscape) {
+              const carouselElement = carouselRef.current;
+              if (carouselElement && carouselElement.contains(target)) {
+                  // 允許垂直滾動
+                  return;
+              }
+          }
+
+          // 如果垂直滑動幅度大於水平滑動，則阻止頁面滾動
+          if (Math.abs(deltaY) > Math.abs(deltaX)) {
+              e.preventDefault();
+          }
+      };
+
       if (node && isMobile) {
-        node.removeEventListener('touchstart', onTouchStart);
-        node.removeEventListener('touchmove', onTouchMove);
+          node.addEventListener('touchstart', onTouchStart, { passive: true });
+          node.addEventListener('touchmove', onTouchMove, { passive: false });
       }
-    };
-  }, [handleKeyDown]);
+
+      return () => {
+          document.body.style.overflow = originalOverflow;
+          document.removeEventListener('keydown', handleKeyDown);
+          if (node && isMobile) {
+              node.removeEventListener('touchstart', onTouchStart);
+              node.removeEventListener('touchmove', onTouchMove);
+          }
+      };
+  }, [handleKeyDown, isLandscape]);
   
   // 僅在非橫向模式下啟用滾輪水平滾動縮圖
   useEffect(() => {
