@@ -114,7 +114,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   
   // 訂閱 scale 的變化以更新 isZoomed 狀態
   useEffect(() => {
-    const unsubscribe = scale.onChange(v => setIsZoomed(v > 1));
+    const unsubscribe = scale.onChange(v => setIsZoomed(v > 1.01)); // Add a small tolerance
     return unsubscribe;
   }, [scale]);
 
@@ -123,6 +123,13 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const lightboxRoot = useMemo(() => document.getElementById('lightbox-root'), []);
   
   const currentIndex = useMemo(() => filteredItems.findIndex(item => item.id === currentItem.id), [filteredItems, currentItem.id]);
+
+  // 當顯示的項目改變時，重置縮放和平移狀態。
+  useEffect(() => {
+    scale.set(1);
+    x.set(0);
+    y.set(0);
+  }, [currentItem.id, scale, x, y]);
   
   // 當前預覽項目滾動至可見區域
   useEffect(() => {
@@ -177,14 +184,9 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     const newDirection = newIndex > currentIndex || (newIndex === 0 && currentIndex === filteredItems.length - 1) ? 1 : -1;
     setDirection(newDirection);
     onSelectItem(filteredItems[newIndex]);
-    
-    // 重置縮放狀態
-    scale.set(1);
-    x.set(0);
-    y.set(0);
 
     setTimeout(() => { isNavigatingRef.current = false; }, 400);
-  }, [currentIndex, filteredItems, onSelectItem, scale, x, y]);
+  }, [currentIndex, filteredItems, onSelectItem]);
 
   const handleNext = useCallback(() => handleNavigation(current => (current + 1) % filteredItems.length), [handleNavigation, filteredItems.length]);
   const handlePrevious = useCallback(() => handleNavigation(current => (current - 1 + filteredItems.length) % filteredItems.length), [handleNavigation, filteredItems.length]);
@@ -229,7 +231,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   
   const onDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, info: any) => {
     // 只有在未縮放時才觸發滑動導航
-    if (scale.get() > 1) return;
+    if (scale.get() > 1.01) return;
 
     const swipe = Math.abs(info.offset.x) * info.velocity.x;
     if (swipe < -10000) handleNext();
