@@ -24,20 +24,50 @@ export class AuthService {
 
   // 整頁跳轉：使用真實後端根網址
   static loginWithGoogle(): void {
-    const base = ApiService.getAuthBaseUrl();
-  try { localStorage.setItem('authProvider', 'google'); } catch {}
-  window.location.href = `${base}/oauth2/authorization/google`;
+    let base = ApiService.getAuthBaseUrl();
+    try { localStorage.setItem('authProvider', 'google'); } catch {}
+    // If browser is on a non-localhost hostname (LAN IP / phone), force use of
+    // window.location.origin to avoid redirecting to backend localhost which
+    // is unreachable from the phone.
+    try {
+      if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+        const hn = window.location.hostname;
+        if (hn !== 'localhost' && hn !== '127.0.0.1') {
+          base = window.location.origin;
+        }
+      }
+    } catch {}
+    try { console.debug('Social login redirect base (final):', base); } catch {}
+    window.location.href = `${base}/oauth2/authorization/google`;
   }
 
   static loginWithFacebook(): void {
-    const base = ApiService.getAuthBaseUrl();
-  try { localStorage.setItem('authProvider', 'facebook'); } catch {}
-  window.location.href = `${base}/oauth2/authorization/facebook`;
+    let base = ApiService.getAuthBaseUrl();
+    try { localStorage.setItem('authProvider', 'facebook'); } catch {}
+    try {
+      if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+        const hn = window.location.hostname;
+        if (hn !== 'localhost' && hn !== '127.0.0.1') {
+          base = window.location.origin;
+        }
+      }
+    } catch {}
+    try { console.debug('Social login redirect base (final):', base); } catch {}
+    window.location.href = `${base}/oauth2/authorization/facebook`;
   }
 
   static loginWithGithub(): void {
-    const base = ApiService.getAuthBaseUrl();
+    let base = ApiService.getAuthBaseUrl();
     try { localStorage.setItem('authProvider', 'github'); } catch {}
+    try {
+      if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+        const hn = window.location.hostname;
+        if (hn !== 'localhost' && hn !== '127.0.0.1') {
+          base = window.location.origin;
+        }
+      }
+    } catch {}
+    try { console.debug('Social login redirect base (final):', base); } catch {}
     window.location.href = `${base}/oauth2/authorization/github`;
   }
 

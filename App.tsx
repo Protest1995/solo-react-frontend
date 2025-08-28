@@ -51,6 +51,26 @@ import LanguageIcon from './components/icons/LanguageIcon';
 // 將 motionTyped 轉型為 any 以解決類型問題
 const motion: any = motionTyped;
 
+// Dev-only overlay to show the computed social-login base (helps mobile debugging)
+const DevAuthBaseBanner: React.FC = () => {
+  try {
+    const ENV = (import.meta as any).env ?? {};
+    if (!ENV.DEV) return null;
+    const origin = typeof window !== 'undefined' ? window.location.hostname : 'unknown';
+    if (origin === 'localhost' || origin === '127.0.0.1') return null;
+    const base = ApiService.getAuthBaseUrl();
+    return (
+      <div style={{ position: 'fixed', bottom: 12, left: 12, right: 12, zIndex: 9999 }}>
+        <div style={{ background: 'rgba(0,0,0,0.6)', color: 'white', padding: '6px 10px', borderRadius: 6, fontSize: 12, textAlign: 'center' }}>
+          Dev OAuth base: {base}
+        </div>
+      </div>
+    );
+  } catch (e) {
+    return null;
+  }
+};
+
 // --- Route Protection Components ---
 interface ProtectedRouteProps {
   isAuthenticated: boolean;
@@ -594,6 +614,7 @@ const Layout: React.FC<LayoutProps> = ({
         {isBlogPage && <Footer navigateTo={navigateTo} />}
       </main>
       <BackToTopButton isVisible={showBackToTop} />
+  <DevAuthBaseBanner />
     </>
   );
 };

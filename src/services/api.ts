@@ -35,7 +35,10 @@ export class ApiService {
   // 供 axios REST 請求使用（可走 /api 代理）
   static getApiBaseUrl(): string {
     if (this.isDev()) {
-      const devBase = this.API_BASE_FROM_ENV || '/api';
+      // In dev: if VITE_API_BASE_URL is set and non-empty, use it;
+      // otherwise return empty string so request URLs like '/api/posts'
+      // are sent to the dev server root and handled by Vite proxy (no double /api).
+      const devBase = this.API_BASE_FROM_ENV && this.API_BASE_FROM_ENV.length > 0 ? this.API_BASE_FROM_ENV : '';
       return this.stripTrailingSlash(devBase);
     }
     const fromEnv =
@@ -47,6 +50,21 @@ export class ApiService {
   // 供 OAuth 整頁跳轉使用（不可含 /api）
   static getAuthBaseUrl(): string {
     if (this.isDev()) {
+      // In dev: prefer using the front-end origin when the site is accessed
+      // via a LAN IP or hostname (mobile testing). For desktop developers
+      // accessing via `localhost` or `127.0.0.1` keep the backend base so
+      // existing OAuth client settings remain valid.
+      if (typeof window !== 'undefined' && window.location && window.location.origin) {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          const devBackend = this.BACKEND_BASE_FROM_ENV || 'http://localhost:8080';
+          return this.stripTrailingSlash(devBackend);
+        }
+        // For LAN IPs / remote devices, use the frontend origin so redirects
+        // go through the dev server and the Host header is preserved by the
+        // proxy (/oauth2 configured with changeOrigin: false).
+        return this.stripTrailingSlash(window.location.origin);
+      }
       const devBackend = this.BACKEND_BASE_FROM_ENV || 'http://localhost:8080';
       return this.stripTrailingSlash(devBackend);
     }

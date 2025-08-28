@@ -2,8 +2,8 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig(({ mode }) => {
-  // 根據模式選擇後端 API 目標
-  const target = 'https://solo-springboot-backend-production.up.railway.app'; // 統一使用部署版本的後端
+  // 根據模式選擇後端 API 目標：開發時代理到本地 Spring Boot，其他模式代理到部署後端
+  const target = mode === 'local' || mode === 'development' ? 'http://localhost:8080' : 'https://api.soloproject.site';
 
   return {
     base: '/',
@@ -22,6 +22,15 @@ export default defineConfig(({ mode }) => {
             'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization'
           }
+        },
+        // Proxy the OAuth2 endpoints so a redirect to `${window.origin}/oauth2/authorization/...`
+        // will be forwarded to the backend. Keep changeOrigin=false so the Host
+        // header remains the dev server origin (required to construct matching
+        // redirect_uri values during the OAuth flow).
+        '/oauth2': {
+          target,
+          changeOrigin: false,
+          secure: false,
         },
         // 對於 OAuth 流程，changeOrigin 必須為 false。
         // 這會保留原始的 Host header (localhost:5173)，
