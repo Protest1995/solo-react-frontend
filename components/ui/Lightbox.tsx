@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 // 引入翻譯鉤子
 import { useTranslation } from 'react-i18next';
 // 引入 Framer Motion 動畫庫
-import { motion as motionTyped, AnimatePresence } from 'framer-motion'; 
+import { motion as motionTyped, AnimatePresence, useMotionValue, animate } from 'framer-motion'; 
 // 引入類型定義
 import { PortfolioItemData } from '../../types'; 
 // 引入樣式常數
@@ -101,11 +101,22 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   // 狀態管理
   const [direction, setDirection] = useState(0);
   const isNavigatingRef = useRef(false);
-  const lastWheelNavTime = useRef(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isCarouselVisible, setIsCarouselVisible] = useState(false); // 水平預覽面板預設為收合
   const [isVerticalCarouselVisible, setIsVerticalCarouselVisible] = useState(false); // 垂直預覽面板在橫向模式下預設為收合
-  const lightboxRef = useRef<HTMLDivElement>(null);
+
+  // Framer Motion 狀態
+  const scale = useMotionValue(1);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const pinchStartScale = useRef(1);
+  const [isZoomed, setIsZoomed] = useState(false);
+  
+  // 訂閱 scale 的變化以更新 isZoomed 狀態
+  useEffect(() => {
+    const unsubscribe = scale.onChange(v => setIsZoomed(v > 1));
+    return unsubscribe;
+  }, [scale]);
 
   const { id, imageUrl, title, titleZh } = currentItem;
   
@@ -166,8 +177,14 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     const newDirection = newIndex > currentIndex || (newIndex === 0 && currentIndex === filteredItems.length - 1) ? 1 : -1;
     setDirection(newDirection);
     onSelectItem(filteredItems[newIndex]);
+    
+    // 重置縮放狀態
+    scale.set(1);
+    x.set(0);
+    y.set(0);
+
     setTimeout(() => { isNavigatingRef.current = false; }, 400);
-  }, [currentIndex, filteredItems, onSelectItem]);
+  }, [currentIndex, filteredItems, onSelectItem, scale, x, y]);
 
   const handleNext = useCallback(() => handleNavigation(current => (current + 1) % filteredItems.length), [handleNavigation, filteredItems.length]);
   const handlePrevious = useCallback(() => handleNavigation(current => (current - 1 + filteredItems.length) % filteredItems.length), [handleNavigation, filteredItems.length]);
@@ -184,58 +201,11 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
       document.body.style.overflow = 'hidden';
       document.addEventListener('keydown', handleKeyDown);
 
-      const node = lightboxRef.current;
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-      let startY = 0;
-      let startX = 0;
-
-      const onTouchStart = (e: TouchEvent) => {
-          if (e.touches.length === 1) {
-              startY = e.touches[0].clientY;
-              startX = e.touches[0].clientX;
-          }
-      };
-
-      const onTouchMove = (e: TouchEvent) => {
-          if (e.touches.length > 1) {
-              e.preventDefault();
-              return;
-          }
-
-          const touch = e.touches[0];
-          const deltaY = touch.clientY - startY;
-          const deltaX = touch.clientX - startX;
-          const target = e.target as HTMLElement;
-
-          // 在橫向模式下，如果觸控發生在縮圖預覽區，則不阻止預設行為
-          if (isLandscape) {
-              const carouselElement = carouselRef.current;
-              if (carouselElement && carouselElement.contains(target)) {
-                  // 允許垂直滾動
-                  return;
-              }
-          }
-
-          // 如果垂直滑動幅度大於水平滑動，則阻止頁面滾動
-          if (Math.abs(deltaY) > Math.abs(deltaX)) {
-              e.preventDefault();
-          }
-      };
-
-      if (node && isMobile) {
-          node.addEventListener('touchstart', onTouchStart, { passive: true });
-          node.addEventListener('touchmove', onTouchMove, { passive: false });
-      }
-
       return () => {
           document.body.style.overflow = originalOverflow;
           document.removeEventListener('keydown', handleKeyDown);
-          if (node && isMobile) {
-              node.removeEventListener('touchstart', onTouchStart);
-              node.removeEventListener('touchmove', onTouchMove);
-          }
       };
-  }, [handleKeyDown, isLandscape]);
+  }, [handleKeyDown]);
   
   // 僅在非橫向模式下啟用滾輪水平滾動縮圖
   useEffect(() => {
@@ -258,6 +228,9 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const transitionConfig = { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const };
   
   const onDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, info: any) => {
+    // 只有在未縮放時才觸發滑動導航
+    if (scale.get() > 1) return;
+
     const swipe = Math.abs(info.offset.x) * info.velocity.x;
     if (swipe < -10000) handleNext();
     else if (swipe > 10000) handlePrevious();
@@ -275,7 +248,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const mainImagePaddingRight = isLandscape && isVerticalCarouselVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
 
   const lightboxContent = (
-    <div ref={lightboxRef} className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
         <div className="relative flex w-full h-full max-w-screen-2xl">
             {/* Vertical Film Strip for Landscape Mobile */}
             {isLandscape && filteredItems.length > 1 && (
@@ -315,9 +288,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                 </motion.div>
             )}
 
-            <div className="relative flex-grow w-full flex flex-col items-center justify-center overflow-hidden group"
-                 onWheel={(e) => { const now = Date.now(); if (now - lastWheelNavTime.current < 450) return; lastWheelNavTime.current = now; if (e.deltaY > 1) handleNext(); else if (e.deltaY < -1) handlePrevious(); }}
-            >
+            <div className="relative flex-grow w-full flex flex-col items-center justify-center overflow-hidden group">
                 <button onClick={onClose} className={`absolute top-4 right-4 z-50 p-2 rounded-full flex items-center justify-center transition-colors duration-200 ease-in-out focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS} group`} aria-label={t('lightbox.close')}>
                     <CloseIcon className={`w-8 h-8 ${iconColorClasses} ${iconHoverClasses} transition-colors`} />
                 </button>
@@ -326,7 +297,52 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                     animate={{ paddingBottom: mainImagePaddingBottom, paddingLeft: mainImagePaddingLeft, paddingRight: mainImagePaddingRight }}
                 >
                     <AnimatePresence initial={false} custom={direction} mode="wait">
-                        <motion.img key={id + "_img"} src={imageUrl} alt={displayTitle} className="block max-w-full max-h-full object-contain rounded-lg shadow-2xl lightbox-main-image" custom={direction} variants={imageVariants} initial="enter" animate="center" exit="exit" transition={transitionConfig} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.5} onDragEnd={onDragEnd} />
+                        <motion.img 
+                          key={id + "_img"} 
+                          src={imageUrl} 
+                          alt={displayTitle} 
+                          className="block max-w-full max-h-full object-contain rounded-lg shadow-2xl lightbox-main-image" 
+                          custom={direction} 
+                          variants={imageVariants} 
+                          initial="enter" 
+                          animate="center" 
+                          exit="exit" 
+                          transition={transitionConfig} 
+                          onDragEnd={onDragEnd} 
+                          drag={isZoomed ? true : "x"}
+                          dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                          style={{ scale, x, y, touchAction: 'none' }}
+                          onPinchStart={() => {
+                              pinchStartScale.current = scale.get();
+                          }}
+                          onPinch={(_event, info) => {
+                              const newScale = pinchStartScale.current * info.offset.s;
+                              scale.set(newScale);
+                          }}
+                          onPinchEnd={() => {
+                              const currentScale = scale.get();
+                              let newScale = currentScale;
+                              if (currentScale > 4) newScale = 4;
+                              if (currentScale < 1) newScale = 1;
+                              
+                              if (newScale !== currentScale) {
+                                  animate(scale, newScale, { type: 'spring' });
+                              }
+                              
+                              if (newScale === 1) {
+                                  animate(x, 0, { type: 'spring' });
+                                  animate(y, 0, { type: 'spring' });
+                              }
+                          }}
+                          onDoubleClick={() => {
+                              const newScale = scale.get() > 1 ? 1 : 2;
+                              animate(scale, newScale, { type: 'spring' });
+                              if (newScale === 1) {
+                                  animate(x, 0, { type: 'spring' });
+                                  animate(y, 0, { type: 'spring' });
+                              }
+                          }}
+                        />
                     </AnimatePresence>
                 </motion.div>
             </div>
