@@ -11,6 +11,7 @@ import BlogCard from '../ui/BlogCardMasonry';
 import SectionTitle from '../ui/SectionTitle';
 import TopicCard from '../ui/TopicCard';
 import SectionDivider from '../ui/SectionDivider';
+import PlusIcon from '../icons/PlusIcon';
 
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
@@ -206,7 +207,13 @@ export const BlogPage: React.FC<{
 
       {/* 明信片風格的輪播區塊 */}
       {postcardPosts.length > 0 && (
-        <motion.section className="pt-8 md:pt-0" {...sectionDelayShow(0.1)}>
+        <motion.section
+          className="pt-8 md:pt-0"
+          variants={fadeInUpItemVariants}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           <SectionDivider title={t('blogPage.trendingNow')} />
           <PostcardCarousel posts={postcardPosts} navigateTo={navigateTo} />
         </motion.section>
@@ -244,7 +251,27 @@ export const BlogPage: React.FC<{
 
       {/* 分類標籤頁與文章列表 */}
       <section className="max-w-7xl mx-auto">
-        <SectionDivider title={t('blogPage.latestPosts')} />
+        <motion.div 
+            className="flex justify-between items-center pt-0 md:pt-8 pb-8"
+            variants={staggerContainerVariants(0.1, 0.2)}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+          <motion.h3 className="text-2xl font-semibold text-theme-primary" variants={fadeInUpItemVariants}>
+            {t('blogPage.latestPosts')}
+          </motion.h3>
+          {isSuperUser && (
+            <motion.button 
+              onClick={() => navigateTo(Page.AddBlogPost)}
+              className="button-theme-accent font-semibold py-2 px-4 rounded-md flex items-center transition-all whitespace-nowrap"
+              variants={fadeInUpItemVariants}
+            >
+              <PlusIcon className="w-5 h-5 mr-2" />
+              <span>{t('blogPage.addButton')}</span>
+            </motion.button>
+          )}
+        </motion.div>
         <motion.div
           ref={latestPostsRef}
           variants={staggerContainerVariants(0.1, 0.2)}

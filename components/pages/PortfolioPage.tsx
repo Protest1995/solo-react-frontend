@@ -90,6 +90,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   // Ref for the swipeable area (filters + grid)
   const swipeableAreaRef = useRef<HTMLDivElement>(null);
+  // Ref for the "My Works" section to trigger reveal on scroll
+  const myWorksRef = useRef<HTMLDivElement>(null);
   // Touch refs for swipe detection on mobile
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
@@ -118,6 +120,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false); // AI 是否正在生成標題
+  // 是否已進入視口，觸發顯示 My Works 下方的篩選按鈕與卡片
+  const [showWorks, setShowWorks] = useState(false);
 
   // --- 數據處理 (useMemo) ---
 
@@ -366,6 +370,29 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
       el.removeEventListener('touchcancel', resetTouch as any);
     };
   }, [activeFilter, isLoading, isFiltering, handleFilterChange]);
+
+  // Observe the My Works section and reveal filters/cards when scrolled into view
+  useEffect(() => {
+    if (!myWorksRef.current || typeof window === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        const e = entries[0];
+        if (e.isIntersecting) {
+          setShowWorks(true);
+          // once revealed, stop observing to avoid toggling
+          obs.unobserve(e.target);
+        }
+      },
+      { root: null, rootMargin: '0px', threshold: 0.15 }
+    );
+
+    observer.observe(myWorksRef.current);
+
+    return () => {
+      if (myWorksRef.current) observer.unobserve(myWorksRef.current);
+    };
+  }, []);
   
   // 處理文件上傳
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -565,7 +592,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
       </motion.div>
       
       <div ref={swipeableAreaRef}>
-        <div className="md:mt-6">
+        <div className="md:mt-6" ref={myWorksRef}>
           <SectionDivider title={t('portfolioPage.myWorks', 'My Works')} />
         </div>
 
@@ -578,14 +605,14 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
                 <AnimatePresence> {isDeleteModeActive && deletableItemsCount > 0 && ( <motion.div className="flex items-center" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}> <input type="checkbox" id="select-all-deletable" className="form-checkbox h-5 w-5 rounded text-custom-cyan bg-theme-tertiary border-theme-secondary focus:ring-custom-cyan focus:ring-offset-0 cursor-pointer" checked={selectedIdsForDeletion.length === deletableItemsCount && deletableItemsCount > 0} onChange={handleSelectAllForDeletion} aria-label={t('portfolioPage.selectAllDeletableAriaLabel')} /> <label htmlFor="select-all-deletable" className="ml-2 text-sm text-theme-primary cursor-pointer">{t('portfolioPage.selectAllLabel')}</label> </motion.div> )} </AnimatePresence>
               </div>
               {/* 分類篩選按鈕 */}
-              <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
+              <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate={showWorks ? 'animate' : 'initial'}>
                   {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
               </motion.div>
           </div>
           {/* 行動裝置版 */}
           <div className="md:hidden space-y-4">
               <div className="overflow-x-auto flex justify-center">
-                  <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate="animate">
+                          <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate={showWorks ? 'animate' : 'initial'}>
                       {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
                   </motion.div>
               </div>
@@ -616,7 +643,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
                   key={activeFilter}
                   variants={staggerContainerVariants(0.05, 0)}
                   initial="initial"
-                  animate="animate"
+                  animate={showWorks ? 'animate' : 'initial'}
                   exit={{ opacity: 0, transition: { duration: 0.3 } }}
                   >
                   {itemsToDisplay.length > 0 ? (
