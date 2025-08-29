@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped, AnimatePresence } from 'framer-motion';
@@ -251,27 +252,7 @@ export const BlogPage: React.FC<{
 
       {/* 分類標籤頁與文章列表 */}
       <section className="max-w-7xl mx-auto">
-        <motion.div 
-            className="flex justify-between items-center pt-0 md:pt-8 pb-8"
-            variants={staggerContainerVariants(0.1, 0.2)}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.2 }}
-          >
-          <motion.h3 className="text-2xl font-semibold text-theme-primary" variants={fadeInUpItemVariants}>
-            {t('blogPage.latestPosts')}
-          </motion.h3>
-          {isSuperUser && (
-            <motion.button 
-              onClick={() => navigateTo(Page.AddBlogPost)}
-              className="button-theme-accent font-semibold py-2 px-4 rounded-md flex items-center transition-all whitespace-nowrap"
-              variants={fadeInUpItemVariants}
-            >
-              <PlusIcon className="w-5 h-5 mr-2" />
-              <span>{t('blogPage.addButton')}</span>
-            </motion.button>
-          )}
-        </motion.div>
+        <SectionDivider title={t('blogPage.latestPosts')} />
         <motion.div
           ref={latestPostsRef}
           variants={staggerContainerVariants(0.1, 0.2)}

@@ -505,6 +505,7 @@ interface LayoutProps {
   toggleCollapse: () => void;
   navigateTo: (page: Page, data?: any) => void;
   toggleRightSidebar: () => void;
+  showFooter: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({
@@ -512,7 +513,7 @@ const Layout: React.FC<LayoutProps> = ({
   username, email, avatarUrl, currentTheme, isSidebarCollapsed, showBackToTop,
   mobileHeaderClasses, glassEffectClass, mainContentClasses,
   toggleSidebar, closeSidebar, handleLogout, toggleTheme, toggleCollapse, navigateTo,
-  toggleRightSidebar,
+  toggleRightSidebar, showFooter,
 }) => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -591,7 +592,7 @@ const Layout: React.FC<LayoutProps> = ({
         <div className="p-6 md:p-12 min-h-screen flex flex-col">
           <Outlet />
         </div>
-        {isBlogPage && <Footer navigateTo={navigateTo} />}
+        {isBlogPage && <Footer navigateTo={navigateTo} isVisible={showFooter} />}
       </main>
       <BackToTopButton isVisible={showBackToTop} />  
     </>
@@ -624,6 +625,7 @@ const App: React.FC = () => {
   const [allPosts, setAllPosts] = useState<BlogPostData[]>([]);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItemData[]>([]);
   const [postDetailCache, setPostDetailCache] = useState<{ [key: string]: { post: BlogPostData; comments: Comment[] } }>({});
+  const [showFooter, setShowFooter] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
     username: t('sidebar.profileName'),
@@ -737,6 +739,28 @@ const App: React.FC = () => {
       document.body.style.overflow = '';
     };
   }, [isSidebarOpen, isRightSidebarOpen, isMobileView]);
+  
+  useEffect(() => {
+    const handleFooterScroll = () => {
+        // Only show footer on the blog homepage
+        if (location.pathname !== '/blog') {
+            setShowFooter(false);
+            return;
+        }
+
+        // Show footer if user is near the bottom of the page
+        const isNearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 300; // 300px threshold
+        setShowFooter(isNearBottom);
+    };
+
+    window.addEventListener('scroll', handleFooterScroll, { passive: true });
+    handleFooterScroll(); // Initial check on mount
+
+    return () => {
+        window.removeEventListener('scroll', handleFooterScroll);
+    };
+}, [location.pathname]); // Rerun when the page (pathname) changes
+
 
   // Effect to update document title based on the current route
   useEffect(() => {
@@ -1039,6 +1063,7 @@ const App: React.FC = () => {
                     toggleCollapse={toggleCollapse}
                     navigateTo={navigateTo}
                     toggleRightSidebar={toggleRightSidebar}
+                    showFooter={showFooter}
                 />
             }>
                 <Route index element={<HomePage />} />

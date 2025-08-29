@@ -142,32 +142,32 @@ const AboutPage: React.FC = () => {
                 variants={fadeInUpItemVariants}
             >
                 {/* 問候語和姓名 */}
-                <h3 className="text-4xl md:text-5xl font-bold text-theme-primary font-playfair">
+                <h3 className="text-center lg:text-left text-4xl md:text-5xl font-bold text-theme-primary font-playfair">
                     {t('aboutPage.greetingText')} <span className="text-glow-cyan">{t('sidebar.profileName')}</span>
                 </h3>
                 {/* 個人簡介 */}
-                <p className="leading-relaxed">{t('aboutPage.bioFull')}</p>
+                <p className="leading-relaxed lg:indent-[1em] text-center lg:text-left">{t('aboutPage.bioFull')}</p>
                 {/* 詳細個人資料列表 */}
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6 pt-4">
-                    <li className="flex items-center">
+                    <li className="flex items-center justify-start">
                         <CakeIcon className={`w-7 h-7 mr-4 flex-shrink-0 ${ACCENT_COLOR}`} />
                         <div>
                             <strong className="text-theme-primary mr-2">{t('aboutPage.birthday')}:</strong> {t('aboutPage.birthdayValue', '1995/02/02')}
                         </div>
                     </li>
-                    <li className="flex items-center">
+                    <li className="flex items-center justify-start">
                         <MapPinIcon className={`w-7 h-7 mr-4 flex-shrink-0 ${ACCENT_COLOR}`} />
                         <div>
                             <strong className="text-theme-primary mr-2">{t('aboutPage.address')}:</strong> {t('contactPage.addressValue')}
                         </div>
                     </li>
-                    <li className="flex items-center">
+                    <li className="flex items-center justify-start">
                         <PhoneIcon className={`w-7 h-7 mr-4 flex-shrink-0 ${ACCENT_COLOR}`} />
                         <div>
                             <strong className="text-theme-primary mr-2">{t('aboutPage.phone')}:</strong> {t('contactPage.phoneValue')}
                         </div>
                     </li>
-                    <li className="flex items-center">
+                    <li className="flex items-center justify-start">
                         <EnvelopeIcon className={`w-7 h-7 mr-4 flex-shrink-0 ${ACCENT_COLOR}`} />
                         <div className="break-all">
                             <strong className="text-theme-primary mr-2">{t('aboutPage.email')}:</strong> {t('contactPage.emailValue')}
