@@ -156,12 +156,20 @@ const ResumePage: React.FC = () => {
             {t('resumePage.toolsSubTitle')}
           </motion.h3>
           <motion.div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3" variants={staggerContainerVariants(0.05)} initial="initial" whileInView="animate" viewport={{ once: true, amount: 0.2 }}>
-            {allTools.map((tool) => (
-              <motion.div key={tool.nameKey} variants={fadeInUpItemVariants} className="flex items-center">
-                <span className={`inline-block w-1.5 h-1.5 rounded-full mr-3 ${ACCENT_SOLID_BG_COLOR}`}></span>
-                <span className="text-theme-primary text-base font-medium">{t(tool.nameKey)}</span>
-              </motion.div>
-            ))}
+            {allTools.map((tool) => {
+              const indentedTools = ['resumePage.toolVsCode', 'resumePage.toolPostman', 'resumePage.toolPhotoshop'];
+              const shouldIndent = indentedTools.includes(tool.nameKey);
+              return (
+                <motion.div 
+                  key={tool.nameKey} 
+                  variants={fadeInUpItemVariants} 
+                  className={`flex items-center ${shouldIndent ? 'pl-4' : ''}`}
+                >
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full mr-3 ${ACCENT_SOLID_BG_COLOR}`}></span>
+                  <span className="text-theme-primary text-base font-medium">{t(tool.nameKey)}</span>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </div>

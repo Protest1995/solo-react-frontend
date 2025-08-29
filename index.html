@@ -404,6 +404,9 @@
       /* 使用 ::before 偽元素創建旋轉的漸變背景，來模擬動畫邊框 */
       .service-card-wrapper::before, .profile-image-wrapper::before { content: ''; position: absolute; z-index: -1; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200%; height: 200%; background: conic-gradient( from var(--angle), transparent 25%, var(--accent-gradient-start), var(--accent-gradient-end), transparent 60% ); animation: rotate 4s linear infinite; opacity: 1; }
       .service-card-wrapper:hover, .profile-image-wrapper:hover { box-shadow: 0 0 15px var(--accent-shadow-color); }
+      .about-me-avatar-wrapper {
+        box-shadow: 0 0 15px var(--accent-shadow-color);
+      }
       .service-card-inner, .profile-image-inner { background-color: var(--bg-secondary); width: 100%; height: 100%; overflow: hidden; }
       .service-card-inner { border-radius: calc(0.5rem - 2px); }
       .profile-image-inner { border-radius: 9999px; }

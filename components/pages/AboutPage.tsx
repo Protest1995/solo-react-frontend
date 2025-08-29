@@ -130,7 +130,7 @@ const AboutPage: React.FC = () => {
             {/* 個人照片 - 在手機和中尺寸時在上方，大尺寸時在左側 */}
             <motion.div className="w-full max-w-sm mx-auto lg:ml-0 lg:col-span-4" variants={fadeInUpItemVariants}>
                 {/* service-card-wrapper 用於實現動畫邊框效果 */}
-                <div className="service-card-wrapper shadow-xl">
+                <div className="service-card-wrapper shadow-xl about-me-avatar-wrapper">
                     <div className="service-card-inner">
                        <img src={imageUrl} alt={t('sidebar.profileName')} className="w-full h-full object-cover" />
                     </div>
@@ -246,7 +246,9 @@ const AboutPage: React.FC = () => {
         </motion.div>
       </div>
       {/* Footer: same as Blog page footer, always visible on these pages */}
-      <Footer navigateTo={() => {}} isVisible={true} />
+      <div className="-mt-8">
+        <Footer navigateTo={() => {}} isVisible={true} />
+      </div>
     </div>
   );
 };
