@@ -20,6 +20,7 @@ import FilmIcon from '../icons/FilmIcon';
 import WeightIcon from '../icons/WeightIcon';
 import SparklesIcon from '../icons/SparklesIcon';
 import UsersGroupIcon from '../icons/UsersGroupIcon';
+import Footer from '../ui/Footer';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -244,6 +245,8 @@ const AboutPage: React.FC = () => {
           ))}
         </motion.div>
       </div>
+      {/* Footer: same as Blog page footer, always visible on these pages */}
+      <Footer navigateTo={() => {}} isVisible={true} />
     </div>
   );
 };

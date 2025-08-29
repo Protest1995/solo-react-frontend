@@ -20,6 +20,7 @@ import TrashIcon from '../icons/TrashIcon';
 import SparklesIcon from '../icons/SparklesIcon';
 import CameraIcon from '../icons/CameraIcon';
 import CloseIcon from '../icons/CloseIcon';
+import FilterIcon from '../icons/FilterIcon';
 // 引入 Google Gemini AI SDK
 import { GoogleGenAI } from '@google/genai';
 // 引入樣式常數
@@ -28,6 +29,7 @@ import { ACCENT_BORDER_COLOR, ACCENT_FOCUS_RING_CLASS } from '../../constants';
 import { ApiService } from '../../src/services/api';
 import { getOptimizedImageUrl } from '../../utils';
 import SectionDivider from '../ui/SectionDivider';
+import Footer from '../ui/Footer';
 
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
@@ -41,8 +43,8 @@ const addProjectCategoryOptions = [
 ];
 
 // 定義每頁顯示的項目數量、無限滾動加載的數量
-const ITEMS_PER_PAGE = 12; // 初始加載的項目數量
-const ITEMS_TO_LOAD = 6;  // 每次無限滾動加載的項目數量
+const ITEMS_PER_PAGE = 8; // 初始加載的項目數量
+const ITEMS_TO_LOAD = 4;  // 每次無限滾動加載的項目數量
 
 // 作品集頁面的屬性介面
 interface PortfolioPageProps {
@@ -95,10 +97,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   // Touch refs for swipe detection on mobile
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
-  const touchHandledRef = useRef(false);
-
-
-  // --- 狀態管理 (useState) ---
+  const touchHandledRef = useRef<boolean>(false);
+  
   const [activeFilter, setActiveFilter] = useState<string>('portfolioPage.filterAll'); // 當前激活的分類篩選器
   const [selectedItem, setSelectedItem] = useState<PortfolioItemData | null>(null); // 當前在燈箱中選中的項目
   const [lightboxItemsSource, setLightboxItemsSource] = useState<PortfolioItemData[] | null>(null); // 傳遞給燈箱的項目列表
@@ -106,6 +106,13 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
   const [isLoading, setIsLoading] = useState(true); // 是否正在加載（用於顯示骨架屏）
   const [isFiltering, setIsFiltering] = useState(false); // 新增：是否正在篩選，用於顯示骨架屏
   const [activeIndex, setActiveIndex] = useState(0);
+  // local sort/filter menu in portfolio header
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const sortMenuRefDesktop = useRef<HTMLDivElement | null>(null);
+  const sortMenuRefMobile = useRef<HTMLDivElement | null>(null);
+  const [portfolioSortOrder, setPortfolioSortOrder] = useState<'date-desc'|'date-asc'|'title-asc'|'title-desc'>('date-desc');
+  // Track how many images are currently pending load for visible cards
+  const [pendingImageLoads, setPendingImageLoads] = useState(0);
 
   // 管理員功能相關狀態
   const [isAdding, setIsAdding] = useState(false); // 是否顯示新增表單
@@ -149,12 +156,21 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     const filtered = activeFilter === 'portfolioPage.filterAll'
       ? allPortfolioItems
       : allPortfolioItems.filter(item => item.categoryKey === activeFilter);
-  
-    // 2. 默認按日期降序排序
-    return [...filtered].sort((a, b) => {
-      return (b.date ? new Date(b.date).getTime() : 0) - (a.date ? new Date(a.date).getTime() : 0);
-    });
-  }, [activeFilter, allPortfolioItems]);
+
+    // 2. 根據 portfolioSortOrder 排序
+    const copy = [...filtered];
+    switch (portfolioSortOrder) {
+      case 'date-asc':
+        return copy.sort((a, b) => (a.date ? new Date(a.date).getTime() : 0) - (b.date ? new Date(b.date).getTime() : 0));
+      case 'title-asc':
+        return copy.sort((a, b) => ((a.title || '').localeCompare(b.title || '')));
+      case 'title-desc':
+        return copy.sort((a, b) => ((b.title || '').localeCompare(a.title || '')));
+      case 'date-desc':
+      default:
+        return copy.sort((a, b) => (b.date ? new Date(b.date).getTime() : 0) - (a.date ? new Date(a.date).getTime() : 0));
+    }
+  }, [activeFilter, allPortfolioItems, portfolioSortOrder]);
 
 
   // 獲取當前要顯示的項目（用於無限滾動）
@@ -371,6 +387,19 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     };
   }, [activeFilter, isLoading, isFiltering, handleFilterChange]);
 
+  // Close portfolio sort menu when clicking outside (desktop or mobile menu)
+  useEffect(() => {
+    const onDocClick = (ev: MouseEvent) => {
+      if (!isSortMenuOpen) return;
+      const target = ev.target as Node;
+      const inDesktop = sortMenuRefDesktop.current && sortMenuRefDesktop.current.contains(target);
+      const inMobile = sortMenuRefMobile.current && sortMenuRefMobile.current.contains(target);
+      if (!inDesktop && !inMobile) setIsSortMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [isSortMenuOpen]);
+
   // Observe the My Works section and reveal filters/cards when scrolled into view
   useEffect(() => {
     if (!myWorksRef.current || typeof window === 'undefined') return;
@@ -534,6 +563,12 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     openLightbox(item, carouselItems);
   }, [openLightbox, carouselItems]);
 
+  // Whenever the list of displayed items changes, assume their images are pending until onLoad/onError fires
+  useEffect(() => {
+    if (isLoading || isFiltering) return;
+    setPendingImageLoads(itemsToDisplay.length);
+  }, [itemsToDisplay, isLoading, isFiltering]);
+
 
   // --- 渲染 (JSX) ---
   return (
@@ -605,21 +640,106 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
                 <AnimatePresence> {isDeleteModeActive && deletableItemsCount > 0 && ( <motion.div className="flex items-center" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}> <input type="checkbox" id="select-all-deletable" className="form-checkbox h-5 w-5 rounded text-custom-cyan bg-theme-tertiary border-theme-secondary focus:ring-custom-cyan focus:ring-offset-0 cursor-pointer" checked={selectedIdsForDeletion.length === deletableItemsCount && deletableItemsCount > 0} onChange={handleSelectAllForDeletion} aria-label={t('portfolioPage.selectAllDeletableAriaLabel')} /> <label htmlFor="select-all-deletable" className="ml-2 text-sm text-theme-primary cursor-pointer">{t('portfolioPage.selectAllLabel')}</label> </motion.div> )} </AnimatePresence>
               </div>
               {/* 分類篩選按鈕 */}
-              <motion.div className="flex items-center space-x-8" variants={staggerContainerVariants(0.1)} initial="initial" animate={showWorks ? 'animate' : 'initial'}>
-                  {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
+              <motion.div className="flex items-center w-full px-6" variants={staggerContainerVariants(0.1)} initial="initial" animate={showWorks ? 'animate' : 'initial'}>
+                  <div className="flex items-center space-x-8">
+                    {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-lg font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
+                  </div>
+                  {/* spacer pushes the filter icon to the far right of this row */}
+                  <div className="flex-1" />
+                  {/* filter button on the right - only show once My Works is revealed */}
+                  {showWorks && (
+                    <div ref={sortMenuRefDesktop} className="relative">
+                      {/* icon-only desktop button (no bg/border) */}
+                      <button onClick={() => setIsSortMenuOpen(prev => !prev)} aria-expanded={isSortMenuOpen} className={`text-lg p-1.5 rounded-md transition-colors duration-200 ${isSortMenuOpen ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}`} aria-label={t('portfolioPage.openFilterMenu')}>
+                        <FilterIcon className="w-6 h-6" />
+                      </button>
+                      <AnimatePresence>
+                        {isSortMenuOpen && (
+                          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }} className="absolute right-0 mt-2 w-48 bg-theme-secondary border border-theme-primary rounded-md shadow-lg z-50">
+                              <ul className="p-1">
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('date-desc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'date-desc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan'}`}>
+                                  {t('portfolioPage.sortDateDesc', 'Newest')}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('date-asc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'date-asc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan'}`}>
+                                  {t('portfolioPage.sortDateAsc', 'Oldest')}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('title-asc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'title-asc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan'}`}>
+                                  {t('portfolioPage.sortTitleAsc', 'Title A→Z')}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('title-desc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'title-desc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan'}`}>
+                                  {t('portfolioPage.sortTitleDesc', 'Title Z→A')}
+                                </button>
+                              </li>
+                            </ul>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
               </motion.div>
           </div>
           {/* 行動裝置版 */}
           <div className="md:hidden space-y-4">
-              <div className="overflow-x-auto flex justify-center">
-                          <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate={showWorks ? 'animate' : 'initial'}>
-                      {filterCategories.map((category) => ( <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}> <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}> {t(category)} </span> {activeFilter === category && ( <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} /> )} </motion.button> ))}
-                  </motion.div>
+              {/* first row: categories centered and horizontally scrollable */}
+              <div className="overflow-x-auto overflow-visible flex justify-center">
+                <motion.div className="flex items-center space-x-4 sm:space-x-8 pb-2 w-max" variants={staggerContainerVariants(0.1)} initial="initial" animate={showWorks ? 'animate' : 'initial'}>
+                  {filterCategories.map((category) => (
+                    <motion.button key={category} data-category={category} onClick={() => handleFilterChange(category)} className="relative text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-custom-cyan rounded-sm whitespace-nowrap" variants={fadeInUpItemVariants} whileTap={{ translateY: 6 }}>
+                      <span key={`label-mobile-${category}-${activeFilter}`} className={activeFilter === category ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}>
+                        {t(category)}
+                      </span>
+                      {activeFilter === category && (
+                        <motion.div className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-custom-cyan" layoutId="portfolio-filter-underline-mobile" transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }} />
+                      )}
+                    </motion.button>
+                  ))}
+                </motion.div>
               </div>
-              <div className="flex items-center justify-between">
-                  <div>
-                      <AnimatePresence> {isDeleteModeActive && deletableItemsCount > 0 && ( <motion.div className="flex items-center" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}> <input type="checkbox" id="select-all-deletable-mobile" className="form-checkbox h-5 w-5 rounded text-custom-cyan bg-theme-tertiary border-theme-secondary focus:ring-custom-cyan focus:ring-offset-0 cursor-pointer" checked={selectedIdsForDeletion.length === deletableItemsCount && deletableItemsCount > 0} onChange={handleSelectAllForDeletion} aria-label={t('portfolioPage.selectAllDeletableAriaLabel')} /> <label htmlFor="select-all-deletable-mobile" className="ml-2 text-sm text-theme-primary cursor-pointer">{t('portfolioPage.selectAllLabel')}</label> </motion.div> )} </AnimatePresence>
+
+              {/* second row: filter icon (right aligned) */}
+              <div className="flex justify-end px-4">
+                {showWorks && (
+                  <div ref={sortMenuRefMobile} className="relative">
+                    <button onClick={() => setIsSortMenuOpen(prev => !prev)} aria-expanded={isSortMenuOpen} className={`text-base p-1.5 rounded-md transition-colors duration-200 ${isSortMenuOpen ? 'text-custom-cyan' : 'text-theme-secondary hover:text-custom-cyan'}`} aria-label={t('portfolioPage.openFilterMenu')}>
+                      <FilterIcon className="w-6 h-6" />
+                    </button>
+                    <AnimatePresence>
+                      {isSortMenuOpen && (
+                        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }} className="absolute right-0 mt-2 w-44 bg-theme-secondary border border-theme-primary rounded-md shadow-lg z-50">
+                          <ul className="p-1">
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('date-desc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'date-desc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan hover:font-semibold'}`}>
+                                  {t('portfolioPage.sortDateDesc', 'Newest')}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('date-asc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'date-asc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan hover:font-semibold'}`}>
+                                  {t('portfolioPage.sortDateAsc', 'Oldest')}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('title-asc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'title-asc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan hover:font-semibold'}`}>
+                                  {t('portfolioPage.sortTitleAsc', 'Title A→Z')}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => { setPortfolioSortOrder('title-desc'); setIsSortMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${portfolioSortOrder === 'title-desc' ? 'bg-theme-hover text-custom-cyan font-semibold' : 'text-theme-primary hover:bg-theme-hover hover:text-custom-cyan hover:font-semibold'}`}>
+                                  {t('portfolioPage.sortTitleDesc', 'Title Z→A')}
+                                </button>
+                              </li>
+                            </ul>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+                )}
               </div>
           </div>
         </div>
@@ -652,7 +772,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
                       className="masonry-grid"
                       columnClassName="masonry-grid_column"
                       >
-                      {itemsToDisplay.map((item) => {
+                          {itemsToDisplay.map((item) => {
                         const displayTitle = (i18n.language === 'zh-Hant' && item.titleZh) ? item.titleZh : (item.title || '');
                         return (
                           <motion.div key={item.id} variants={fadeInUpItemVariants}>
@@ -664,7 +784,10 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
                                 isSelectedForDeletion={selectedIdsForDeletion.includes(item.id)}
                                 onToggleSelectionForDeletion={handleToggleSelectionForDeletion}
                                 isCardDisabled={isDeleteModeActive && !!item.isStatic}
+                                onImageLoad={() => setPendingImageLoads(prev => Math.max(0, prev - 1))}
+                                onImageError={() => setPendingImageLoads(prev => Math.max(0, prev - 1))}
                             />
+                            
                             <p className="xl:hidden text-center text-custom-cyan mt-2 text-sm font-semibold truncate">{displayTitle}</p>
                           </motion.div>
                         );
@@ -697,6 +820,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
           isLandscape={isLandscape}
         />
       )}
+  {/* Footer: only show when initial loading/filtering finished, all pages loaded and no pending image loads */}
+  <Footer navigateTo={() => {}} isVisible={!isLoading && !isFiltering && displayCount >= filteredItems.length && pendingImageLoads === 0} />
     </div>
   );
 };

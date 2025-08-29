@@ -11,6 +11,7 @@ import RocketIcon from '../icons/RocketIcon';
 import WrenchScrewdriverIcon from '../icons/WrenchScrewdriverIcon';
 import { sectionDelayShow, staggerContainerVariants, fadeInUpItemVariants } from '../../animationVariants';
 import { ACCENT_COLOR, ACCENT_SOLID_BG_COLOR } from '../../constants'; 
+import Footer from '../ui/Footer';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -164,6 +165,7 @@ const ResumePage: React.FC = () => {
           </motion.div>
         </div>
       </div>
+    <Footer navigateTo={() => {}} isVisible={true} />
     </div>
   );
 };

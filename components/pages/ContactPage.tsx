@@ -11,6 +11,7 @@ import PaperAirplaneIcon from '../icons/PaperAirplaneIcon';
 import ClockIcon from '../icons/ClockIcon';
 import { sectionDelayShow, staggerContainerVariants, fadeInUpItemVariants } from '../../animationVariants';
 import IdentificationIcon from '../icons/IdentificationIcon';
+import Footer from '../ui/Footer';
 
 // 將 motionTyped 轉型為 any 以解決 Framer Motion 在某些情況下的類型推斷問題
 const motion: any = motionTyped;
@@ -185,6 +186,7 @@ const ContactPage: React.FC = () => {
             </motion.div>
         </motion.div>
       </div>
+    <Footer navigateTo={() => {}} isVisible={true} />
     </div>
   );
 };

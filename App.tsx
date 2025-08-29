@@ -1017,7 +1017,7 @@ const App: React.FC = () => {
   const mobileHeaderClasses = `
     lg:hidden fixed top-0 left-0 right-0 z-50 h-16
   transform transition-transform duration-300 ease-in-out
-    ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}
+  ${(isMobileHeaderVisible || isSidebarOpen || isRightSidebarOpen) ? 'translate-y-0' : '-translate-y-full'}
   `;
   const glassEffectClass = (isScrolled || isMobileView) ? 'bg-glass border-b border-theme-primary' : '';
   

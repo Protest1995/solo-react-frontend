@@ -41,8 +41,8 @@ const cardMotionVariants = {
  * 作品集卡片組件。
  * 具有 3D 懸停效果，並能響應刪除模式。
  */
-const PortfolioCard: React.FC<PortfolioItemData & { onClick: () => void; isDeleteModeActive?: boolean; isSelectedForDeletion?: boolean; onToggleSelectionForDeletion?: (itemId: string) => void; isCardDisabled?: boolean; }> = (props) => {
-  const { id, imageUrl, onClick, title, titleZh, isDeleteModeActive, isSelectedForDeletion, onToggleSelectionForDeletion, isCardDisabled } = props;
+const PortfolioCard: React.FC<PortfolioItemData & { onClick: () => void; isDeleteModeActive?: boolean; isSelectedForDeletion?: boolean; onToggleSelectionForDeletion?: (itemId: string) => void; isCardDisabled?: boolean; onImageLoad?: () => void; onImageError?: () => void; }> = (props) => {
+  const { id, imageUrl, onClick, title, titleZh, isDeleteModeActive, isSelectedForDeletion, onToggleSelectionForDeletion, isCardDisabled, onImageLoad, onImageError } = props;
   const { t, i18n } = useTranslation();
 
   // --- 3D 懸停效果的 Framer Motion 邏輯 ---
@@ -113,7 +113,7 @@ const PortfolioCard: React.FC<PortfolioItemData & { onClick: () => void; isDelet
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <div className="relative overflow-hidden w-full h-full rounded-lg bg-theme-secondary" style={{ transform: "translateZ(20px)"}}>
-        <img src={imageUrl} alt={displayTitle} className="w-full h-auto object-cover" />
+  <img src={imageUrl} alt={displayTitle} className="w-full h-auto object-cover" onLoad={onImageLoad} onError={onImageError} />
         
         {!isDeleteModeActive && (
             // Desktop hover overlay
