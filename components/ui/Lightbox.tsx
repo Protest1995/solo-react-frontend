@@ -103,8 +103,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const isNavigatingRef = useRef(false);
   const lastWheelNavTime = useRef(0);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [isCarouselVisible, setIsCarouselVisible] = useState(false); // 水平預覽面板預設為收合
-  const [isVerticalCarouselVisible, setIsVerticalCarouselVisible] = useState(false); // 垂直預覽面板在橫向模式下預設為收合
+  const [isThumbnailPanelVisible, setIsThumbnailPanelVisible] = useState(false); // Combine state for thumbnail preview panel
   const lightboxRef = useRef<HTMLDivElement>(null);
 
   const { id, imageUrl, title, titleZh } = currentItem;
@@ -115,8 +114,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   
   // 當前預覽項目滾動至可見區域
   useEffect(() => {
-    const isAnyCarouselVisible = isCarouselVisible || (isLandscape && isVerticalCarouselVisible);
-    if (carouselRef.current && isAnyCarouselVisible) {
+    if (carouselRef.current && isThumbnailPanelVisible) {
         const thumbnailElement = carouselRef.current.querySelector(`[data-index="${currentIndex}"]`) as HTMLElement | undefined;
         if (thumbnailElement) {
             setTimeout(() => {
@@ -124,12 +122,11 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
             }, 100);
         }
     }
-  }, [currentIndex, isCarouselVisible, isVerticalCarouselVisible, isLandscape]);
+  }, [currentIndex, isThumbnailPanelVisible, isLandscape]);
   
   // 優化後的懶加載邏輯：使用單一 IntersectionObserver
   useEffect(() => {
-    const isAnyCarouselVisible = isCarouselVisible || (isLandscape && isVerticalCarouselVisible);
-    if (!isAnyCarouselVisible || !carouselRef.current) return;
+    if (!isThumbnailPanelVisible || !carouselRef.current) return;
 
     const observer = new IntersectionObserver(
         (entries) => {
@@ -157,7 +154,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     return () => {
         observer.disconnect();
     };
-  }, [isCarouselVisible, isVerticalCarouselVisible, isLandscape]);
+  }, [isThumbnailPanelVisible, isLandscape]);
 
   const handleNavigation = useCallback((getNewIndex: (current: number) => number) => {
     if (isNavigatingRef.current) return;
@@ -249,7 +246,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
     };
     carouselElement.addEventListener('wheel', handleWheel, { passive: false });
     return () => { if (carouselElement) carouselElement.removeEventListener('wheel', handleWheel); };
-  }, [isCarouselVisible, isLandscape]);
+  }, [isThumbnailPanelVisible, isLandscape]);
 
   const displayTitle = useMemo(() => {
     return (i18n.language === 'zh-Hant' && titleZh) ? titleZh : (title || '');
@@ -270,9 +267,9 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
   const iconHoverClasses = `hover:text-custom-cyan`;
 
   const imageContainerPaddingClasses = 'pt-16 pb-10';
-  const mainImagePaddingBottom = !isLandscape && isCarouselVisible ? '12.75rem' : isLandscape ? '1rem' : '3.5rem';
-  const mainImagePaddingLeft = isLandscape && isVerticalCarouselVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
-  const mainImagePaddingRight = isLandscape && isVerticalCarouselVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
+  const mainImagePaddingBottom = !isLandscape && isThumbnailPanelVisible ? '12.75rem' : isLandscape ? '1rem' : '3.5rem';
+  const mainImagePaddingLeft = isLandscape && isThumbnailPanelVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
+  const mainImagePaddingRight = isLandscape && isThumbnailPanelVisible ? '9rem' : isLandscape ? '0.5rem' : undefined;
 
   const lightboxContent = (
     <div ref={lightboxRef} className={`fixed inset-0 z-50 flex items-center justify-center p-0 transition-colors duration-300 ease-in-out ${overlayClasses}`} role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
@@ -282,7 +279,7 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                 <motion.div
                     key="vertical-carousel-container"
                     className="absolute top-0 left-0 bottom-0 z-30 h-full flex items-center"
-                    animate={{ x: isVerticalCarouselVisible ? '0rem' : '-9rem' }}
+                    animate={{ x: isThumbnailPanelVisible ? '0rem' : '-9rem' }}
                     transition={transitionConfig}
                 >
                     <div className={`relative h-full flex items-center transition-colors bg-lightbox-carousel-dark rounded-r-lg`}>
@@ -300,14 +297,14 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                           </div>
                         </div>
                         <button
-                            onClick={() => setIsVerticalCarouselVisible(!isVerticalCarouselVisible)}
+                            onClick={() => setIsThumbnailPanelVisible(!isThumbnailPanelVisible)}
                             className={`absolute top-1/2 -right-8 transform -translate-y-1/2 w-8 h-16 rounded-r-full flex items-center justify-center
                                         cursor-pointer transition-colors z-10 bg-lightbox-carousel-dark ${isLightTheme ? 'text-zinc-800' : 'text-white'} hover:text-custom-cyan
                                         focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
-                            aria-label={isVerticalCarouselVisible ? "Hide Thumbnails" : "Show Thumbnails"}
-                            aria-expanded={isVerticalCarouselVisible}
+                            aria-label={isThumbnailPanelVisible ? "Hide Thumbnails" : "Show Thumbnails"}
+                            aria-expanded={isThumbnailPanelVisible}
                         >
-                            <motion.div animate={{ rotate: isVerticalCarouselVisible ? 0 : 180 }} transition={{ duration: 0.3 }}>
+                            <motion.div animate={{ rotate: isThumbnailPanelVisible ? 0 : 180 }} transition={{ duration: 0.3 }}>
                                 <ChevronLeftIcon className="w-6 h-6" />
                             </motion.div>
                         </button>
@@ -335,17 +332,17 @@ const Lightbox: React.FC<LightboxProps> = ({ currentItem, filteredItems, onClose
                 <div key="lightbox-carousel-panel" className="absolute bottom-0 left-0 right-0 z-20 w-full">
                     <div className={`relative w-full mx-auto transition-colors rounded-t-lg ${carouselContainerClasses}`}>
                         <button
-                            onClick={() => setIsCarouselVisible(!isCarouselVisible)}
+                            onClick={() => setIsThumbnailPanelVisible(!isThumbnailPanelVisible)}
                             className={`w-full flex justify-center p-2 cursor-pointer transition-colors z-10 ${iconColorClasses} ${iconHoverClasses} focus:outline-none ${ACCENT_FOCUS_VISIBLE_RING_CLASS}`}
-                            aria-label={isCarouselVisible ? "Hide Thumbnails" : "Show Thumbnails"}
-                            aria-expanded={isCarouselVisible}
+                            aria-label={isThumbnailPanelVisible ? "Hide Thumbnails" : "Show Thumbnails"}
+                            aria-expanded={isThumbnailPanelVisible}
                         >
-                            <motion.div animate={{ rotate: isCarouselVisible ? 0 : 180 }} transition={{ duration: 0.3 }}>
+                            <motion.div animate={{ rotate: isThumbnailPanelVisible ? 0 : 180 }} transition={{ duration: 0.3 }}>
                                 <ChevronDownIcon className="w-6 h-6" />
                             </motion.div>
                         </button>
                         <AnimatePresence>
-                        {isCarouselVisible && (
+                        {isThumbnailPanelVisible && (
                             <motion.div
                                 key="collapsible-content"
                                 className="w-full overflow-hidden"
