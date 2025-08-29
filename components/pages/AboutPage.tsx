@@ -108,20 +108,20 @@ const AboutPage: React.FC = () => {
         </div>
         
         {/* 主要內容網格佈局 */}
-        <div className="flex flex-col lg:grid lg:grid-cols-12 lg:gap-x-6 gap-y-8 items-center">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 lg:gap-x-8 gap-y-8 items-center">
             {/* 個人照片 - 在手機和中尺寸時在上方，大尺寸時在左側 */}
-            <motion.div className="w-full max-w-sm mx-auto lg:ml-0 lg:col-span-5" variants={fadeInUpItemVariants}>
+            <motion.div className="w-full max-w-sm mx-auto lg:ml-0 lg:col-span-4" variants={fadeInUpItemVariants}>
                 {/* service-card-wrapper 用於實現動畫邊框效果 */}
                 <div className="service-card-wrapper shadow-xl">
                     <div className="service-card-inner">
-                       <img src="/images/about-me.jpg" alt={t('sidebar.profileName')} className="w-full h-full object-cover" />
+                       <img src="/images/about-me.webp" alt={t('sidebar.profileName')} className="w-full h-full object-cover" />
                     </div>
                 </div>
             </motion.div>
 
             {/* 個人資訊 - 在手機和中尺寸時在下方，大尺寸時在右側 */}
             <motion.div 
-                className="w-full lg:col-span-7 text-theme-secondary space-y-6 text-lg"
+                className="w-full lg:col-span-8 text-theme-secondary space-y-6 text-lg"
                 variants={fadeInUpItemVariants}
             >
                 {/* 問候語和姓名 */}
