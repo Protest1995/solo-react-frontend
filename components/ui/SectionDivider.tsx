@@ -2,10 +2,12 @@
 import React, { useRef } from 'react';
 // 引入 Framer Motion 動畫庫
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // 組件屬性介面
 interface SectionDividerProps {
-  title?: string; // 分隔線中間的標題文字 (可選)
+  title?: string; // 標題文字 (可選)
+  titleKey?: string; // 標題的翻譯鍵 (可選), 優先級高於 title
 }
 
 /**
@@ -13,8 +15,12 @@ interface SectionDividerProps {
  * 創建一個帶有動畫效果的水平分隔線，中間可以選擇性地顯示標題。
  * 當組件滾動進入視圖時，動畫會被觸發。
  */
-const SectionDivider: React.FC<SectionDividerProps> = ({ title }) => {
+const SectionDivider: React.FC<SectionDividerProps> = ({ title: directTitle, titleKey }) => {
+  const { t } = useTranslation();
   const ref = useRef(null); // Ref 用於 Framer Motion 的 in-view 偵測
+  
+  // 優先使用 titleKey 進行翻譯，如果沒有則使用直接傳入的 title
+  const title = titleKey ? t(titleKey) : directTitle;
 
   // 容器的動畫變體，用於控制子元素的交錯動畫
   const containerVariants = {

@@ -184,6 +184,7 @@
   "portfolioPage": {
     "title": "Portfolio",
     "subtitle": "Check out my latest photos",
+    "myWorks": "My Works",
     "filterAll": "All",
     "filterStreet": "Street",
     "filterPortrait": "Portrait",

@@ -628,7 +628,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
       
       <div ref={swipeableAreaRef}>
         <div className="md:mt-6" ref={myWorksRef}>
-          <SectionDivider title={t('portfolioPage.myWorks', 'My Works')} />
+          <SectionDivider titleKey="portfolioPage.myWorks" />
         </div>
 
         {/* 篩選與排序控制欄 */}

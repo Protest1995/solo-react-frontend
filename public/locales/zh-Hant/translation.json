@@ -184,6 +184,7 @@
   "portfolioPage": {
     "title": "作品集",
     "subtitle": "查看我的最新相片",
+    "myWorks": "我的作品",
     "filterAll": "全部",
     "filterStreet": "街頭攝影",
     "filterPortrait": "人像攝影",
@@ -352,7 +353,7 @@
     "emailjsInfo": "開發者備註：要使此表單正常運作，請在 EmailJS (emailjs.com) 建立帳戶，取得您的 Service ID、Template ID 和 Public Key，並將它們設定為環境變數。",
     "emailjsSetupNeededError": "此聯絡表單尚未完全設定。網站管理員需要在環境變數中設定 EmailJS 的憑證。",
     "contactInfoTitle": "聯絡資訊",
-    "addressLabel": "地址",
+    "addressLabel": "地址:",
     "addressValue": "台中市光明路57-11號4F-3",
     "phoneLabel": "電話",
     "phoneValue": "0978215902",
