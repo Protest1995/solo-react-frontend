@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion as motionTyped } from 'framer-motion';
 import SectionTitle from '../ui/SectionTitle';
@@ -89,6 +89,23 @@ const hobbyIcons = [
 const AboutPage: React.FC = () => {
   // 使用 useTranslation 鉤子來獲取翻譯函數 t
   const { t } = useTranslation();
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
+
+  useEffect(() => {
+    const updateThemeFromBody = () => {
+      const themeClass = document.body.classList.contains('theme-light') ? 'light' : 'dark';
+      setCurrentTheme(themeClass);
+    };
+    
+    updateThemeFromBody();
+
+    const observer = new MutationObserver(updateThemeFromBody);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const imageUrl = currentTheme === 'dark' ? '/images/about-me-dark.webp' : '/images/about-me-light.webp';
 
   return (
     // 頁面主容器，使用 space-y-16 在各個 section 之間創建間距
@@ -114,7 +131,7 @@ const AboutPage: React.FC = () => {
                 {/* service-card-wrapper 用於實現動畫邊框效果 */}
                 <div className="service-card-wrapper shadow-xl">
                     <div className="service-card-inner">
-                       <img src="/images/about-me.webp" alt={t('sidebar.profileName')} className="w-full h-full object-cover" />
+                       <img src={imageUrl} alt={t('sidebar.profileName')} className="w-full h-full object-cover" />
                     </div>
                 </div>
             </motion.div>
